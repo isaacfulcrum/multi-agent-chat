@@ -7,7 +7,11 @@ type Props = {
   message: string;
 };
 
-export const AgentMessage = ({ message, agentName, agentColor }: Props) => {
+export const AgentMessage: React.FC<Props> = ({
+  message,
+  agentName,
+  agentColor,
+}) => {
   // Contrast color for the agent message, so it's readable
   const contrastColor = getContrastColor(agentColor);
 

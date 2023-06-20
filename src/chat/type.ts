@@ -1,7 +1,6 @@
-// An agent is an AI with a set of predefined traits.
+// An agent is a bot that can be used to respond to user requests
 export type Agent = {
   id: string;
-  // Name that identifies the agent
   name: string;
   // Description that provides in-context learning to the request
   description: string;
@@ -11,6 +10,8 @@ export type Agent = {
 
 export type ChatMessage = {
   id: string;
-  agent?: Agent;
   message: string;
+  // In case an agent sends the message,
+  // this property will include the agent's information
+  agent?: Agent;
 };

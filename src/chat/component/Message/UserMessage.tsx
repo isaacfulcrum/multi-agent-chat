@@ -4,7 +4,7 @@ type Props = {
   message: string;
 };
 
-export const UserMessage = ({ message }: Props) => {
+export const UserMessage: React.FC<Props> = ({ message }) => {
   return (
     <Flex gap="1em" px="6" py="2" justify="end">
       <Box

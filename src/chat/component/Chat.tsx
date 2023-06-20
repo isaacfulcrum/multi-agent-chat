@@ -1,14 +1,14 @@
 import React from "react";
+import { ChatMessage } from "../type";
 import { Card, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react";
 import { Input } from "./Input";
 import { Message } from "./Message";
-import { ChatMessage } from "../type";
 
 export const Chat = () => {
   // State for the messages
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
 
-  // Function to push messages to the state
+  // Adds a message to the conversation's history
   const pushMessage = (message: ChatMessage) => {
     setMessages((messages) => [...messages, message]);
   };
