@@ -13,7 +13,7 @@ export const AgentMessage = ({ message, agentName, agentColor }: Props) => {
 
   return (
     <Box maxWidth="90%">
-      <Flex gap="1em" padding="6">
+      <Flex gap="1em" px="6" py="2">
         <Avatar
           name={agentName}
           backgroundColor={agentColor}

@@ -1,36 +1,15 @@
 import { CardBody, Stack } from "@chakra-ui/react";
-import { MessageSkeleton } from "./message-skeleton";
-import { Agent, ChatMessage } from "./type";
+import { ChatMessage } from "./type";
 import { AgentMessage } from "./agent-message";
 import { UserMessage } from "./user-message";
 
-const testAgent: Agent = {
-  id: "1",
-  name: "Agent",
-  color: "#3182CE",
-  description: "This is a test agent",
+type Props = {
+  messages: ChatMessage[];
 };
 
-// Messages to display in the chat
-const messages: ChatMessage[] = [
-  {
-    id: "1",
-    message: "Hello",
-  },
-  {
-    id: "2",
-    message: "Hi",
-    agent: testAgent,
-  },
-  {
-    id: "3",
-    message: "How are you?",
-  },
-];
-
-export const ChatMessages = () => {
+export const ChatMessages = ({ messages = [] }: Props) => {
   return (
-    <CardBody>
+    <CardBody overflow="auto">
       <Stack spacing={3}>
         {messages.map((message) => {
           // If the message has an agent, render the agent message

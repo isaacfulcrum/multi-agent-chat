@@ -6,7 +6,7 @@ type Props = {
 
 export const UserMessage = ({ message }: Props) => {
   return (
-    <Flex gap="1em" padding="6" justify="end">
+    <Flex gap="1em" px="6" py="2" justify="end">
       <Box
         backgroundColor="teal"
         color="white"
