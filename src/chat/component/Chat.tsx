@@ -1,8 +1,8 @@
 import React from "react";
 import { Card, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react";
-import { Input } from "./component/Input";
-import { Message } from "./component/Message";
-import { ChatMessage } from "./type";
+import { Input } from "./Input";
+import { Message } from "./Message";
+import { ChatMessage } from "../type";
 
 export const Chat = () => {
   // State for the messages
