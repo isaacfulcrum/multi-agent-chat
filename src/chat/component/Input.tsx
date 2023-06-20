@@ -1,14 +1,19 @@
 import React from "react";
+import { ChatMessage } from "../type";
 import { ChatIcon } from "@chakra-ui/icons";
-import { Button, CardFooter, Flex, Input } from "@chakra-ui/react";
-import { ChatMessage } from "../chat-messages/type";
+import {
+  Button,
+  CardFooter,
+  Flex,
+  Input as ChakraInput,
+} from "@chakra-ui/react";
 import { nanoid } from "nanoid";
 
 type Props = {
   pushMessage: (message: ChatMessage) => void;
 };
 
-export const ChatInput = ({ pushMessage }: Props) => {
+export const Input: React.FC<Props> = ({ pushMessage }) => {
   const [message, setMessage] = React.useState("");
 
   const onSubmit = () => {
@@ -33,7 +38,7 @@ export const ChatInput = ({ pushMessage }: Props) => {
         style={{ flex: 1 }}
       >
         <Flex gap="1em" padding="6" boxShadow="lg" bg="gray.600" width="100%">
-          <Input
+          <ChakraInput
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type here..."

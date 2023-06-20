@@ -1,8 +1,6 @@
 import { Box, Flex, SkeletonCircle, SkeletonText } from "@chakra-ui/react";
 
-type Props = {};
-
-export const MessageSkeleton = (props: Props) => {
+export const Skeleton = () => {
   return (
     <Flex gap="1em" padding="6" boxShadow="lg" bg="gray.600" borderRadius="lg">
       <SkeletonCircle size="10" />
