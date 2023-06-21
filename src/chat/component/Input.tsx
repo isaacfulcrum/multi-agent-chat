@@ -8,6 +8,7 @@ import {
   Input as ChakraInput,
 } from "@chakra-ui/react";
 import { nanoid } from "nanoid";
+import { ChatCompletionRequestMessageRoleEnum } from "openai";
 
 type Props = {
   pushMessage: (message: ChatMessage) => void;
@@ -23,6 +24,7 @@ export const Input: React.FC<Props> = ({ pushMessage }) => {
     pushMessage({
       id,
       content: message,
+      role: ChatCompletionRequestMessageRoleEnum.User,
     });
     // Resets the input
     setMessage("");

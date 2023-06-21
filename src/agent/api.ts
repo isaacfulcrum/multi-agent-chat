@@ -1,8 +1,6 @@
 // NOTE: This shouldn't be used in the client, only in the server
-
-import { ChatMessage } from "./type";
-
 // For demo purposes, we're using it in the client
+import { ChatMessage } from "@/chat/type";
 import {
   ChatCompletionRequestMessageRoleEnum,
   Configuration,
@@ -15,28 +13,26 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 // This function formats the messages to be sent to OpenAI
+// This structure is required by OpenAI
+// see: https://beta.openai.com/docs/api-reference/completions/create
 const formatMessagesforOpenAI = (messages: ChatMessage[]) => {
   return messages.map((message) => {
+    // If the message has a role defined, use it
+    // Otherwise use the assistant role
     return {
-      role: message.agent
-        ? ChatCompletionRequestMessageRoleEnum.Assistant
-        : ChatCompletionRequestMessageRoleEnum.User,
+      role: message.role ?? ChatCompletionRequestMessageRoleEnum.Assistant,
       content: message.content,
     };
   });
 };
 
-// This function sends the messages to OpenAI and returns the response
+// This function sends the messages to OpenAI and returns the response as a string
 export const getChatCompletion = async (messages: ChatMessage[]) => {
-  try {
-    const response = await openai.createChatCompletion({
-      model: "gpt-4",
-      messages: formatMessagesforOpenAI(messages),
-      max_tokens: 1000,
-      temperature: 0.7,
-    });
-    return response.data.choices[0].message;
-  } catch (error) {
-    console.log(error);
-  }
+  const { data } = await openai.createChatCompletion({
+    model: "gpt-4",
+    messages: formatMessagesforOpenAI(messages),
+    max_tokens: 1000,
+    temperature: 0.7,
+  });
+  return data.choices[0].message?.content;
 };

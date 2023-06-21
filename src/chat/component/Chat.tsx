@@ -1,32 +1,37 @@
 import React from "react";
-import { ChatMessage, DefaultAgent } from "../type";
-import { Card, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react";
+import { ChatMessage } from "../type";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Select,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import { Input } from "./Input";
 import { Message } from "./Message";
-import { getChatCompletion } from "../api";
-import { nanoid } from "nanoid";
+import { useAgent } from "@/agent/hook/useAgent";
+import { agentList, defaultAgent } from "@/agent/type";
 
 export const Chat = () => {
   // State for the messages
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
 
-  // Adds a message to the conversation's history
-  const pushMessage = async (message: ChatMessage) => {
-    const messageHistory = [...messages, message];
+  // State for the selected agent
+  const [selectedAgentId, setSelectedAgentId] = React.useState<string>("");
+  const selectedAgent =
+    agentList.find((agent) => agent.id === selectedAgentId) || defaultAgent;
 
-    setMessages(messageHistory);
-    // Call API to send message to the agent
-    const response = await getChatCompletion(messageHistory);
-    // Pushes the agent's response to the state
-    setMessages([
-      ...messageHistory,
-      {
-        id: nanoid(),
-        agent: DefaultAgent,
-        content: response?.content ?? "",
-      },
-    ]);
-  };
+  // Adds a message to the conversation's history
+  const pushMessage = React.useCallback(
+    async (message: ChatMessage) => {
+      const messageHistory = [...messages, message];
+      setMessages(messageHistory);
+    },
+    [messages]
+  );
+  // Observes the messages as they change and responds to them
+  useAgent({ selectedAgent, messages, pushMessage });
 
   return (
     <Card
@@ -37,9 +42,26 @@ export const Chat = () => {
       boxShadow="none"
     >
       <CardHeader>
-        <Text fontSize="2xl" fontWeight="bold" color="white">
-          Chat
-        </Text>
+        <Stack direction="row" spacing={3}>
+          <Text fontSize="2xl" fontWeight="bold" color="white">
+            Chat
+          </Text>
+          <Select
+            placeholder="Select agent"
+            value={selectedAgentId}
+            onChange={(e) => setSelectedAgentId(e.target.value)}
+            backgroundColor="white"
+          >
+            {
+              // Agent list options
+              agentList.map((agent) => (
+                <option key={agent.id} value={agent.id}>
+                  {agent.name}
+                </option>
+              ))
+            }
+          </Select>
+        </Stack>
       </CardHeader>
       <CardBody overflow="auto">
         <Stack spacing={3}>
