@@ -12,12 +12,15 @@ import { ChatCompletionRequestMessageRoleEnum } from "openai";
 
 type Props = {
   pushMessage: (message: ChatMessage) => void;
+  isLoading: boolean;
 };
 
-export const Input: React.FC<Props> = ({ pushMessage }) => {
+export const Input: React.FC<Props> = ({ pushMessage, isLoading }) => {
   const [message, setMessage] = React.useState("");
 
   const onSubmit = () => {
+    // Prevents the user from sending a message while the AI is typing
+    if (isLoading) return;
     // Creates a unique id for the message
     const id = nanoid();
     // Pushes the message to the state
@@ -45,12 +48,13 @@ export const Input: React.FC<Props> = ({ pushMessage }) => {
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type here..."
             backgroundColor="white"
+            autoFocus
           />
           <Button
             rightIcon={<ChatIcon />}
             colorScheme="teal"
             type="submit"
-            isDisabled={!message}
+            isDisabled={!message || isLoading}
           >
             Send
           </Button>

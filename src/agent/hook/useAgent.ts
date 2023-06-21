@@ -11,6 +11,8 @@ type Props = {
 };
 
 export const useAgent = ({ selectedAgent, messages, pushMessage }: Props) => {
+  const [loadingResponse, setLoadingResponse] = React.useState(false);
+
   // When messages are updated, check if the last message was sent by an agent
   // If not, request a message from the agent
   React.useEffect(() => {
@@ -25,6 +27,7 @@ export const useAgent = ({ selectedAgent, messages, pushMessage }: Props) => {
 
     // Otherwise, request a message from the agent
     const getMessage = async () => {
+      setLoadingResponse(true);
       try {
         // Get the message from the agent
         const agentMessage = await selectedAgent.getResponseMessage(messages);
@@ -40,7 +43,12 @@ export const useAgent = ({ selectedAgent, messages, pushMessage }: Props) => {
         // TODO: Handle error with an alert
         console.log(e);
       }
+      setLoadingResponse(false);
     };
     getMessage();
   }, [messages, selectedAgent, pushMessage]);
+
+  return {
+    loadingResponse,
+  };
 };

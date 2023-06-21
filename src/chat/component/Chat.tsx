@@ -31,7 +31,20 @@ export const Chat = () => {
     [messages]
   );
   // Observes the messages as they change and responds to them
-  useAgent({ selectedAgent, messages, pushMessage });
+  const { loadingResponse } = useAgent({
+    selectedAgent,
+    messages,
+    pushMessage,
+  });
+
+  // Scroll to last function
+  const bottomRef = React.useRef<HTMLDivElement>(null);
+  const scrollToLastElement = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  React.useEffect(() => {
+    scrollToLastElement();
+  }, [messages]);
 
   return (
     <Card
@@ -42,15 +55,17 @@ export const Chat = () => {
       boxShadow="none"
     >
       <CardHeader>
-        <Stack direction="row" spacing={3}>
+        <Stack direction="row" spacing={3} justify="center">
           <Text fontSize="2xl" fontWeight="bold" color="white">
-            Chat
+            Chatting with:
           </Text>
           <Select
-            placeholder="Select agent"
+            isDisabled={loadingResponse}
+            placeholder="Default Agent"
             value={selectedAgentId}
             onChange={(e) => setSelectedAgentId(e.target.value)}
             backgroundColor="white"
+            maxWidth="300px"
           >
             {
               // Agent list options
@@ -63,14 +78,15 @@ export const Chat = () => {
           </Select>
         </Stack>
       </CardHeader>
-      <CardBody overflow="auto">
+      <CardBody overflow="auto" ref={bottomRef}>
         <Stack spacing={3}>
           {messages.map((message) => (
             <Message key={message.id} message={message} />
           ))}
+          <div ref={bottomRef} />
         </Stack>
       </CardBody>
-      <Input pushMessage={pushMessage} />
+      <Input pushMessage={pushMessage} isLoading={loadingResponse} />
     </Card>
   );
 };
