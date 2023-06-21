@@ -22,7 +22,7 @@ export const Input: React.FC<Props> = ({ pushMessage }) => {
     // Pushes the message to the state
     pushMessage({
       id,
-      message,
+      content: message,
     });
     // Resets the input
     setMessage("");

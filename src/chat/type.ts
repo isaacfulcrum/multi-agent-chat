@@ -10,8 +10,16 @@ export type Agent = {
 
 export type ChatMessage = {
   id: string;
-  message: string;
+  // One of the roles defined in chatRoles
+  content: string;
   // In case an agent sends the message,
   // this property will include the agent's information
   agent?: Agent;
+};
+
+export const DefaultAgent: Agent = {
+  id: "default",
+  name: "Default",
+  description: "Default agent",
+  color: "#B4D455 ",
 };

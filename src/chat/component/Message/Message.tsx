@@ -15,12 +15,12 @@ export const Message: React.FC<Props> = ({ message }) => {
         message.agent ? (
           <AgentMessage
             key={message.id}
-            message={message.message}
+            message={message.content}
             agentName={message.agent.name}
             agentColor={message.agent.color}
           />
         ) : (
-          <UserMessage key={message.id} message={message.message} />
+          <UserMessage key={message.id} message={message.content} />
         )
       }
     </>
