@@ -1,43 +1,30 @@
-import { AgentAttributes, AgentType } from "./type";
-import { ChatMessage } from "@/chat/type";
-import { getChatCompletion } from "./api";
-import { ChatCompletionRequestMessageRoleEnum } from "openai";
+import { AGENTS } from "./mock";
+import { Agent } from "./type";
+export class AgentService {
+  private static instance: AgentService;
+  agents: Agent[];
+  currentAgent?: Agent;
+  // Function triggered to notify the UI that the current agent has changed
+  onAgentChanged?: () => void;
 
-// This class represents an agent in the chat, it has the ability to send messages
-// with the description
-export class Agent implements AgentType {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-
-  // Initialize the agent
-  constructor({ id, name, description, color }: AgentAttributes) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.color = color;
+  // == Singleton =================================================================
+  public static getInstance(): AgentService {
+    if (!AgentService.instance) AgentService.instance = new AgentService();
+    return AgentService.instance;
+  }
+  // == Lifecycle =================================================================
+  protected constructor() {
+    this.agents = AGENTS;
   }
 
-  // Know if the last message was sent by an agent
-  isLastMessageSentByAgent(messages: ChatMessage[]) {
-    if (messages.length === 0) return false;
-    return !!messages[messages.length - 1].agent?.id;
-  }
-
-  // Return a message from the agent based on the user's message
-  async getResponseMessage(messages: ChatMessage[]) {
-    const systemMessages: ChatMessage[] = [...messages];
-    if (this.description) {
-      // The agent will send a message with the system role without storing it
-      // This will allow OpenAI to know the persona of the agent and respond accordingly
-      systemMessages.push({
-        id: "system", // Generic ID required for our messages
-        role: ChatCompletionRequestMessageRoleEnum.System,
-        content: this.description,
-      });
+  // == Public Methods ============================================================
+  setCurrentAgent(id: string) {
+    this.currentAgent = this.agents.find((agent) => agent.id === id);
+    if (this.onAgentChanged) {
+      this.onAgentChanged();
     }
-
-    return await getChatCompletion(systemMessages);
   }
 }
+
+const AgentServiceInstance = AgentService.getInstance();
+export default AgentServiceInstance;
