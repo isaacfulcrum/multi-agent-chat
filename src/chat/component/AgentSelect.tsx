@@ -25,7 +25,7 @@ export const AgentSelect = () => {
   return (
     <Select
       isDisabled={false}
-      placeholder="Default Agent"
+      placeholder="Choose an agent"
       value={selectedAgentId}
       onChange={selectAgent}
       backgroundColor="white"
