@@ -1,5 +1,5 @@
 import React from "react";
-import { ChatMessage } from "../type";
+import { ChatMessage, ChatMessageRoleEnum } from "../type";
 import { ChatIcon } from "@chakra-ui/icons";
 import {
   Button,
@@ -8,26 +8,23 @@ import {
   Input as ChakraInput,
 } from "@chakra-ui/react";
 import { nanoid } from "nanoid";
-import { ChatCompletionRequestMessageRoleEnum } from "openai";
+import ChatServiceInstance from "../service";
 
-type Props = {
-  pushMessage: (message: ChatMessage) => void;
-  isLoading: boolean;
-};
-
-export const Input: React.FC<Props> = ({ pushMessage, isLoading }) => {
+export const Input = () => {
+  // === State ====================================================================
   const [message, setMessage] = React.useState("");
+
+  // === Handler ==================================================================
+  const addMessage = (message: ChatMessage) => ChatServiceInstance.addMessage(message);
 
   const onSubmit = () => {
     // Prevents the user from sending a message while the AI is typing
-    if (isLoading) return;
-    // Creates a unique id for the message
+    // TODO: if (ChatServiceInstance.isTyping) 
     const id = nanoid();
-    // Pushes the message to the state
-    pushMessage({
+    addMessage({
       id,
       content: message,
-      role: ChatCompletionRequestMessageRoleEnum.User,
+      role: ChatMessageRoleEnum.User,
     });
     // Resets the input
     setMessage("");
@@ -54,7 +51,7 @@ export const Input: React.FC<Props> = ({ pushMessage, isLoading }) => {
             rightIcon={<ChatIcon />}
             colorScheme="teal"
             type="submit"
-            isDisabled={!message || isLoading}
+            isDisabled={!message}
           >
             Send
           </Button>

@@ -11,6 +11,7 @@ export enum ChatMessageRoleEnum {
 }
 
 export type BaseChatMessage = {
+  id: string;
   role: ChatMessageRoleEnum;
   content: string;
 };
