@@ -19,7 +19,7 @@ export const Input = () => {
 
   const onSubmit = () => {
     // Prevents the user from sending a message while the AI is typing
-    // TODO: if (ChatServiceInstance.isTyping) 
+    if (ChatServiceInstance.isBotTyping) return; 
     const id = nanoid();
     addMessage({
       id,
@@ -51,7 +51,7 @@ export const Input = () => {
             rightIcon={<ChatIcon />}
             colorScheme="teal"
             type="submit"
-            isDisabled={!message}
+            isDisabled={!message || ChatServiceInstance.isBotTyping}
           >
             Send
           </Button>
