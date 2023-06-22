@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChatMessage } from "../type";
 import { Card, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react";
 import { Input } from "./Input";
@@ -23,6 +23,16 @@ export const Chat = () => {
     };
   }, []);
 
+  // === Scroll to bottom =========================================================
+  // TODO: Change location of this operation
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollToElement = () => bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  useEffect(() => {
+    scrollToElement();
+  }, [messages]);
+
+
+  // === UI =======================================================================
   return (
     <Card width="100vw" height="100vh" backgroundColor="gray.800" borderRadius={0} boxShadow="none">
       <CardHeader>
@@ -38,7 +48,7 @@ export const Chat = () => {
           {messages.map((message) => (
             <Message key={message.id} message={message} />
           ))}
-          {/* <div ref={bottomRef} /> */}
+          <div ref={bottomRef} />
         </Stack>
       </CardBody>
       <Input />
