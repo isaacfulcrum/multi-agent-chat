@@ -1,5 +1,5 @@
-import React from "react";
-import { ChatMessage, ChatMessageRoleEnum } from "../type";
+import { ChangeEventHandler, FormEventHandler, useState } from "react";
+import { ChatMessageRoleEnum } from "../type";
 import { ChatIcon } from "@chakra-ui/icons";
 import {
   Button,
@@ -8,41 +8,43 @@ import {
   Input as ChakraInput,
 } from "@chakra-ui/react";
 import { nanoid } from "nanoid";
-import ChatServiceInstance from "../service";
+import { chatServiceInstance } from "../service";
 
 export const Input = () => {
   // === State ====================================================================
-  const [message, setMessage] = React.useState("");
+  const [message, setMessage] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
 
   // === Handler ==================================================================
-  const addMessage = (message: ChatMessage) => ChatServiceInstance.addMessage(message);
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setMessage(e.target.value);
+  };
 
-  const onSubmit = () => {
-    // Prevents the user from sending a message while the AI is typing
-    if (ChatServiceInstance.isBotTyping) return; 
-    const id = nanoid();
-    addMessage({
-      id,
-      content: message,
-      role: ChatMessageRoleEnum.User,
-    });
-    // Resets the input
+  const handlerSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+    if(isLoading) return; 
+
     setMessage("");
+    setIsLoading(true);
+
+    try {
+      chatServiceInstance.addMessage({ id: nanoid(), content: message, role: ChatMessageRoleEnum.User });
+      await chatServiceInstance.runCompletion();
+    } catch{
+      // TODO
+    }
+
+    setIsLoading(false);
   };
 
   return (
     <CardFooter p="0">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onSubmit();
-        }}
-        style={{ flex: 1 }}
-      >
+      <form onSubmit={handlerSubmit} style={{ flex: 1 }} >
         <Flex gap="1em" padding="6" boxShadow="lg" bg="gray.600" width="100%">
           <ChakraInput
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Type here..."
             backgroundColor="white"
             autoFocus
@@ -51,7 +53,7 @@ export const Input = () => {
             rightIcon={<ChatIcon />}
             colorScheme="teal"
             type="submit"
-            isDisabled={!message || ChatServiceInstance.isBotTyping}
+            isDisabled={!message || chatServiceInstance.isLoading}
           >
             Send
           </Button>

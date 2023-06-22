@@ -12,12 +12,14 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 // This function sends the messages to OpenAI and returns the response as a string
-export const getChatCompletion = async (messages: ChatCompletionRequestMessage[]) => {
+export const getChatCompletion = async (messages: ChatCompletionRequestMessage[]): Promise<string> => {
   const { data } = await openai.createChatCompletion({
     model: "gpt-4",
     messages,
     max_tokens: 1000,
     temperature: 0.7,
   });
-  return data.choices[0].message?.content;
+  const message = data.choices[0].message?.content;
+  if(!message) throw new Error('No message returned from OpenAI')
+  return message;
 };

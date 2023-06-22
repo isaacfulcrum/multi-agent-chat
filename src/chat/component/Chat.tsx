@@ -3,34 +3,31 @@ import { ChatMessage } from "../type";
 import { Card, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react";
 import { Input } from "./Input";
 import { Message } from "./Message";
-import ChatServiceInstance from "../service";
+import { chatServiceInstance } from "../service";
 import { AgentSelect } from "./AgentSelect";
 
 export const Chat = () => {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
   // === State ====================================================================
-  const [messages, setMessages] = useState<ChatMessage[]>(ChatServiceInstance.messages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // === Effect ===================================================================
+  /** subscribe to the message added event */
   useEffect(() => {
-    // Update UI callback triggered when a message is added -----------------------
-    const updateMessages = () => setMessages([...ChatServiceInstance.messages]);
-    const handleMessageAdded = () => updateMessages();
-    // Subscribe to the message added event
-    ChatServiceInstance.onMessageAdded = handleMessageAdded;
-    // Unsubscribe from the message added event when the component unmounts
-    return () => {
-      ChatServiceInstance.onMessageAdded = undefined;
-    };
+    const unsubscribe = chatServiceInstance.onMessages(messages => {
+      console.log(messages);
+      setMessages(messages);
+    })
+
+    // unsubscribe when the component is unmounted
+    return () => unsubscribe();
   }, []);
 
-  // === Scroll to bottom =========================================================
-  // TODO: Change location of this operation
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const scrollToElement = () => bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  /** scrolls to the bottom of the chat when a new message is added */
   useEffect(() => {
-    scrollToElement();
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
 
   // === UI =======================================================================
   return (
