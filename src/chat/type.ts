@@ -1,12 +1,53 @@
-import { AgentType } from "@/agent/type";
-import { ChatCompletionRequestMessageRoleEnum } from "openai";
+import { ChatCompletionRequestMessage } from "openai";
+import { Agent } from "@/agent/type";
 
-export type ChatMessage = {
-  id: string;
-  // One of the roles defined in chatRoles
+// ********************************************************************************
+// NOTE: using custom Enum instead of the one from openai since it's not exported as
+// an enum
+export enum ChatMessageRoleEnum {
+  Assistant = "assistant",
+  System = "system",
+  User = "user",
+}
+
+export type BaseChatMessage = {
+  role: ChatMessageRoleEnum;
   content: string;
-  // In case an agent sends the message,
-  // this property will include the agent's information
-  agent?: AgentType;
-  role?: ChatCompletionRequestMessageRoleEnum;
+};
+
+// -- Assistant -------------------------------------------------------------------
+export type BaseAssistantChatMessage = BaseChatMessage & {
+  role: ChatMessageRoleEnum.Assistant;
+};
+export type WithAgent = {
+  isAgent: true;
+  agent: Agent;
+};
+export type WithoutAgent = {
+  isAgent: false;
+};
+
+export type AgentChatMessage = BaseAssistantChatMessage & WithAgent;
+export type NonAgentChatMessage = BaseAssistantChatMessage & WithoutAgent;
+export type AssistantChatMessage = AgentChatMessage | NonAgentChatMessage;
+
+// -- System ----------------------------------------------------------------------
+export type SystemChatMessage = BaseChatMessage & {
+  role: ChatMessageRoleEnum.System;
+};
+
+// -- User ------------------------------------------------------------------------
+export type UserChatMessage = BaseChatMessage & {
+  role: ChatMessageRoleEnum.User;
+};
+
+// --------------------------------------------------------------------------------
+export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage;
+
+// == Util ========================================================================
+export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
+  return {
+    role: message.role,
+    content: message.content,
+  };
 };

@@ -1,36 +1,26 @@
 import { Avatar, Box, Flex, Text } from "@chakra-ui/react";
 import { getContrastColor } from "@/utils/colors";
+import { AssistantChatMessage } from "@/chat/type";
 
-type Props = {
-  agentName: string;
-  agentColor: string;
-  message: string;
-};
-
-export const AgentMessage: React.FC<Props> = ({
-  message,
-  agentName,
-  agentColor,
-}) => {
-  // Contrast color for the agent message, so it's readable
-  const contrastColor = getContrastColor(agentColor);
-
+export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
+  const color = message.isAgent ? message.agent.color : "teal";
+  const contrastColor = message.isAgent ? getContrastColor(message.agent.color) : "white";
   return (
     <Box maxWidth="90%">
       <Flex gap="1em" px="6" py="2">
         <Avatar
-          name={agentName}
-          backgroundColor={agentColor}
+          name={message.isAgent ? message.agent.name : "Chatbot"}
+          backgroundColor={color}
           color={contrastColor}
         />
         <Box
-          backgroundColor={agentColor}
+          backgroundColor={color}
           color={contrastColor}
           padding="4"
           boxShadow="lg"
           borderRadius="lg"
         >
-          <Text>{message}</Text>
+          <Text>{message.content}</Text>
         </Box>
       </Flex>
     </Box>

@@ -1,10 +1,7 @@
+import { UserChatMessage } from "@/chat/type";
 import { Box, Flex, Text } from "@chakra-ui/react";
 
-type Props = {
-  message: string;
-};
-
-export const UserMessage: React.FC<Props> = ({ message }) => {
+export const UserMessage: React.FC<UserChatMessage> = ({ content }) => {
   return (
     <Flex gap="1em" px="6" py="2" justify="end">
       <Box
@@ -15,7 +12,7 @@ export const UserMessage: React.FC<Props> = ({ message }) => {
         borderRadius="lg"
         maxWidth="90%"
       >
-        <Text textAlign="right">{message}</Text>
+        <Text textAlign="right">{content}</Text>
       </Box>
     </Flex>
   );
