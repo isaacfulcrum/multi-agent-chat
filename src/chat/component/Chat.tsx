@@ -16,11 +16,13 @@ export const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   // === Effect ===================================================================
-  /** subscribe to the message added event */
+  /** subscribe to the messages updates */
   useEffect(() => {
-    const unsubscribe = chatServiceInstance.onMessages(messages => setMessages(messages))
+    const subscription = chatServiceInstance.onMessageUpdates$.subscribe((newMessages) => {
+      setMessages(newMessages);
+    });
     // unsubscribe when the component is unmounted
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   /** scrolls to the bottom of the chat when a new message is added */
@@ -44,12 +46,12 @@ export const Chat = () => {
           <Stack spacing={3}>
             {messages.map((message) => (
               <Message key={message.id} message={message} />
-              ))}
+            ))}
             <div ref={bottomRef} />
           </Stack>
         </CardBody>
         <Input />
       </Card>
-   </Flex>
+    </Flex>
   );
 };

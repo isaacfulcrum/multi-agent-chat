@@ -1,3 +1,4 @@
+import { BehaviorSubject } from "rxjs";
 import { nanoid } from "nanoid";
 
 import { agentServiceInstance } from "@/agent/service";
@@ -15,15 +16,18 @@ export class ChatService {
 
   // ------------------------------------------------------------------------------
   public messages: ChatMessage[] = [];  
-  // stores the subscribers to the messages
-  /** listener to notify the UI that a new message has been added */
-  private readonly subscribers: ((messages: ChatMessage[]) => void)[] = [];
 
+  /** stream of updated messages sent to the subscribers */
+  // NOTE: we use a BehaviorSubject so the subscribers get the last value when they subscribe
+  public readonly onMessageUpdates$: BehaviorSubject<ChatMessage[]>;
+  
   /** indicates if the Completion is being run */
   public isLoading: boolean = false;
-
+  
   // == Lifecycle =================================================================
-  protected constructor() {}
+  protected constructor() {
+    this.onMessageUpdates$ = new BehaviorSubject(this.messages);
+  }
 
   // == Private Methods ===========================================================
   public async runCompletion() {
@@ -60,18 +64,8 @@ export class ChatService {
   public async addMessage(message: ChatMessage) {
     // NOTE: creates a new array to trigger the subscribers
     this.messages = [...this.messages, message];
-    this.subscribers.forEach((subscriber) => subscriber(this.messages));
-  }
-
-  // == Subscriptions =============================================================
-  /** subscribes to the messages */
-  public onMessages(subscriber: (messages: ChatMessage[]) => void): () => void/*un-subscribe*/ {
-    this.subscribers.push(subscriber);
-
-    return () => {
-      const index = this.subscribers.indexOf(subscriber);
-      if (index > -1) this.subscribers.splice(index, 1);
-    };
+    // Emit the new messages to the subscribers
+    this.onMessageUpdates$.next(this.messages);
   }
 }
 
