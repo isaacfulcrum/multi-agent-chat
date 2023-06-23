@@ -6,29 +6,30 @@ import { agentServiceInstance } from "@/agent/service";
 // ********************************************************************************
 export const AgentSelect = () => {
   // === State ====================================================================
-  const [selectedAgentId, setSelectedAgentId] = useState<string | undefined>(undefined);
+  const [currentAgentId, setCurrentAgentId] = useState<string | undefined>(undefined);
 
   // === Effect ===================================================================
   /** subscribe to the current agent change event */
   useEffect(() => {
     // Update UI callback triggered when the agent changes ------------------------
-    const unsubscribe = agentServiceInstance.onCurrentAgentChange((agent) =>
-      setSelectedAgentId(agent?.id)
+    const subscription = agentServiceInstance.onCurrentAgentUpdate$.subscribe((agent) =>
+      setCurrentAgentId(agent?.id)
     );
     // Unsubscribe when the component is unmounted
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   // === Handler ==================================================================
-  const selectAgent = (e: ChangeEvent<HTMLSelectElement>) => agentServiceInstance.setCurrentAgent(e.target.value);
+  const selectAgent = (e: ChangeEvent<HTMLSelectElement>) =>
+    agentServiceInstance.setCurrentAgent(e.target.value);
 
   return (
     <Select
-    placeholder="Choose an agent"
-    value={selectedAgentId}
-    onChange={selectAgent}
-    backgroundColor="white"
-    maxWidth="300px"
+      placeholder="Choose an agent"
+      value={currentAgentId}
+      onChange={selectAgent}
+      backgroundColor="white"
+      maxWidth="300px"
     >
       {
         // Agent list options
