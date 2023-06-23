@@ -8,6 +8,7 @@ import { ChatMessage } from "../type";
 import { Input } from "./Input";
 import { Message } from "./Message";
 
+// ********************************************************************************
 export const Chat = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
 

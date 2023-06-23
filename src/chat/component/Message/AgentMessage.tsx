@@ -3,6 +3,7 @@ import { Avatar, Box, Flex, Text } from "@chakra-ui/react";
 import { getContrastColor } from "@/utils/colors";
 import { AssistantChatMessage } from "@/chat/type";
 
+// ********************************************************************************
 export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
   const color = message.isAgent ? message.agent.color : "teal";
   const contrastColor = message.isAgent ? getContrastColor(message.agent.color) : "white";

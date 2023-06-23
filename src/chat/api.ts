@@ -1,11 +1,8 @@
 // NOTE: This shouldn't be used in the client, only in the server
 // For demo purposes, we're using it in the client
-import {
-  ChatCompletionRequestMessage,
-  Configuration,
-  OpenAIApi,
-} from "openai";
+import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 
+// ********************************************************************************
 const configuration = new Configuration({
   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });

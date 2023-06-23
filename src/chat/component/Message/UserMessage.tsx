@@ -2,6 +2,7 @@ import { Box, Flex, Text } from "@chakra-ui/react";
 
 import { UserChatMessage } from "@/chat/type";
 
+// ********************************************************************************
 export const UserMessage: React.FC<UserChatMessage> = ({ content }) => {
   return (
     <Flex gap="1em" px="6" py="2" justify="end">

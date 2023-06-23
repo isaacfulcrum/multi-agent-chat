@@ -7,6 +7,7 @@ import { chatServiceInstance } from "../service";
 
 import { ChatMessageRoleEnum } from "../type";
 
+// ********************************************************************************
 export const Input = () => {
   // === State ====================================================================
   const [message, setMessage] = useState("");

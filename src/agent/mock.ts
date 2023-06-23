@@ -1,5 +1,6 @@
 import { Agent } from "./type";
 
+// ********************************************************************************
 // A list of hardcoded agents, each one with a different assistant personality
 export const AGENTS: Agent[] = [
   {
