@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 
-import AgentServiceInstance from "@/agent/service";
+import { agentServiceInstance } from "@/agent/service";
 
 import { getChatCompletion } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
@@ -15,7 +15,7 @@ export class ChatService {
 
   // ------------------------------------------------------------------------------
   public messages: ChatMessage[] = [];  
-  // stores the subscribes to the messages
+  // stores the subscribers to the messages
   /** listener to notify the UI that a new message has been added */
   private readonly subscribers: ((messages: ChatMessage[]) => void)[] = [];
 
@@ -29,7 +29,7 @@ export class ChatService {
   public async runCompletion() {
     if(this.isLoading) return;
 
-    const agent = AgentServiceInstance.currentAgent;
+    const agent = agentServiceInstance.currentAgent;
     // Format messages as OpenAI expects them
     const formatedMessages = this.messages.map(chatMessageToCompletionMessage);
 
@@ -41,11 +41,10 @@ export class ChatService {
     try {
       this.isLoading = true;
       const content = await getChatCompletion(formatedMessages),
-            id = nanoid();
-
+      id = nanoid();
       let message: AssistantChatMessage;
       // If there's a current agent, we add it to the message
-      if (agent) message = { id, role: ChatMessageRoleEnum.Assistant, content, isAgent: true, agent: agent, };
+      if (agent) message = { id, role: ChatMessageRoleEnum.Assistant, content, isAgent: true, agent, };
       else message = { id, role: ChatMessageRoleEnum.Assistant, content, isAgent: false, };
 
       this.addMessage(message);

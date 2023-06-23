@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { ChatMessage } from "../type";
 import { Card, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react";
+
+import { chatServiceInstance } from "../service";
+
+import { AgentSelect } from "./AgentSelect";
+import { ChatMessage } from "../type";
 import { Input } from "./Input";
 import { Message } from "./Message";
-import { chatServiceInstance } from "../service";
-import { AgentSelect } from "./AgentSelect";
 
 export const Chat = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -15,11 +17,7 @@ export const Chat = () => {
   // === Effect ===================================================================
   /** subscribe to the message added event */
   useEffect(() => {
-    const unsubscribe = chatServiceInstance.onMessages(messages => {
-      console.log(messages);
-      setMessages(messages);
-    })
-
+    const unsubscribe = chatServiceInstance.onMessages(messages => setMessages(messages))
     // unsubscribe when the component is unmounted
     return () => unsubscribe();
   }, []);

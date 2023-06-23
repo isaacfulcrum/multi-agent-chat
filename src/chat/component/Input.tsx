@@ -1,19 +1,15 @@
+import { Button, CardFooter,Flex, Input as ChakraInput } from "@chakra-ui/react";
 import { ChangeEventHandler, FormEventHandler, useState } from "react";
-import { ChatMessageRoleEnum } from "../type";
 import { ChatIcon } from "@chakra-ui/icons";
-import {
-  Button,
-  CardFooter,
-  Flex,
-  Input as ChakraInput,
-} from "@chakra-ui/react";
 import { nanoid } from "nanoid";
+
 import { chatServiceInstance } from "../service";
+
+import { ChatMessageRoleEnum } from "../type";
 
 export const Input = () => {
   // === State ====================================================================
   const [message, setMessage] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
 
   // === Handler ==================================================================

@@ -1,5 +1,6 @@
-import { UserChatMessage } from "@/chat/type";
 import { Box, Flex, Text } from "@chakra-ui/react";
+
+import { UserChatMessage } from "@/chat/type";
 
 export const UserMessage: React.FC<UserChatMessage> = ({ content }) => {
   return (

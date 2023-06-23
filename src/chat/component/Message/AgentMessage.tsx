@@ -1,4 +1,5 @@
 import { Avatar, Box, Flex, Text } from "@chakra-ui/react";
+
 import { getContrastColor } from "@/utils/colors";
 import { AssistantChatMessage } from "@/chat/type";
 

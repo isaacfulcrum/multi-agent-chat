@@ -1,5 +1,5 @@
-import { ChatMessage, ChatMessageRoleEnum } from "@/chat/type";
 import { AgentMessage } from "./AgentMessage";
+import { ChatMessage, ChatMessageRoleEnum } from "@/chat/type";
 import { UserMessage } from "./UserMessage";
 
 type Props = {
