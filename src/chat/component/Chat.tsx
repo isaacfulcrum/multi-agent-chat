@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Card, CardBody, CardHeader, Stack, Text } from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, Flex, Stack, Text } from "@chakra-ui/react";
 
 import { chatServiceInstance } from "../service";
 
@@ -30,24 +30,26 @@ export const Chat = () => {
 
   // === UI =======================================================================
   return (
-    <Card width="100vw" height="100vh" backgroundColor="gray.800" borderRadius={0} boxShadow="none">
-      <CardHeader>
-        <Stack direction="row" spacing={3} justify="center">
-          <Text fontSize="2xl" fontWeight="bold" color="white">
-            Chatting with:
-          </Text>
-          <AgentSelect />
-        </Stack>
-      </CardHeader>
-      <CardBody overflow="auto">
-        <Stack spacing={3}>
-          {messages.map((message) => (
-            <Message key={message.id} message={message} />
-          ))}
-          <div ref={bottomRef} />
-        </Stack>
-      </CardBody>
-      <Input />
-    </Card>
+    <Flex width="100vw" height="100vh" justify="center" align="flex-end" backgroundColor="gray.900">
+      <Card width="100%" maxW="800px" height="100%" backgroundColor="gray.800">
+        <CardHeader>
+          <Stack direction="row" spacing={3} justify="center">
+            <Text fontSize="2xl" fontWeight="bold" color="white">
+              Chatting with:
+            </Text>
+            <AgentSelect />
+          </Stack>
+        </CardHeader>
+        <CardBody overflow="auto">
+          <Stack spacing={3}>
+            {messages.map((message) => (
+              <Message key={message.id} message={message} />
+              ))}
+            <div ref={bottomRef} />
+          </Stack>
+        </CardBody>
+        <Input />
+      </Card>
+   </Flex>
   );
 };
