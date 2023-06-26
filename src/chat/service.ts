@@ -4,12 +4,7 @@ import { nanoid } from "nanoid";
 import { agentServiceInstance } from "@/agent/service";
 
 import { fetchChatCompletionStream, readChatCompletionStream } from "./api";
-import {
-  chatMessageToCompletionMessage,
-  AssistantChatMessage,
-  ChatMessage,
-  ChatMessageRoleEnum,
-} from "./type";
+import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
 
 // ********************************************************************************
 export class ChatService {
@@ -81,6 +76,20 @@ export class ChatService {
     // NOTE: creates a new array to trigger the subscribers
     this.messages = [...this.messages, message];
     // Emit the new messages to the subscribers
+    this.onMessageUpdates$.next(this.messages);
+  }
+
+  /** searches and updates a new message in the chat */
+  public async updateMessage(message: ChatMessage) {
+    // Search the message in the array and replace it
+    this.messages = this.messages.map((m) => (m.id === message.id ? message : m));
+    this.onMessageUpdates$.next(this.messages);
+  }
+
+  /** removes the message from the chat */
+  public async removeMessage(messageId: string) {
+    // Search the message in the array and remove it
+    this.messages = this.messages.filter((m) => m.id !== messageId);
     this.onMessageUpdates$.next(this.messages);
   }
 }
