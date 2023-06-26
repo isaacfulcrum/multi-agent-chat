@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 
 import { agentServiceInstance } from "@/agent/service";
 
-import { fetchChatCompletion, getChatCompletion } from "./api";
+import { fetchChatCompletionStream, readChatCompletionStream } from "./api";
 import {
   chatMessageToCompletionMessage,
   AssistantChatMessage,
@@ -29,61 +29,46 @@ export class ChatService {
   /** indicates if the Completion is being run */
   public isLoading: boolean = false;
 
-  private currentCompletionMessageId?: string;
-  private completionMessage: string = "";
-
   // == Lifecycle =================================================================
   protected constructor() {
     this.onMessageUpdates$ = new BehaviorSubject(this.messages);
-    // Subscribe to the chat completion stream
-    getChatCompletion().subscribe({
-      next: (content) => {
-        this.completionMessage = content;
-        if (this.currentCompletionMessageId && content) {
-          this.updateMessage(this.currentCompletionMessageId, content);
-        }
-      },
-    });
   }
 
-  // == Private Methods ===========================================================
+  // == Public Methods ============================================================
+  /** runs the Completion with the current messages */
   public async runCompletion() {
     if (this.isLoading) return;
 
     const agent = agentServiceInstance.currentAgent;
     // Format messages as OpenAI expects them
-    const formatedMessages = this.messages.map(chatMessageToCompletionMessage);
+    const formattedMessages = this.messages.map(chatMessageToCompletionMessage);
 
     // If there's a current agent, we add its description as a system message
     // NOTE: add to the start of the array so it's the first message
-    if (agent)
-      formatedMessages.unshift({ role: ChatMessageRoleEnum.System, content: agent.description });
+    if (agent) formattedMessages.unshift({ role: ChatMessageRoleEnum.System, content: agent.description });
 
-    // Send new message the chat
     try {
       this.isLoading = true;
-
-      fetchChatCompletion(formatedMessages);
+      // NOTE: We need the stream first, so we can read it after the message is added to the chat
+      const stream = await fetchChatCompletionStream(formattedMessages);
+      if (!stream) throw new Error("Could not fetch chat completion");
+      
+      // Add the message to the chat
       const id = nanoid();
-      let message: AssistantChatMessage;
+      let chatMessage: AssistantChatMessage;
       // If there's a current agent, we add it to the message
-      if (agent)
-        message = {
-          id,
-          role: ChatMessageRoleEnum.Assistant,
-          content: this.completionMessage,
-          isAgent: true,
-          agent,
-        };
-      else
-        message = {
-          id,
-          role: ChatMessageRoleEnum.Assistant,
-          content: this.completionMessage,
-          isAgent: false,
-        };
-      this.addMessage(message);
-      this.currentCompletionMessageId = id;
+      if (agent) chatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: true, agent };
+      else chatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: false };
+      this.addMessage(chatMessage);
+
+      // Read the stream and add the chunks to the message
+      readChatCompletionStream(stream, (incomingMessage: string) => {
+        // Add the chunk to the message
+        chatMessage.content += incomingMessage;
+        // Mutate the array to trigger the subscribers
+        this.messages = [...this.messages];
+        this.onMessageUpdates$.next(this.messages);
+      });
     } catch (error) {
       console.error(error);
     } finally {
@@ -91,19 +76,6 @@ export class ChatService {
     }
   }
 
-  private async updateMessage(chatMessageId: string, content: string) {
-    // Find the message in the array
-    const index = this.messages.findIndex((message) => message.id === chatMessageId);
-    if (index === -1) return;
-    // place the new message in the array
-    console.log("im here");
-    this.messages[index] = { ...this.messages[index], content };
-    this.messages = [...this.messages];
-    // Emit the new messages to the subscribers
-    this.onMessageUpdates$.next(this.messages);
-  }
-
-  // == Public Methods ============================================================
   /** adds the message to the chat and emit the new messages to the subscribers */
   public async addMessage(message: ChatMessage) {
     // NOTE: creates a new array to trigger the subscribers

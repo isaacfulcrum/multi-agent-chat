@@ -6,7 +6,8 @@ import {
   CreateChatCompletionRequest,
   OpenAIApi,
 } from "openai";
-import { BehaviorSubject, Subject } from "rxjs";
+
+import { OpenAIStreamResponse } from "./type";
 
 // ********************************************************************************
 const configuration = new Configuration({
@@ -15,27 +16,9 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
-// Subject indicating the stream of messages sent to the subscribers
-// NOTE: we use a BehaviorSubject so the subscribers get the last value when they subscribe
-const chatCompletionSubject = new BehaviorSubject<string>("");
-let currentMessage = "";
-const updateMessage = (newContent: string) => {
-  currentMessage += newContent;
-  chatCompletionSubject.next(currentMessage);
-};
-
-const resetMessage = () => {
-  currentMessage = "";
-  chatCompletionSubject.next(currentMessage);
-};
-
-export const getChatCompletion = (): Subject<string> => {
-  return chatCompletionSubject;
-};
-
-export const fetchChatCompletion = async (
-  messages: ChatCompletionRequestMessage[]
-): Promise<void> => {
+/** Returns a stream response from the OpenAI API 
+ * @see https://www.builder.io/blog/stream-ai-javascript */
+export const fetchChatCompletionStream = (messages: ChatCompletionRequestMessage[]) => {
   try {
     const specs: CreateChatCompletionRequest = {
       model: "gpt-4",
@@ -44,8 +27,11 @@ export const fetchChatCompletion = async (
       stream: true, // For streaming responses
     };
 
-    // Fetch the response from the OpenAI API with the signal from AbortController
-    const response = await fetch(OPENAI_CHAT_API, {
+    // Fetch the response from the OpenAI API
+    // NOTE: we use the fetch API instead of the OpenAI SDK because the SDK doesn't support streams
+    // https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
+    // FIXME: use the SDK when it supports streams
+    return fetch(OPENAI_CHAT_API, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,47 +39,52 @@ export const fetchChatCompletion = async (
       },
       body: JSON.stringify(specs),
     });
+  } catch (error) {
+    // TODO: handle error
+    console.error("Error:", error);
+  }
+};
 
-    if (!response.body) {
-      throw new Error("Network response was not ok");
+/** Reads a stream and executes a callback once it gets a new chunk of data*/
+export const readChatCompletionStream = async (
+  stream: Response,
+  onUpdate: (incomingData: string) => void
+) => {
+  try {
+    // Check if the stream has a body
+    if (!stream.body) {
+      throw new Error("Stream body is empty");
     }
-
-    // Read the response as a stream of data
-    const reader = response.body.getReader();
+    // Read the stream until it's finished
+    const reader = stream.body.getReader();
     const decoder = new TextDecoder("utf-8");
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
         // Stream finished
         break;
       }
-      // Massage and parse the chunk of data
+
+      // Decode the chunk
       const chunk = decoder.decode(value);
-      const lines = chunk
-        .toString()
-        .split("\n")
-        .filter((line) => line.trim() !== "");
+      const lines = chunk.toString().split("\n").filter((line) => line.trim() !== "");
+
+      // Parse the chunk
       for (const line of lines) {
         const message = line.replace(/^data: /, "");
         if (message === "[DONE]") {
-          resetMessage();
           return; // Stream finished
         }
-        try {
-          const parsed = JSON.parse(message);
-          const { choices } = parsed;
-        const { delta } = choices[0];
-        const { content } = delta;
-          if (content !== undefined) {
-            updateMessage(parsed.choices[0].delta?.content);
-          }
-        } catch (error) {
-          console.error("Could not JSON parse stream message", message, error);
+        const parsed: OpenAIStreamResponse = JSON.parse(message);
+        // NOTE: if there's a parsed message we assume it's a stream response
+        const incomingData = parsed.choices[0].delta?.content;
+        if (incomingData !== undefined) {
+          onUpdate(incomingData);
         }
       }
     }
   } catch (error) {
-    chatCompletionSubject.error(error);
+    // TODO: handle error
+    console.error("Error:", error);
   }
 };

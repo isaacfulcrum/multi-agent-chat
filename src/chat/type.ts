@@ -45,8 +45,27 @@ export type UserChatMessage = BaseChatMessage & {
 // --------------------------------------------------------------------------------
 export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage;
 
+// == OpenAI ======================================================================
+type OpenAIStreamChoice = {
+  delta: {
+    content?: string;
+  };
+  finish_reason: string;
+  index: number;
+};
+
+// NOTE: using a custom Type because it doesn't seem to an official one
+export type OpenAIStreamResponse = {
+  choices: OpenAIStreamChoice[];
+  id: string;
+  model: string;
+  object: string;
+};
+
 // == Util ========================================================================
-export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
+export const chatMessageToCompletionMessage = (
+  message: ChatMessage
+): ChatCompletionRequestMessage => {
   return {
     role: message.role,
     content: message.content,
