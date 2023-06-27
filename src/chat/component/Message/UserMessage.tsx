@@ -17,20 +17,16 @@ export const UserMessage: React.FC<UserChatMessage> = (message) => {
   const handleEdit = () => onOpen();
 
   return (
-    <Flex gap="1em" px="6" py="2" justify="end">
-      <Stack  maxWidth="90%">
-        <Box
-          backgroundColor="teal"
-          color="white"
-          padding="4"
-          boxShadow="lg"
-          borderRadius="lg"
-        >
+    <Flex gap="1em" px="6" pt="2" justify="end" role="group">
+      <Stack maxWidth="90%">
+        <Box backgroundColor="teal" color="white" padding="4" boxShadow="lg" borderRadius="lg">
           <Text textAlign="right">{message.content}</Text>
         </Box>
-        <Flex width="100%" gap="0.5em" justify="flex-end">
-          <EditButton onClick={handleEdit} />
-          <DeleteButton onClick={handleDelete} />
+        <Flex width="100%" justify="flex-start" minH="1.5em">
+          <Flex gap="0.5em" display="none" _groupHover={{ display: "flex" }}>
+            <EditButton onClick={handleEdit} />
+            <DeleteButton onClick={handleDelete} />
+          </Flex>
         </Flex>
       </Stack>
       <EditModal message={message} isOpen={isOpen} onClose={onClose} />
