@@ -10,8 +10,8 @@ import { EditModal } from "./EditModal";
 
 // ********************************************************************************
 export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
-  const color = message.isAgent ? message.agent.color : "teal";
-  const contrastColor = message.isAgent ? getContrastColor(message.agent.color) : "white";
+  const color = message.isAgent ? message.agent.color : "skyblue";
+  const contrastColor = message.isAgent ? getContrastColor(message.agent.color) : "black";
 
   // == Hook ======================================================================
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -21,26 +21,22 @@ export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
   const handleEdit = () => onOpen();
 
   return (
-    <Box maxWidth="90%" role="group">
-      <Flex gap="1em" px="6" py="2">
+    <Flex width="100%" role="group" px="6" py="2" gap="0.5em">
+      <Flex gap="1em"  maxWidth="90%">
         <Avatar
           name={message.isAgent ? message.agent.name : "Chatbot"}
           backgroundColor={color}
           color={contrastColor}
         />
-        <Stack>
-          <Box backgroundColor={color} color={contrastColor} padding="4" boxShadow="lg" borderRadius="lg">
-            <Text whiteSpace="pre-line">{message.content}</Text>
-          </Box>
-          <Flex width="100%" justify="flex-end" minH="1.5em">
-            <Flex gap="0.5em" display="none" _groupHover={{ display: "flex" }}>
-              <EditButton onClick={handleEdit} />
-              <DeleteButton onClick={handleDelete} />
-            </Flex>
-          </Flex>
-        </Stack>
+        <Box flex={1} backgroundColor={color} color={contrastColor} padding="4" boxShadow="lg" borderRadius="lg">
+          <Text whiteSpace="pre-line">{message.content}</Text>
+        </Box>
       </Flex>
+      <Stack gap="0.5em" display="none" _groupHover={{ display: "flex" }}>
+        <EditButton onClick={handleEdit} />
+        <DeleteButton onClick={handleDelete} />
+      </Stack>
       <EditModal message={message} isOpen={isOpen} onClose={onClose} />
-    </Box>
+    </Flex>
   );
 };
