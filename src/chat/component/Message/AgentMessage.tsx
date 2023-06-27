@@ -30,7 +30,7 @@ export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
         />
         <Stack>
           <Box backgroundColor={color} color={contrastColor} padding="4" boxShadow="lg" borderRadius="lg">
-            <Text>{message.content}</Text>
+            <Text whiteSpace="pre-line">{message.content}</Text>
           </Box>
           <Flex width="100%" justify="flex-end" minH="1.5em">
             <Flex gap="0.5em" display="none" _groupHover={{ display: "flex" }}>
