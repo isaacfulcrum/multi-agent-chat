@@ -18,7 +18,7 @@ export const Chat = () => {
   // === Effect ===================================================================
   /** subscribe to the messages updates */
   useEffect(() => {
-    const subscription = chatServiceInstance.onMessageUpdates$.subscribe((newMessages) => {
+    const subscription = chatServiceInstance.onMessage$().subscribe((newMessages) => {
       setMessages(newMessages);
     });
     // unsubscribe when the component is unmounted
