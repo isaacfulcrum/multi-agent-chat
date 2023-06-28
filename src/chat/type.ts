@@ -49,6 +49,12 @@ export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMes
 type OpenAIStreamChoice = {
   delta: {
     content?: string;
+    function_call?: {
+      name: string;
+      arguments: {
+        [key: string]: string;
+      };
+    };
   };
   finish_reason: string;
   index: number;
@@ -62,10 +68,31 @@ export type OpenAIStreamResponse = {
   object: string;
 };
 
+// == Completion ===================================================================
+
+enum CompletionType {
+  function = "function",
+  message = "message",
+}
+
+export type MessageCompletion = {
+  type: CompletionType.message;
+  message: string;
+};
+
+export type FunctionCompletion = {
+  type: CompletionType.function;
+  function_call: {
+    name: string;
+    arguments: string;
+  }
+};
+
+export type Completion = MessageCompletion | FunctionCompletion;
+
+
 // == Util ========================================================================
-export const chatMessageToCompletionMessage = (
-  message: ChatMessage
-): ChatCompletionRequestMessage => {
+export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
   return {
     role: message.role,
     content: message.content,
