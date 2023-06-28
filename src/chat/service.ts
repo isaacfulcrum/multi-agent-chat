@@ -1,4 +1,4 @@
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Observable, Subscription } from "rxjs";
 import { nanoid } from "nanoid";
 
 import { agentServiceInstance } from "@/agent/service";
@@ -21,12 +21,22 @@ export class ChatService {
   private messages$: BehaviorSubject<ChatMessage[]>;
   public onMessage$ = () => this.messages$;
 
+  /** completion stream */
+  private completionSubscription: Subscription | undefined;
+
   /** indicates if the Completion is being run */
   public isLoading: boolean = false;
 
   // == Lifecycle =================================================================
   protected constructor() {
     this.messages$ = new BehaviorSubject<ChatMessage[]>([]);
+  }
+
+  protected unmount() {
+    if (this.completionSubscription) {
+      this.completionSubscription.unsubscribe();
+      this.completionSubscription = undefined;
+    }
   }
 
   // == Private Methods ===========================================================
@@ -62,9 +72,25 @@ export class ChatService {
 
       this.isLoading = true;
       this.addMessage(chatMessage);
+
       // Fetch the response from the OpenAI API and update the content of the message
-      await fetchChatCompletionStream(formattedMessages, (incomingMessage: string) => {
-        this.updateMessage({ ...chatMessage, content: incomingMessage });
+      const completion$ = await fetchChatCompletionStream(formattedMessages);
+      if (!completion$) {
+        throw new Error("Empty response");
+      }
+      // Subscribe to the stream
+      this.completionSubscription = completion$.subscribe({
+        // Update the message as we get new data from the stream
+        next: (content) => {
+          this.updateMessage({ ...chatMessage, content });
+        },
+        // On complete event
+        complete: () => {
+          console.log("message completed");
+        },
+        error: (error) => {
+          throw error;
+        },
       });
     } catch (error) {
       console.error(error);

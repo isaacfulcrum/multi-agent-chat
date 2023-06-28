@@ -4,6 +4,7 @@ import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionReques
 
 import { OpenAIStreamResponse } from "./type";
 import { chatFunctions } from "./command";
+import { Observable, Subscriber } from "rxjs";
 
 // ********************************************************************************
 const configuration = new Configuration({
@@ -14,15 +15,15 @@ const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
 /** Returns a stream response from the OpenAI API 
  * @see https://www.builder.io/blog/stream-ai-javascript */
-export const fetchChatCompletionStream = async (messages: ChatCompletionRequestMessage[], onUpdate: (incomingData: string) => void) => {
+export const fetchChatCompletionStream = async (messages: ChatCompletionRequestMessage[]) => {
   try {
     const specs: CreateChatCompletionRequest = {
       model: "gpt-4",
       messages,
       max_tokens: 600,
-      functions: chatFunctions,
+      // functions: chatFunctions,
+      stream: true,
     };
-
     // Fetch the response from the OpenAI API
     // NOTE: we use the fetch API instead of the OpenAI SDK because the SDK doesn't support streams
     // https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
@@ -36,22 +37,20 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       body: JSON.stringify(specs),
     });
 
-    console.log("stream", stream)
-
-
     // Read the stream
-    // await readChatCompletionStream(stream, onUpdate);
-
+    return new Observable<string>((subscriber)=> {
+      readChatCompletionStream(subscriber, stream);
+    })
   } catch (error) {
     // TODO: handle error
     console.error("Error:", error);
-  }
+  } 
 };
 
 /** Reads a stream and executes a callback once it gets a new chunk of data*/
 export const readChatCompletionStream = async (
+  subscriber: Subscriber<string>,
   stream: Response,
-  onUpdate: (incomingData: string) => void
 ) => {
   try {
     // Check if the stream has a body
@@ -77,19 +76,21 @@ export const readChatCompletionStream = async (
       for (const line of lines) {
         const message = line.replace(/^data: /, "");
         if (message === "[DONE]") {
+          subscriber.complete();
           return; // Stream finished
         }
         const parsed: OpenAIStreamResponse = JSON.parse(message);
         // NOTE: if there's a parsed message we assume it's a stream response
         const incomingContent = parsed.choices[0].delta?.content;
         if (incomingContent !== undefined) {
+          console.log("incomingContent: ", incomingContent)
           incomingMessage += incomingContent;
-          onUpdate(incomingMessage);
+          subscriber.next(incomingMessage);
         }
       }
     }
   } catch (error) {
     // TODO: handle error
-    console.error("Error:", error);
+    subscriber.error(error)
   }
 };
