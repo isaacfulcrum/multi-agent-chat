@@ -3,6 +3,7 @@
 import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
 
 import { OpenAIStreamResponse } from "./type";
+import { chatFunctions } from "./command";
 
 // ********************************************************************************
 const configuration = new Configuration({
@@ -19,7 +20,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       model: "gpt-4",
       messages,
       max_tokens: 600,
-      stream: true, // For streaming responses
+      functions: chatFunctions,
     };
 
     // Fetch the response from the OpenAI API
@@ -35,8 +36,11 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       body: JSON.stringify(specs),
     });
 
+    console.log("stream", stream)
+
+
     // Read the stream
-    await readChatCompletionStream(stream, onUpdate);
+    // await readChatCompletionStream(stream, onUpdate);
 
   } catch (error) {
     // TODO: handle error
