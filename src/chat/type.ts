@@ -70,7 +70,7 @@ export type OpenAIStreamResponse = {
 
 // == Completion ===================================================================
 
-enum CompletionType {
+export enum CompletionType {
   function = "function",
   message = "message",
 }
@@ -82,7 +82,7 @@ export type MessageCompletion = {
 
 export type FunctionCompletion = {
   type: CompletionType.function;
-  function_call: {
+  functionCall: {
     name: string;
     arguments: string;
   }

@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 import { agentServiceInstance } from "@/agent/service";
 
 import { fetchChatCompletionStream } from "./api";
-import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
+import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum, CompletionType } from "./type";
 import { Agent } from "@/agent/type";
 
 // ********************************************************************************
@@ -82,11 +82,16 @@ export class ChatService {
       this.completionSubscription = completion$.subscribe({
         // Update the message as we get new data from the stream
         next: (content) => {
-          this.updateMessage({ ...chatMessage, content });
+          if (content.type === CompletionType.message) {
+            this.updateMessage({ ...chatMessage, content: content.message });
+          } else if (content.type === CompletionType.function) {
+
+            console.log(JSON.parse(content.functionCall.arguments));
+            this.updateMessage({ ...chatMessage, content: content.functionCall.arguments });
+          }
         },
         // On complete event
         complete: () => {
-          console.log("message completed");
         },
         error: (error) => {
           throw error;
