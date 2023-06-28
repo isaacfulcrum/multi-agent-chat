@@ -33,7 +33,7 @@ export const AgentSelect = () => {
     >
       {
         // Agent list options
-        agentServiceInstance.agents.map((agent) => (
+        agentServiceInstance.getAgents().map((agent) => (
           <option key={agent.id} value={agent.id}>
             {agent.name}
           </option>

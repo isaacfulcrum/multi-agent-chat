@@ -29,6 +29,11 @@ export class AgentService {
     this.currentAgent = this.agents.find((agent) => agent.id === id);
     this.onCurrentAgentUpdate$.next(this.currentAgent);
   }
+
+  /** return agent list */
+  getAgents() {
+    return this.agents;
+  }
 }
 
 // ********************************************************************************
