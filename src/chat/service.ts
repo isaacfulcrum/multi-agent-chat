@@ -5,6 +5,7 @@ import { agentServiceInstance } from "@/agent/service";
 
 import { fetchChatCompletionStream } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
+import { Agent } from "@/agent/type";
 
 // ********************************************************************************
 export class ChatService {
@@ -17,7 +18,7 @@ export class ChatService {
   // ------------------------------------------------------------------------------
   /** stream of chat messages sent to the subscribers */
   // NOTE: we use a BehaviorSubject so the subscribers get the last value when they subscribe
-  private messages$: BehaviorSubject<ChatMessage[]>
+  private messages$: BehaviorSubject<ChatMessage[]>;
   public onMessage$ = () => this.messages$;
 
   /** indicates if the Completion is being run */
@@ -35,33 +36,36 @@ export class ChatService {
 
   // == Public Methods ============================================================
   /** runs the Completion with the current messages */
-  public async runCompletion() {
-    if (this.isLoading) return;
-
-    const agent = agentServiceInstance.currentAgent;
-    // Format messages as OpenAI expects them
-    const formattedMessages = this.getMessages().map(chatMessageToCompletionMessage);
-
-    // If there's a current agent, we add its description as a system message
-    // NOTE: add to the start of the array so it's the first message
-    if (agent) formattedMessages.unshift({ role: ChatMessageRoleEnum.System, content: agent.description });
-
+  public async runCompletion(agentId?: string) {
     try {
-      this.isLoading = true;
-      
-      // Add the message to the chat
+      // Check if the Completion is already running
+      if (this.isLoading) return;
+
+      // Format messages as OpenAI expects them
+      const formattedMessages = this.getMessages().map(chatMessageToCompletionMessage);
+
+      // New message
       const id = nanoid();
-      let chatMessage: AssistantChatMessage;
-      // If there's a current agent, we add it to the message
-      if (agent) chatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: true, agent };
-      else chatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: false };
+      let chatMessage: AssistantChatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: false };
+
+      let agent: Agent | undefined;
+      if (agentId) {
+        agent = agentServiceInstance.getAgent(agentId);
+        // If the agetn exists, we add its description as a system message
+        // NOTE: add to the start of the array so it's the first message
+        if (agent) {
+          formattedMessages.unshift({ role: ChatMessageRoleEnum.System, content: agent.description });
+          // NOTE: Add the agent to the message so we can display it in the UI
+          chatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: true, agent };
+        }
+      }
+
+      this.isLoading = true;
       this.addMessage(chatMessage);
-      
       // Fetch the response from the OpenAI API and update the content of the message
       await fetchChatCompletionStream(formattedMessages, (incomingMessage: string) => {
         this.updateMessage({ ...chatMessage, content: incomingMessage });
       });
-
     } catch (error) {
       console.error(error);
     } finally {
@@ -76,7 +80,7 @@ export class ChatService {
 
   /** searches and updates a new message in the chat */
   public async updateMessage(message: ChatMessage) {
-    this.messages$.next(this.getMessages().map((m) => m.id === message.id ? message : m));
+    this.messages$.next(this.getMessages().map((m) => (m.id === message.id ? message : m)));
   }
 
   /** removes the message from the chat */

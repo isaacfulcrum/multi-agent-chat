@@ -34,6 +34,11 @@ export class AgentService {
   getAgents() {
     return this.agents;
   }
+
+  /** return an agent by his id */
+  getAgent(id: string) {
+    return this.agents.find((agent) => agent.id === id);
+  }
 }
 
 // ********************************************************************************
