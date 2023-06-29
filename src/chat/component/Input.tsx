@@ -27,7 +27,7 @@ export const Input = () => {
 
     try {
       chatServiceInstance.addMessage({ id: nanoid(), content: message, role: ChatMessageRoleEnum.User });
-      await chatServiceInstance.runCompletion();
+      await chatServiceInstance.continueChat();
     } catch{
       // TODO
     }

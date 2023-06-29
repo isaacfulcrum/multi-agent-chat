@@ -3,9 +3,11 @@ import { nanoid } from "nanoid";
 
 import { agentServiceInstance } from "@/agent/service";
 
-import { fetchChatCompletionStream } from "./api";
-import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum, CompletionType } from "./type";
+import { fetchAgent, fetchChatCompletionStream } from "./api";
+import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
 import { Agent } from "@/agent/type";
+import { ChatFunctions, chatFunctions, moderatorDescription } from "./command";
+import { ChatCompletionRequestMessage } from "openai";
 
 // ********************************************************************************
 export class ChatService {
@@ -45,15 +47,40 @@ export class ChatService {
   }
 
   // == Public Methods ============================================================
-  /** runs the Completion with the current messages */
-  public async runCompletion(agentId?: string) {
+  //** selects an agent to keep the conversation flowing */
+  public async continueChat() {
     try {
       // Check if the Completion is already running
       if (this.isLoading) return;
 
       // Format messages as OpenAI expects them
-      const formattedMessages = this.getMessages().map(chatMessageToCompletionMessage);
+      const messages = this.getMessages().map(chatMessageToCompletionMessage);
 
+      // This is the message system message that we send to the agent
+      const mod = {
+        role: ChatMessageRoleEnum.System,
+        content: moderatorDescription + JSON.stringify(agentServiceInstance.getAgents()),
+      };
+      // NOTE: add to the start of the array so it's the first message
+      messages.unshift(mod);
+
+      // Run the Completion
+      const content = await fetchAgent(messages);
+      if (!content) throw new Error("No content");
+
+      if (content.name === ChatFunctions.runCompletion) {
+        const args = JSON.parse(content.arguments ?? "{}");
+        await this.runCompletion(messages, args.agentId);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
+  // == Private Methods ===========================================================
+  /** runs the Completion with the current messages */
+  public async runCompletion(messages: ChatCompletionRequestMessage[], agentId?: string) {
+    try {
       // New message
       const id = nanoid();
       let chatMessage: AssistantChatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: false };
@@ -64,7 +91,7 @@ export class ChatService {
         // If the agetn exists, we add its description as a system message
         // NOTE: add to the start of the array so it's the first message
         if (agent) {
-          formattedMessages.unshift({ role: ChatMessageRoleEnum.System, content: agent.description });
+          messages.unshift({ role: ChatMessageRoleEnum.System, content: agent.description });
           // NOTE: Add the agent to the message so we can display it in the UI
           chatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: true, agent };
         }
@@ -74,7 +101,7 @@ export class ChatService {
       this.addMessage(chatMessage);
 
       // Fetch the response from the OpenAI API and update the content of the message
-      const completion$ = await fetchChatCompletionStream(formattedMessages);
+      const completion$ = await fetchChatCompletionStream(messages);
       if (!completion$) {
         throw new Error("Empty response");
       }
@@ -82,16 +109,10 @@ export class ChatService {
       this.completionSubscription = completion$.subscribe({
         // Update the message as we get new data from the stream
         next: (content) => {
-          if (content.type === CompletionType.message) {
-            this.updateMessage({ ...chatMessage, content: content.message });
-          } else if (content.type === CompletionType.function) {
-
-            console.log(JSON.parse(content.functionCall.arguments));
-            this.updateMessage({ ...chatMessage, content: content.functionCall.arguments });
-          }
+          this.updateMessage({ ...chatMessage, content });
         },
-        // On complete event
         complete: () => {
+          // this.completeChat();
         },
         error: (error) => {
           throw error;
