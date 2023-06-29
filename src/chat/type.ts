@@ -68,29 +68,6 @@ export type OpenAIStreamResponse = {
   object: string;
 };
 
-// == Completion ===================================================================
-
-export enum CompletionType {
-  function = "function",
-  message = "message",
-}
-
-export type MessageCompletion = {
-  type: CompletionType.message;
-  message: string;
-};
-
-export type FunctionCompletion = {
-  type: CompletionType.function;
-  functionCall: {
-    name: string;
-    arguments: string;
-  }
-};
-
-export type Completion = MessageCompletion | FunctionCompletion;
-
-
 // == Util ========================================================================
 export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
   return {

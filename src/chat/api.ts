@@ -2,8 +2,8 @@
 // For demo purposes, we're using it in the client
 import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
 
-import { Completion, CompletionType, OpenAIStreamResponse } from "./type";
-import { chatFunctions } from "./command";
+import { OpenAIStreamResponse } from "./type";
+import { ChatFunctions, chatFunctions } from "./command";
 import { Observable, Subscriber } from "rxjs";
 
 // ********************************************************************************
@@ -13,6 +13,27 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
+/** Selects an agent to keep the conversation flowing */
+export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
+  try {
+    // Asks the agent to continue the conversation
+    const { data } = await openai.createChatCompletion({
+      model: "gpt-4",
+      messages,
+      max_tokens: 600,
+      functions: chatFunctions,
+      function_call: {
+        name: ChatFunctions.runCompletion, /** forces it to call this function */
+      },
+    });
+    // Read the stream
+    return data.choices[0].message?.function_call;
+  } catch (error) {
+    // TODO: handle error
+    console.error("Error:", error);
+  }
+};
+
 /** Returns a stream response from the OpenAI API
  * @see https://www.builder.io/blog/stream-ai-javascript */
 export const fetchChatCompletionStream = async (messages: ChatCompletionRequestMessage[]) => {
@@ -21,7 +42,6 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       model: "gpt-4",
       messages,
       max_tokens: 600,
-      functions: chatFunctions,
       stream: true,
     };
 
@@ -39,7 +59,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
     });
 
     // Read the stream
-    return new Observable<Completion>((subscriber) => {
+    return new Observable<string>((subscriber) => {
       readChatCompletionStream(subscriber, stream);
     });
   } catch (error) {
@@ -49,7 +69,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
 };
 
 /** Reads a stream and executes a callback once it gets a new chunk of data*/
-export const readChatCompletionStream = async (subscriber: Subscriber<Completion>, stream: Response) => {
+export const readChatCompletionStream = async (subscriber: Subscriber<string>, stream: Response) => {
   try {
     // Check if the stream has a body
     if (!stream.body) {
@@ -81,10 +101,6 @@ export const readChatCompletionStream = async (subscriber: Subscriber<Completion
       for (const line of lines) {
         const message = line.replace(/^data: /, "");
         if (message === "[DONE]") {
-          if(incomingFunctionCall.name) subscriber.next({
-            type: CompletionType.function,
-            functionCall: incomingFunctionCall,              
-          });
           subscriber.complete();
           return; // Stream finished
         }
@@ -94,16 +110,14 @@ export const readChatCompletionStream = async (subscriber: Subscriber<Completion
           const parsed: OpenAIStreamResponse = JSON.parse(message);
           const delta = parsed.choices[0].delta;
           // -- Function call ----------------------------------------------------------
+          // NOTE: At the moment, we're not using this feature, but it could be useful in case we want to add custom functions
           if (delta.function_call) {
-            if(delta.function_call.name) incomingFunctionCall.name += delta.function_call.name;
-            if(delta.function_call.arguments) incomingFunctionCall.arguments += delta.function_call.arguments;
-          // -- Message ----------------------------------------------------------------
+            if (delta.function_call.name) incomingFunctionCall.name += delta.function_call.name;
+            if (delta.function_call.arguments) incomingFunctionCall.arguments += delta.function_call.arguments;
+            // -- Message ----------------------------------------------------------------
           } else if (delta.content) {
             incomingMessage += delta.content;
-            subscriber.next({
-              type: CompletionType.message,
-              message: incomingMessage,
-            });
+            subscriber.next(incomingMessage);
           }
         } catch (error) {
           console.log("Error parsing message: ", error);
