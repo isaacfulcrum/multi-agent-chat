@@ -70,8 +70,17 @@ export type OpenAIStreamResponse = {
 
 // == Util ========================================================================
 export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
+  let name = "chat_user";
+  if (message.role === ChatMessageRoleEnum.Assistant) {
+    if (message.isAgent) {
+      name = message.agent.id;
+    } else {
+      name = "chat_assistant";
+    }
+  }
   return {
     role: message.role,
     content: message.content,
+    name,
   };
 };
