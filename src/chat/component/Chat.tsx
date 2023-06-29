@@ -31,8 +31,8 @@ export const Chat = () => {
 
   // === UI =======================================================================
   return (
-    <Flex width="100vw" height="100vh" justify="center" align="flex-end" backgroundColor="gray.900">
-      <Card width="100%" maxW="800px" height="100%" backgroundColor="gray.800">
+    <Flex width="100vw" height="100vh" justify="center" align="flex-end" backgroundColor="#343541" overflow="auto">
+      <Card width="100%" maxW="800px" height="100%" backgroundColor="#343541" boxShadow="none">
         <CardHeader>
           <Stack direction="row" spacing={3} justify="center">
             <Text fontSize="2xl" fontWeight="bold" color="white">
@@ -40,7 +40,7 @@ export const Chat = () => {
             </Text>
           </Stack>
         </CardHeader>
-        <CardBody overflow="auto">
+        <CardBody>
           <Stack spacing={3}>
             {messages.map((message) => (
               <Message key={message.id} message={message} />

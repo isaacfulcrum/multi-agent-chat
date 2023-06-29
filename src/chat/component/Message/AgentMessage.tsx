@@ -28,7 +28,7 @@ export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
           backgroundColor={color}
           color={contrastColor}
         />
-        <Box flex={1} backgroundColor={color} color={contrastColor} padding="4" boxShadow="lg" borderRadius="lg" pt="2">
+        <Box flex={1} backgroundColor="#40414f" color="white" padding="4" boxShadow="lg" borderRadius="lg" pt="2">
           <Text whiteSpace="pre-line" fontWeight="bold" >{message.isAgent ? message.agent.name : ''}</Text>
           <Text whiteSpace="pre-line">{message.content}</Text>
         </Box>

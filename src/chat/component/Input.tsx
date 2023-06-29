@@ -38,12 +38,13 @@ export const Input = () => {
   return (
     <CardFooter p="0">
       <form onSubmit={handlerSubmit} style={{ flex: 1 }} >
-        <Flex gap="1em" padding="6" boxShadow="lg" bg="gray.600" width="100%">
+        <Flex gap="1em" padding="6" backgroundColor="#343541" width="100%">
           <ChakraInput
             value={message}
             onChange={handleInputChange}
             placeholder="Type here..."
-            backgroundColor="white"
+            backgroundColor="#40414f"
+            color="white"
             autoFocus
           />
           <Button
