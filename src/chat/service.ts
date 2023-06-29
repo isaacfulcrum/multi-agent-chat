@@ -62,10 +62,10 @@ export class ChatService {
         content: moderatorDescription + JSON.stringify(agentServiceInstance.getAgents()),
       };
       // NOTE: add to the start of the array so it's the first message
-      messages.unshift(mod);
+      const agentMessages = [mod, ...messages];
 
-      // Run the Completion
-      const content = await fetchAgent(messages);
+      // Get the agent from the API
+      const content = await fetchAgent(agentMessages);
       if (!content) throw new Error("No content");
 
       if (content.name === ChatFunctions.runCompletion) {
