@@ -70,6 +70,7 @@ export class ChatService {
 
       if (content.name === ChatFunctions.runCompletion) {
         const args = JSON.parse(content.arguments ?? "{}");
+        if (args.agentId === "user") return; /** no need to answer */
         await this.runCompletion(messages, args.agentId);
       }
     } catch (error) {
@@ -112,7 +113,7 @@ export class ChatService {
           this.updateMessage({ ...chatMessage, content });
         },
         complete: () => {
-          // this.completeChat();
+          this.continueChat();
         },
         error: (error) => {
           throw error;
