@@ -127,6 +127,7 @@ export const readChatCompletionStream = async (subscriber: Subscriber<string>, s
             subscriber.next(incomingMessage);
           }
         } catch (error) {
+          // TODO: handle error
           console.log("Error parsing message: ", error);
         }
       }

@@ -28,8 +28,9 @@ export const Input = () => {
     try {
       chatServiceInstance.addMessage({ id: nanoid(), content: message, role: ChatMessageRoleEnum.User });
       await chatServiceInstance.continueChat();
-    } catch{
-      // TODO
+    } catch (error){
+      // TODO: Handle error
+      console.log(error);
     }
 
     setIsLoading(false);

@@ -90,6 +90,7 @@ export class ChatService {
         await this.runCompletion(messages, args.agentId);
       }
     } catch (error) {
+      // TODO: handle error
       console.error("Error:", error);
     } finally {
       this.isLoading = false;
@@ -137,6 +138,7 @@ export class ChatService {
         },
       });
     } catch (error) {
+      // TODO: handle error
       console.error(error);
     } 
   }
