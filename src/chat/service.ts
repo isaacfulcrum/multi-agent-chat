@@ -23,7 +23,8 @@ export class ChatService {
   private messages$: BehaviorSubject<ChatMessage[]>;
   public onMessage$ = () => this.messages$;
 
-  /** completion stream */
+  /** this subscription is used when there's an incoming message from the agent
+   * NOTE: In case the chat is closed before the completion is done use the unmout() method */
   private completionSubscription: Subscription | undefined;
 
   /** indicates if the Completion is being run */
@@ -53,6 +54,10 @@ export class ChatService {
       // Check if the Completion is already running
       if (this.isLoading) return;
 
+      // NOTE: if there are 5 consecutive messages from the assistant, we don't run the Completion
+      const lastMessages = this.getMessages().slice(-5);
+      if (lastMessages.every((message) => message.role === ChatMessageRoleEnum.Assistant)) return;
+
       // Format messages as OpenAI expects them
       const messages = this.getMessages().map(chatMessageToCompletionMessage);
 
@@ -70,7 +75,15 @@ export class ChatService {
 
       if (content.name === ChatFunctions.runCompletion) {
         const args = JSON.parse(content.arguments ?? "{}");
-        if (args.agentId === "user") return; /** no need to answer */
+        if (!args.agentId) return; /** no need to answer */
+
+        // NOTE: if the last message was sent by the agent, we don't run the Completion
+        const lastMessage = this.getMessages().slice(-1)[0];
+        if (lastMessage.role === ChatMessageRoleEnum.Assistant) {
+          if (lastMessage.isAgent && lastMessage.agent?.id === args.agentId) return;
+        }
+
+        // -- Run the Completion --------------------------------------------------
         await this.runCompletion(messages, args.agentId);
       }
     } catch (error) {

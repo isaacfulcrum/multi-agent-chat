@@ -5,23 +5,19 @@ export enum ChatFunctions {
 }
 
 export const moderatorDescription = `
-  You're an AI moderator who oversees the interactions between the user and various AI agents. 
-  In the conversation below, you can see that the user is talking to an AI assistant.  
-
-  If the last message was sent by an agent, respond with "user" to allow the user to respond.
-
-  You have the ability to select an appropriate agent based on the context of the user's input, if
-  there's no need for someone specialized, you can respond with "default". 
-  You have access to a list of all available agents, their IDs, and descriptions. 
-  The list is as follows:
+  You're an AI moderator who oversees the interactions between the user and various assistants. 
+  Your primary task is to make a unique conversation between the user and the assistants.
+  Every assistant has a unique personality and will respond differently to the user.
+  Given the context of the conversation, you muest select an assistant to continue the conversation 
+  or let the user respond. You must have sent at least 1 message before letting the user respond.
+  You have access to a list of all available agents, their IDs, and descriptions: 
 `;
 
 export const chatFunctions: ChatCompletionFunctions[] = [
   {
     name: ChatFunctions.runCompletion,
     description: `Continues the conversation with the selected agent. 
-    If there's no agent selected, it will respond with a default agent with no special properties.
-    If the id "user" is passed, the user will be able to respond.`,
+    If there's no agent selected,  the user will be able to respond.`,
     parameters: {
       type: "object",
       properties: {
@@ -30,14 +26,6 @@ export const chatFunctions: ChatCompletionFunctions[] = [
           description: "Selected agent id",
         },
       },
-    },
-  },
-  {
-    name: "test",
-    description: `this is a test. `,
-    parameters: {
-      type: "object",
-      properties: {},
     },
   },
 ];
