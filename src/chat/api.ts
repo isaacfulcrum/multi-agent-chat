@@ -3,7 +3,7 @@
 import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
 
 import { OpenAIStreamResponse } from "./type";
-import { ChatFunctions, chatFunctions } from "./command";
+import { ChatFunctions, chatFunctions } from "./function";
 import { Observable, Subscriber } from "rxjs";
 
 // ********************************************************************************

@@ -6,7 +6,7 @@ import { agentServiceInstance } from "@/agent/service";
 import { fetchAgent, fetchChatCompletionStream } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
 import { Agent } from "@/agent/type";
-import { ChatFunctions, chatFunctions, moderatorDescription } from "./command";
+import { ChatFunctions, moderatorDescription } from "./function";
 import { ChatCompletionRequestMessage } from "openai";
 
 // ********************************************************************************
