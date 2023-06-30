@@ -6,5 +6,6 @@ export type Agent = {
   description: string;
   // Color to be displayed in the chat
   color: string;
+  isActive: boolean;
 };
 
