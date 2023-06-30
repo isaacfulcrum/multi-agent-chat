@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Card, CardBody, CardHeader, Flex, Stack, Text } from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, Center, Flex, Stack, Text } from "@chakra-ui/react";
 
 import { chatServiceInstance } from "../service";
 
 import { ChatMessage } from "../type";
 import { Input } from "./Input";
 import { Message } from "./Message";
+import { AgentButton } from "@/agent/component/AgentButton";
 
 // ********************************************************************************
 export const Chat = () => {
@@ -31,15 +32,14 @@ export const Chat = () => {
 
   // === UI =======================================================================
   return (
-    <Flex width="100vw" height="100vh" justify="center" align="flex-end" backgroundColor="#343541" overflow="auto">
-      <Card width="100%" maxW="800px" height="100%" backgroundColor="#343541" boxShadow="none">
-        <CardHeader>
-          <Stack direction="row" spacing={3} justify="center">
-            <Text fontSize="2xl" fontWeight="bold" color="white">
-              Multi-Agent Chat
-            </Text>
-          </Stack>
-        </CardHeader>
+    <Flex width="100vw" height="100vh" justify="center" align="flex-end" bg="#343541" overflow="auto" position="relative">
+      <Center width="100%" position="fixed" top="0" zIndex="1" bg="#343541" height="80px" p="1em" gap="1em">
+        <Text textAlign="center" fontSize="2xl" fontWeight="bold" color="white" >
+          Multi-Agent Chat
+        </Text>
+        <AgentButton />
+      </Center>
+      <Card width="80%" maxW="800px" height="100%" bg="#343541" boxShadow="none" pt="80px">
         <CardBody>
           <Stack spacing={3}>
             {messages.map((message) => (
