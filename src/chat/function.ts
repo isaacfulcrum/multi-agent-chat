@@ -23,7 +23,7 @@ export const chatFunctions: ChatCompletionFunctions[] = [
   {
     name: ChatFunctions.runCompletion,
     description: `Continues the conversation with the selected agent. 
-    If there's no agent selected,  the user will be able to respond.`,
+    If there's no agent selected, the user will be able to respond.`,
     parameters: {
       type: "object",
       properties: {

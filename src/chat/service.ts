@@ -1,13 +1,15 @@
 import { BehaviorSubject, Subscription } from "rxjs";
 import { nanoid } from "nanoid";
 
+import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
 
 import { fetchAgent, fetchChatCompletionStream } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
-import { Agent } from "@/agent/type";
 import { ChatFunctions } from "./function";
 import { ChatCompletionRequestMessage } from "openai";
+
+const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
 
 // ********************************************************************************
 export class ChatService {
@@ -51,45 +53,52 @@ export class ChatService {
     return this.messages$.getValue();
   }
 
+  // == Agent =====================================================================
+  /** Semantically chooses an Agent based on a history of messages and the Agent's
+   *  description */
+  private async selectAgent(messages: ChatCompletionRequestMessage[], agents: Agent[]): Promise<Agent | null/*not found*/> {
+    const chatFunction = await fetchAgent(messages, agents);
+    if (!chatFunction) throw new Error("No function call was returned");
+
+    // TODO: Find a better way to invoke the function, for now we just use an if
+    if (chatFunction.name !== ChatFunctions.runCompletion) throw new Error("Invalid function call");
+    const args = JSON.parse(chatFunction.arguments ?? "{}");
+    if (!args.agentId) return null;
+
+    // Check if the last message was sent by the selected agent
+    const lastMessage = this.getMessages().slice(-1)[0];
+    if (lastMessage.role === ChatMessageRoleEnum.Assistant) {
+      if(args.agentId === "default" && !lastMessage.isAgent) return null;
+      if (lastMessage.isAgent && lastMessage.agent?.id === args.agentId) return null;
+    }
+
+    return agentServiceInstance.getAgent(args.agentId) ?? null;
+  };
+
   // == Completion ================================================================
-  /** 
-  Selects an agent to keep the conversation flowing
-  When NOT to run the Completion:
-    1. If there are 5 consecutive messages from the assistant
-    2. If the last message was sent by the selected agent
-    3. If there was no agent returned 
-  */
-  public async continueChat() {
+  /** Select an Agent to respond to the conversation based on the Context and Agent 
+   *  description.
+   *  Respond based on the following conditions:
+   *  1. The previous {@link MAX_CONSECUTIVE_ASSISTANT_MESSAGES } messages where not
+   *     sent exclusively by the assistant.
+   *  2. An agent cannot respond consecutively. */
+  public async requestCompletion() {
     try {
-      // Check if the Completion is already running
-      if (this.isLoading) return;
+      if (this.isLoading) return/*nothing else to do*/;
       this.isLoading = true;
 
-      // NOTE: Check if there are 5 consecutive messages from assistant
-      const lastMessages = this.getMessages().slice(-5);
-      if (lastMessages.every((message) => message.role === ChatMessageRoleEnum.Assistant)) return;
+      const isConsecutive = this.getMessages()
+        .slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES)
+        .every((message) => message.role === ChatMessageRoleEnum.Assistant);
+      if(isConsecutive) return/* nothing else to do */;
 
       // Format messages as OpenAI expects them
       const messages = this.getMessages().map(chatMessageToCompletionMessage);
 
-      const chatFunction = await fetchAgent(messages);
-      if (!chatFunction) throw new Error("No function call was returned");
+      const selectedAgent = await this.selectAgent(messages, agentServiceInstance.getActiveAgents());
+      if(!selectedAgent) return/*nothing else to do*/;
 
-      // TODO: Find a better way to invoke the function, for now we just use an if
-      if (chatFunction.name === ChatFunctions.runCompletion) {
-        const args = JSON.parse(chatFunction.arguments ?? "{}");
-        if (!args.agentId) return; /* no need to answer */
-
-        // Check if the last message was sent by the selected agent
-        const lastMessage = this.getMessages().slice(-1)[0];
-        if (lastMessage.role === ChatMessageRoleEnum.Assistant) {
-          if(args.agentId === "default" && !lastMessage.isAgent) return; /* the last message was sent by the default agent */
-          if (lastMessage.isAgent && lastMessage.agent?.id === args.agentId) return; /* no need to answer */
-        }
-
-        // -- Run the Completion --------------------------------------------------
-        await this.runCompletion(messages, args.agentId);
-      }
+      await this.runCompletion(messages, selectedAgent);
     } catch (error) {
       // TODO: handle error
       console.error("Error:", error);
@@ -98,16 +107,12 @@ export class ChatService {
     }
   }
 
-  // == Private Methods ===========================================================
   /** runs the Completion with the current messages */
-  public async runCompletion(messages: ChatCompletionRequestMessage[], agentId: string) {
+  public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent) {
     try {
       // New message
       const id = nanoid();
       let chatMessage: AssistantChatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: false };
-
-      let agent: Agent | undefined;
-      agent = agentServiceInstance.getAgent(agentId);
       // If the agent exists, we add its description as a system message
       // NOTE: add to the start of the array so it's the first message
       if (agent) {
@@ -132,7 +137,7 @@ export class ChatService {
         },
         complete: () => {
           // When the stream is completed, evaluate if we need to continue the chat
-          this.continueChat();
+          this.requestCompletion();
         },
         error: (error) => {
           throw error;

@@ -5,6 +5,7 @@ import { Observable, Subscriber } from "rxjs";
 import { toast } from "react-toastify";
 
 import { agentServiceInstance } from "@/agent/service";
+import { Agent } from "@/agent/type";
 
 import { ChatMessageRoleEnum, OpenAIStreamResponse } from "./type";
 import { ChatFunctions, chatFunctions, moderatorDescription } from "./function";
@@ -16,11 +17,11 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
+// FIXME: this should not be here since it's an specific task. It should just be 
+//        a generic method that interacts with OpenAI
 /** Returns a function call from OpenAI detailing who's gonna talk next */
-export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
+export const fetchAgent = async (messages: ChatCompletionRequestMessage[], agents: Agent[]) => {
   try {
-    const agents = agentServiceInstance.getActiveAgents();
-
     // This will tell the OpenAI API how to call the function
     const systemMessage = {
       role: ChatMessageRoleEnum.System,
