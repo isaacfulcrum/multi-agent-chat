@@ -1,11 +1,13 @@
 // NOTE: This shouldn't be used in the client, only in the server
 // For demo purposes, we're using it in the client
 import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
+import { Observable, Subscriber } from "rxjs";
+import { toast } from "react-toastify";
+
+import { agentServiceInstance } from "@/agent/service";
 
 import { ChatMessageRoleEnum, OpenAIStreamResponse } from "./type";
 import { ChatFunctions, chatFunctions, moderatorDescription } from "./function";
-import { Observable, Subscriber } from "rxjs";
-import { agentServiceInstance } from "@/agent/service";
 
 // ********************************************************************************
 const configuration = new Configuration({
@@ -17,6 +19,10 @@ const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 /** Returns a function call from OpenAI detailing who's gonna talk next */
 export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
   try {
+    const agents = agentServiceInstance.getActiveAgents();
+    // FIXME: make sure the default agent is active
+    if (!agents.length) throw new Error("No active agents");
+
     // This will tell the OpenAI API how to call the function
     const systemMessage = {
       role: ChatMessageRoleEnum.System,
@@ -29,15 +35,18 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
       max_tokens: 600,
       functions: chatFunctions,
       function_call: {
-        name: ChatFunctions.runCompletion, /** forces it to call this function */
+        name: ChatFunctions.runCompletion /** forces it to call this function */,
       },
     });
 
     // Return the function call
     return data.choices[0].message?.function_call;
   } catch (error) {
-    // TODO: handle error
-    console.error("Error:", error);
+    if (error instanceof Error) {
+      toast.error(error.message);
+    } else {
+      console.error("Error:", error);
+    }
   }
 };
 
@@ -49,7 +58,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       model: "gpt-4",
       messages,
       max_tokens: 600,
-      stream: true, /** so we can update as it arrives */
+      stream: true /** so we can update as it arrives */,
     };
 
     // Fetch the response from the OpenAI API
