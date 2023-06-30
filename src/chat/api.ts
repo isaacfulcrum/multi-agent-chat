@@ -20,8 +20,6 @@ const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
   try {
     const agents = agentServiceInstance.getActiveAgents();
-    // FIXME: make sure the default agent is active
-    if (!agents.length) throw new Error("No active agents");
 
     // This will tell the OpenAI API how to call the function
     const systemMessage = {
@@ -79,8 +77,11 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       readChatCompletionStream(subscriber, stream);
     });
   } catch (error) {
-    // TODO: handle error
-    console.error("Error:", error);
+    if (error instanceof Error) {
+      toast.error(error.message);
+    } else {
+      console.error("Error:", error);
+    }
   }
 };
 
@@ -136,13 +137,11 @@ export const readChatCompletionStream = async (subscriber: Subscriber<string>, s
             subscriber.next(incomingMessage);
           }
         } catch (error) {
-          // TODO: handle error
-          console.log("Error parsing message: ", error);
+          throw new Error("Error parsing message: " + error);
         }
       }
     }
   } catch (error) {
-    // TODO: handle error
     subscriber.error(error);
   }
 };

@@ -15,7 +15,8 @@ export const moderatorDescription = `
   Try to make the conversation as interesting as possible, if there's nothing that an assistant can say,
   it's okay to let the user respond. You must have invoked the function before letting the user respond.
 
-  You have access to a list of all available agents, their IDs, and descriptions: 
+  You have access to a list of all available agents, their IDs, and descriptions. If the list is empty, you must return a "default" as an id.
+  List of agents:
 `;
 
 export const chatFunctions: ChatCompletionFunctions[] = [

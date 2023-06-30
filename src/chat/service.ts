@@ -83,6 +83,7 @@ export class ChatService {
         // Check if the last message was sent by the selected agent
         const lastMessage = this.getMessages().slice(-1)[0];
         if (lastMessage.role === ChatMessageRoleEnum.Assistant) {
+          if(args.agentId === "default" && !lastMessage.isAgent) return; /* the last message was sent by the default agent */
           if (lastMessage.isAgent && lastMessage.agent?.id === args.agentId) return; /* no need to answer */
         }
 
