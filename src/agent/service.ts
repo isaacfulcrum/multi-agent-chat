@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { AGENTS } from "./mock";
 import { Agent } from "./type";
 
@@ -10,34 +10,37 @@ export class AgentService {
     return AgentService.instance;
   }
   // ------------------------------------------------------------------------------
-  public agents: Agent[];
-  public currentAgent?: Agent;
-
-  /** current agent updates sent to the subscribers */
-  // NOTE: we use a BehaviorSubject so the subscribers get the last value when they subscribe
-  public readonly onCurrentAgentUpdate$: BehaviorSubject<Agent | undefined>;
+  private agents$: BehaviorSubject<Agent[]>;
+  public onAgents$ = () => this.agents$;
 
   // == Lifecycle =================================================================
   protected constructor() {
-    this.agents = [...AGENTS];
-    this.onCurrentAgentUpdate$ = new BehaviorSubject(this.currentAgent);
+    this.agents$ = new BehaviorSubject(AGENTS);
   }
 
   // == Public Methods ============================================================
-  /** sets the current agent and emit the new agent to the subscribers */
-  setCurrentAgent(id: string) {
-    this.currentAgent = this.agents.find((agent) => agent.id === id);
-    this.onCurrentAgentUpdate$.next(this.currentAgent);
+  /** return agent list */
+  public getAgents() {
+    return this.agents$.getValue();
   }
 
-  /** return agent list */
-  getAgents() {
-    return this.agents;
+  /** return active agent list */
+  public getActiveAgents() {
+    return this.agents$.getValue().filter((agent) => agent.isActive);
   }
 
   /** return an agent by his id */
-  getAgent(id: string) {
-    return this.agents.find((agent) => agent.id === id);
+  public getAgent(id: string) {
+    return this.getAgents().find((agent) => agent.id === id);
+  }
+
+  /** update an agent based on his id */
+  public updateAgent(agent: Agent) {
+    const agents = [...this.getAgents()];
+    const index = agents.findIndex((a) => a.id === agent.id);
+    if(index === -1) return;
+    agents[index] = agent;
+    this.agents$.next(agents);
   }
 }
 

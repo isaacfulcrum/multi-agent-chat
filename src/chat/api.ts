@@ -20,7 +20,7 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
     // This will tell the OpenAI API how to call the function
     const systemMessage = {
       role: ChatMessageRoleEnum.System,
-      content: moderatorDescription + JSON.stringify(agentServiceInstance.getAgents()),
+      content: moderatorDescription + JSON.stringify(agentServiceInstance.getActiveAgents()),
     };
 
     const { data } = await openai.createChatCompletion({
