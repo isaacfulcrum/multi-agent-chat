@@ -20,26 +20,20 @@ const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 // FIXME: this should not be here since it's an specific task. It should just be
 //        a generic method that interacts with OpenAI
 /** Returns a function call from OpenAI detailing who's gonna talk next */
-export const fetchAgent = async (messages: ChatCompletionRequestMessage[], agents: Agent[]) => {
+export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
   try {
-    // This will tell the OpenAI API how to call the function
-    const systemMessage = {
-      role: ChatMessageRoleEnum.System,
-      content: moderatorDescription + JSON.stringify(agentServiceInstance.getActiveAgents()),
-    };
-
     const { data } = await openai.createChatCompletion({
       model: "gpt-4",
-      messages: [systemMessage, ...messages],
+      messages,
       max_tokens: 600,
       functions: chatFunctions,
       function_call: {
-        name: ChatFunctions.runCompletion /** forces it to call this function */,
+        name: ChatFunctions.selectAgent /** forces it to select an agent */,
       },
     });
 
-    // Return the function call
-    return data.choices[0].message?.function_call;
+    // Return the arguments of the function call
+    return data.choices[0].message?.function_call?.arguments;
   } catch (error) {
     if (error instanceof Error) {
       toast.error(error.message);
@@ -57,7 +51,6 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       model: "gpt-4",
       messages,
       max_tokens: 600,
-      functions: chatFunctions,
       stream: true /** so we can update as it arrives */,
     };
 
