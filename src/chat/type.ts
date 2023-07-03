@@ -75,24 +75,6 @@ export type OpenAIStreamResponse = {
   object: string;
 };
 
-// == Functions ========================================================================
-export enum CompletionResponse {
-  FunctionCall = "functionCall",
-  Message = "message",
-}
-
-export type CompletionResponseMessage = {
-  type: CompletionResponse.Message;
-  content: string;
-};
-
-export type CompletionResponseFunctionCall = {
-  type: CompletionResponse.FunctionCall;
-  name: string;
-  arguments: string;
-};
-
-export type ChatCompletionResponse = CompletionResponseMessage | CompletionResponseFunctionCall;
 
 // == Util ========================================================================
 export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
