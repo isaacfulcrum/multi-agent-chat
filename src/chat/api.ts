@@ -4,11 +4,8 @@ import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionReques
 import { Observable, Subscriber } from "rxjs";
 import { toast } from "react-toastify";
 
-import { agentServiceInstance } from "@/agent/service";
-import { Agent } from "@/agent/type";
-
-import { ChatCompletionResponse, ChatMessageRoleEnum, CompletionResponse, OpenAIStreamResponse } from "./type";
-import { ChatFunctions, chatFunctions, moderatorDescription } from "./function";
+import { OpenAIStreamResponse } from "./type";
+import { ChatFunctions, chatFunctions } from "./function";
 
 // ********************************************************************************
 const configuration = new Configuration({
@@ -17,10 +14,8 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
-// FIXME: this should not be here since it's an specific task. It should just be
-//        a generic method that interacts with OpenAI
-/** Returns a function call from OpenAI detailing who's gonna talk next */
-export const fetchAgent = async (messages: ChatCompletionRequestMessage[]) => {
+/** Given a set of messages, returns the selected agentId */
+export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined/*no agent*/> => {
   try {
     const { data } = await openai.createChatCompletion({
       model: "gpt-4",
@@ -68,7 +63,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
     });
 
     // Read the stream
-    return new Observable<ChatCompletionResponse>((subscriber) => {
+    return new Observable<string>((subscriber) => {
       readChatCompletionStream(subscriber, stream);
     });
   } catch (error) {
@@ -81,7 +76,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
 };
 
 /** Reads a stream and executes a callback once it gets a new chunk of data*/
-export const readChatCompletionStream = async (subscriber: Subscriber<ChatCompletionResponse>, stream: Response) => {
+export const readChatCompletionStream = async (subscriber: Subscriber<string>, stream: Response) => {
   try {
     // Check if the stream has a body
     if (!stream.body) {
@@ -113,14 +108,6 @@ export const readChatCompletionStream = async (subscriber: Subscriber<ChatComple
       for (const line of lines) {
         const message = line.replace(/^data: /, "");
         if (message === "[DONE]") {
-          // Check if there's a function call
-          if (incomingFunctionCall.name) {
-            subscriber.next({
-              type: CompletionResponse.FunctionCall,
-              name: incomingFunctionCall.name,
-              arguments: incomingFunctionCall.arguments,
-            });
-          }
           subscriber.complete();
           return; // Stream finished
         }
@@ -137,10 +124,7 @@ export const readChatCompletionStream = async (subscriber: Subscriber<ChatComple
             // -- Message ----------------------------------------------------------------
           } else if (delta.content) {
             incomingMessage += delta.content;
-            subscriber.next({
-              type: CompletionResponse.Message,
-              content: incomingMessage,
-            });
+            subscriber.next(incomingMessage);
           }
         } catch (error) {
           throw new Error("Error parsing message: " + error);

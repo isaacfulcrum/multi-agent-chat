@@ -1,6 +1,12 @@
 import { BehaviorSubject } from "rxjs";
-import { AGENTS } from "./mock";
+import { ChatCompletionRequestMessage } from "openai";
+
 import { Agent } from "./type";
+import { AGENTS } from "./mock";
+
+import { ChatMessageRoleEnum } from "@/chat/type";
+import { moderatorDescription } from "@/chat/function";
+import { fetchAgent } from "@/chat/api";
 
 // ********************************************************************************
 export class AgentService {
@@ -17,6 +23,28 @@ export class AgentService {
   protected constructor() {
     this.agents$ = new BehaviorSubject(AGENTS);
   }
+
+  // == Agent =====================================================================
+  /** Semantically chooses an Agent based on a history of messages and the Agent's
+   *  description */
+  public async selectAgent(messages: ChatCompletionRequestMessage[]): Promise<Agent | null/*not found*/> {
+
+    // Message with the description of the agents
+    const systemMessage = {
+      role: ChatMessageRoleEnum.System,
+      content: moderatorDescription + JSON.stringify(agentServiceInstance.getActiveAgents()),
+    };
+
+    const agentSelection = await fetchAgent([systemMessage, ...messages]);
+
+    if (!agentSelection) return null;
+    
+    const args = JSON.parse(agentSelection ?? "{}");
+    if (!args.agentId) return null;
+
+    return agentServiceInstance.getAgent(args.agentId) ?? null;
+  };
+
 
   // == Public Methods ============================================================
   /** return agent list */
