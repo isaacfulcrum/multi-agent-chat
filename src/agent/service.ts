@@ -19,13 +19,13 @@ export class AgentService {
   private agents$: BehaviorSubject<Agent[]>;
   public onAgents$ = () => this.agents$;
 
-  private selectedAgent$: BehaviorSubject<Agent | null>;
+  private selectedAgent$: BehaviorSubject<Agent | undefined>;
   public onSelectedAgent$ = () => this.selectedAgent$;
 
   // == Lifecycle =================================================================
   protected constructor() {
     this.agents$ = new BehaviorSubject(AGENTS);
-    this.selectedAgent$ = new BehaviorSubject<Agent | null>(null);
+    this.selectedAgent$ = new BehaviorSubject<Agent | undefined>(undefined);
   }
 
   // == Agent =====================================================================
@@ -58,7 +58,7 @@ export class AgentService {
   }
 
   /** set the selected agent */
-  public setSelectedAgent(agent: Agent | null) {
+  public setSelectedAgent(agent?: Agent) {
     this.selectedAgent$.next(agent);
   }
 

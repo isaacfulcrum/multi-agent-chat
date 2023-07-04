@@ -20,7 +20,7 @@ export const AgentSelect = () => {
   // === Handler ==================================================================
   const selectAgent = (e: ChangeEvent<HTMLSelectElement>) => {
     const agentId = e.target.value;
-    const agent = agentServiceInstance.getAgent(agentId) ?? null;
+    const agent = agentServiceInstance.getAgent(agentId);
     agentServiceInstance.setSelectedAgent(agent);
   };
 

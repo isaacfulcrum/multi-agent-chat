@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { chatServiceInstance } from "../service";
 
 import { ChatMessageRoleEnum, UserChatMessage } from "../type";
+import { agentServiceInstance } from "@/agent/service";
 
 // ********************************************************************************
 export const Input = () => {
@@ -43,8 +44,8 @@ export const Input = () => {
       sendMessage(message);
       const messageHistory = chatServiceInstance.getCompletionMessages();
       // Runs completion on the selected agent
-      // TODO: Add agent selection
-      await chatServiceInstance.runCompletion(messageHistory);
+      const agent = agentServiceInstance.getSelectedAgent();
+      await chatServiceInstance.runCompletion(messageHistory, agent);
     } catch (error) {
       console.log(error);
     } finally {
