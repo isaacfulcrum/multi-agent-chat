@@ -5,7 +5,7 @@ import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
 
 import { fetchChatCompletionStream } from "./api";
-import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
+import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRole } from "./type";
 import { ChatCompletionRequestMessage } from "openai";
 
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
@@ -69,7 +69,7 @@ export class ChatService {
       const messages = this.getCompletionMessages();
       const isConsecutive = messages /* get the original messages because we need the role */
         .slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES)
-        .every((message) => message.role === ChatMessageRoleEnum.Assistant);
+        .every((message) => message.role === ChatMessageRole.Assistant);
       if (isConsecutive) return /* nothing else to do */;
 
 
@@ -100,17 +100,17 @@ export class ChatService {
 
       // -- New Message ------------------------------------------------------------
       const id = nanoid();
-      let chatMessage: AssistantChatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: false };
+      let chatMessage: AssistantChatMessage = { id, role: ChatMessageRole.Assistant, content: "", isAgent: false };
       if (agent) {
         // If the agent exists, we add its description as a system message
         // NOTE: add to the start of the array so it's the first message
         const systemMessage = {
-          role: ChatMessageRoleEnum.System,
+          role: ChatMessageRole.System,
           content: agent.description,
         };
         messageHistory.unshift(systemMessage);
         // NOTE: Add the agent to the message so we can display it in the UI
-        chatMessage = { id, role: ChatMessageRoleEnum.Assistant, content: "", isAgent: true, agent };
+        chatMessage = { id, role: ChatMessageRole.Assistant, content: "", isAgent: true, agent };
       }
 
       this.addMessage(chatMessage);

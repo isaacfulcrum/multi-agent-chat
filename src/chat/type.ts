@@ -4,7 +4,7 @@ import { Agent } from "@/agent/type";
 // ********************************************************************************
 // NOTE: using custom Enum instead of the one from openai since it's not exported as
 // an enum
-export enum ChatMessageRoleEnum {
+export enum ChatMessageRole {
   Assistant = "assistant",
   System = "system",
   User = "user",
@@ -13,13 +13,13 @@ export enum ChatMessageRoleEnum {
 
 export type BaseChatMessage = {
   id: string;
-  role: ChatMessageRoleEnum;
+  role: ChatMessageRole;
   content: string;
 };
 
 // -- Assistant -------------------------------------------------------------------
 export type BaseAssistantChatMessage = BaseChatMessage & {
-  role: ChatMessageRoleEnum.Assistant;
+  role: ChatMessageRole.Assistant;
 };
 export type WithAgent = {
   isAgent: true;
@@ -35,17 +35,17 @@ export type AssistantChatMessage = AgentChatMessage | NonAgentChatMessage;
 
 // -- System ----------------------------------------------------------------------
 export type SystemChatMessage = BaseChatMessage & {
-  role: ChatMessageRoleEnum.System;
+  role: ChatMessageRole.System;
 };
 
 // -- User ------------------------------------------------------------------------
 export type UserChatMessage = BaseChatMessage & {
-  role: ChatMessageRoleEnum.User;
+  role: ChatMessageRole.User;
 };
 
 // -- Function --------------------------------------------------------------------
 export type FunctionChatMessage = BaseChatMessage & {
-  role: ChatMessageRoleEnum.Function;
+  role: ChatMessageRole.Function;
   name: string;
 };
 
@@ -79,10 +79,10 @@ export type OpenAIStreamResponse = {
 // == Util ========================================================================
 export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
   let name = "chat_user";
-  if (message.role === ChatMessageRoleEnum.Function) {
+  if (message.role === ChatMessageRole.Function) {
     name = message.name;
   }
-  if (message.role === ChatMessageRoleEnum.Assistant) {
+  if (message.role === ChatMessageRole.Assistant) {
     if (message.isAgent) {
       name = message.agent.id;
     } else {

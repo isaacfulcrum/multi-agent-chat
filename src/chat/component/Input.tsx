@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 
 import { chatServiceInstance } from "../service";
 
-import { ChatMessageRoleEnum, UserChatMessage } from "../type";
+import { ChatMessageRole, UserChatMessage } from "../type";
 import { agentServiceInstance } from "@/agent/service";
 
 // ********************************************************************************
@@ -20,7 +20,7 @@ export const Input = () => {
       if (message.trim() !== "") {
         const newMessage: UserChatMessage = {
           id: nanoid(),
-          role: ChatMessageRoleEnum.User,
+          role: ChatMessageRole.User,
           content: message,
         };
         await chatServiceInstance.addMessage(newMessage);

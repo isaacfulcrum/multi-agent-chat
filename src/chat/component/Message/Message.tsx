@@ -1,5 +1,5 @@
 import { AgentMessage } from "./AgentMessage";
-import { ChatMessage, ChatMessageRoleEnum } from "@/chat/type";
+import { ChatMessage, ChatMessageRole } from "@/chat/type";
 import { UserMessage } from "./UserMessage";
 
 // ********************************************************************************
@@ -8,7 +8,7 @@ type Props = {
 };
 
 export const Message: React.FC<Props> = ({ message }) => {
-  if (message.role === ChatMessageRoleEnum.Assistant) {
+  if (message.role === ChatMessageRole.Assistant) {
     return <AgentMessage {...message} />;
   }
 

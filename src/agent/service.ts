@@ -4,7 +4,7 @@ import { ChatCompletionRequestMessage } from "openai";
 import { Agent } from "./type";
 import { AGENTS } from "./mock";
 
-import { ChatMessageRoleEnum } from "@/chat/type";
+import { ChatMessageRole } from "@/chat/type";
 import { moderatorDescription } from "@/chat/function";
 import { fetchAgent } from "@/chat/api";
 
@@ -35,7 +35,7 @@ export class AgentService {
 
     // Message with the description of the agents
     const systemMessage = {
-      role: ChatMessageRoleEnum.System,
+      role: ChatMessageRole.System,
       content: moderatorDescription + JSON.stringify(agentServiceInstance.getActiveAgents()),
     };
 
