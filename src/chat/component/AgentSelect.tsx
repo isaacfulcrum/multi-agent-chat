@@ -1,25 +1,27 @@
-import { ChangeEvent, useState } from "react";
-import { Button, Flex, Select } from "@chakra-ui/react";
+import { ChangeEvent, useEffect, useState } from "react";
+import { Flex, Select } from "@chakra-ui/react";
 
 import { agentServiceInstance } from "@/agent/service";
-import { chatServiceInstance } from "../service";
 
 // ********************************************************************************
 export const AgentSelect = () => {
   // === State ====================================================================
   const [currentAgentId, setCurrentAgentId] = useState<string | undefined>(undefined);
 
+  // === Effect ===================================================================
+  /** subscribe to active agent changes */
+  useEffect(() => {
+    const subscription = agentServiceInstance.onSelectedAgent$().subscribe((agent) => {
+      setCurrentAgentId(agent?.id);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   // === Handler ==================================================================
-  const selectAgent = (e: ChangeEvent<HTMLSelectElement>) => setCurrentAgentId(e.target.value);
-  const runCompletionHandler = async () => {
-    try {
-      const messages = chatServiceInstance.getCompletionMessages();
-      const agent = agentServiceInstance.getAgent(currentAgentId ?? "");
-      await chatServiceInstance.runCompletion(messages, agent);
-    } catch (error) {
-      // TODO: Handle error
-      console.log(error);
-    }
+  const selectAgent = (e: ChangeEvent<HTMLSelectElement>) => {
+    const agentId = e.target.value;
+    const agent = agentServiceInstance.getAgent(agentId) ?? null;
+    agentServiceInstance.setSelectedAgent(agent);
   };
 
   return (
@@ -34,9 +36,6 @@ export const AgentSelect = () => {
           ))
         }
       </Select>
-      <Button onClick={runCompletionHandler} width="200px" colorScheme="teal">
-        Run completion
-      </Button>
     </Flex>
   );
 };
