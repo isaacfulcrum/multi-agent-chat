@@ -1,5 +1,4 @@
 import { BehaviorSubject, Subscription } from "rxjs";
-import { ChatCompletionRequestMessage } from "openai";
 import { nanoid } from "nanoid";
 
 import { Agent } from "@/agent/type";
@@ -7,6 +6,7 @@ import { agentServiceInstance } from "@/agent/service";
 
 import { fetchChatCompletionStream } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRoleEnum } from "./type";
+import { ChatCompletionRequestMessage } from "openai";
 
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
 
@@ -51,6 +51,11 @@ export class ChatService {
     return this.messages$.getValue();
   }
 
+  /** returns the messages as openAI expects them */
+  public getCompletionMessages() {
+    return this.getMessages().map(chatMessageToCompletionMessage);
+  }
+
   // == Completion ================================================================
   /** Select an Agent to respond to the conversation based on the Context and Agent
    *  description.
@@ -61,30 +66,36 @@ export class ChatService {
   public async requestCompletion() {
     try {
       if (this.isLoading) return /*nothing else to do*/;
-      const isConsecutive = this.getMessages()
+      const messages = this.getCompletionMessages();
+      const isConsecutive = messages /* get the original messages because we need the role */
         .slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES)
         .every((message) => message.role === ChatMessageRoleEnum.Assistant);
       if (isConsecutive) return /* nothing else to do */;
 
-      const messageHistory = this.getMessages().map(chatMessageToCompletionMessage);
 
-      const selectedAgent = await agentServiceInstance.selectAgent(messageHistory);
+      const selectedAgent = await agentServiceInstance.selectAgent(messages);
       if (!selectedAgent) return /*nothing else to do*/;
 
-      await this.runCompletion(messageHistory, selectedAgent);
+      const lastMessageSentBySameAgent = messages.slice(-1)[0].name === selectedAgent.id;
+      if (lastMessageSentBySameAgent) return /*nothing else to do*/;
+
+      await this.runCompletion(messages, selectedAgent,() => {
+        this.requestCompletion();
+      });
     } catch (error) {
       // TODO: handle error
       console.error("Error:", error);
-    } 
+    }
   }
 
   /** runs the Completion with the current messages */
-  public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent) {
+  public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent, onComplete?: () => void) {
     try {
       if (this.isLoading) return /*nothing else to do*/;
       this.isLoading = true;
 
-      const messageHistory = [...messages];
+      // NOTE: we use a copy of the messages so we don't modify the original array
+      const messageHistory = [...messages]
 
       // -- New Message ------------------------------------------------------------
       const id = nanoid();
@@ -104,7 +115,7 @@ export class ChatService {
       this.addMessage(chatMessage);
 
       // Fetch the response from the OpenAI API and update the content of the message
-      const completion$ = await fetchChatCompletionStream(messageHistory );
+      const completion$ = await fetchChatCompletionStream(messageHistory);
       if (!completion$) {
         throw new Error("Empty response");
       }
@@ -114,9 +125,7 @@ export class ChatService {
         next: (content) => {
           this.updateMessage({ ...chatMessage, content });
         },
-        complete: () => {
-          this.requestCompletion();
-        },
+        complete: onComplete,
         error: (error) => {
           throw error;
         },

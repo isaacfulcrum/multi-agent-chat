@@ -42,12 +42,6 @@ export class AgentService {
     const args = JSON.parse(agentSelection ?? "{}");
     if (!args.agentId) return null;
 
-    // Check if the last message was sent by the same agent
-    const lastMessage = messages.slice(-1)[0];
-    if (lastMessage.role === ChatMessageRoleEnum.Assistant) {
-      if (lastMessage.name === args.id) return null;
-    }
-
     return agentServiceInstance.getAgent(args.agentId) ?? null;
   };
 
