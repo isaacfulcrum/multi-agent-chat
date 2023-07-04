@@ -3,10 +3,11 @@ import { Card, CardBody, CardHeader, Center, Flex, Stack, Text } from "@chakra-u
 
 import { chatServiceInstance } from "../service";
 
+import { AgentButton } from "@/agent/component/AgentButton";
+import { AgentSelect } from "./AgentSelect";
 import { ChatMessage } from "../type";
 import { Input } from "./Input";
 import { Message } from "./Message";
-import { AgentButton } from "@/agent/component/AgentButton";
 
 // ********************************************************************************
 export const Chat = () => {
@@ -34,9 +35,10 @@ export const Chat = () => {
   return (
     <Flex width="100vw" height="100vh" justify="center" align="flex-end" bg="#343541" overflow="auto" position="relative">
       <Center width="100%" position="fixed" top="0" zIndex="1" bg="#343541" height="80px" p="1em" gap="1em">
-        <Text textAlign="center" fontSize="2xl" fontWeight="bold" color="white" >
+        <Text textAlign="center" fontSize="2xl" fontWeight="bold" color="white">
           Multi-Agent Chat
         </Text>
+        <AgentSelect />
         <AgentButton />
       </Center>
       <Card width="80%" maxW="800px" height="100%" bg="#343541" boxShadow="none" pt="80px">

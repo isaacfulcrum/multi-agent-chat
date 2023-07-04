@@ -1,44 +1,42 @@
-import { ChangeEvent, useEffect, useState } from "react";
-import { Select } from "@chakra-ui/react";
+import { ChangeEvent, useState } from "react";
+import { Button, Flex, Select } from "@chakra-ui/react";
 
 import { agentServiceInstance } from "@/agent/service";
+import { chatServiceInstance } from "../service";
 
 // ********************************************************************************
 export const AgentSelect = () => {
   // === State ====================================================================
   const [currentAgentId, setCurrentAgentId] = useState<string | undefined>(undefined);
 
-  // === Effect ===================================================================
-  /** subscribe to the current agent change event */
-  useEffect(() => {
-    // Update UI callback triggered when the agent changes ------------------------
-    const subscription = agentServiceInstance.onCurrentAgentUpdate$.subscribe((agent) =>
-      setCurrentAgentId(agent?.id)
-    );
-    // Unsubscribe when the component is unmounted
-    return () => subscription.unsubscribe();
-  }, []);
-
   // === Handler ==================================================================
-  const selectAgent = (e: ChangeEvent<HTMLSelectElement>) =>
-    agentServiceInstance.setCurrentAgent(e.target.value);
+  const selectAgent = (e: ChangeEvent<HTMLSelectElement>) => setCurrentAgentId(e.target.value);
+  const runCompletionHandler = async () => {
+    try {
+      const messages = chatServiceInstance.getCompletionMessages();
+      const agent = agentServiceInstance.getAgent(currentAgentId ?? "");
+      await chatServiceInstance.runCompletion(messages, agent);
+    } catch (error) {
+      // TODO: Handle error
+      console.log(error);
+    }
+  };
 
   return (
-    <Select
-      placeholder="Choose an agent"
-      value={currentAgentId}
-      onChange={selectAgent}
-      backgroundColor="white"
-      maxWidth="300px"
-    >
-      {
-        // Agent list options
-        agentServiceInstance.getAgents().map((agent) => (
-          <option key={agent.id} value={agent.id}>
-            {agent.name}
-          </option>
-        ))
-      }
-    </Select>
+    <Flex gap="1em">
+      <Select placeholder="No agent" value={currentAgentId} onChange={selectAgent} backgroundColor="#40414f" color="white" maxWidth="300px">
+        {
+          // Agent list options
+          agentServiceInstance.getAgents().map((agent) => (
+            <option key={agent.id} value={agent.id}>
+              {agent.name}
+            </option>
+          ))
+        }
+      </Select>
+      <Button onClick={runCompletionHandler} width="200px" colorScheme="teal">
+        Run completion
+      </Button>
+    </Flex>
   );
 };
