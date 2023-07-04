@@ -91,6 +91,7 @@ export class ChatService {
   /** runs the Completion with the current messages */
   public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent, onComplete?: () => void) {
     try {
+      if(!messages) return /*nothing else to do*/;
       if (this.isLoading) return /*nothing else to do*/;
       this.isLoading = true;
 
