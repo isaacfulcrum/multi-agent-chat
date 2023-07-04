@@ -41,8 +41,8 @@ export const Chat = () => {
         <AgentSelect />
         <AgentButton />
       </Center>
-      <Card width="80%" maxW="800px" height="100%" bg="#343541" boxShadow="none" pt="80px">
-        <CardBody>
+      <Card width="80%" height="100%" bg="#343541" boxShadow="none" pt="80px"> 
+        <CardBody maxW="800px" mx="auto" width="100%">
           <Stack spacing={3}>
             {messages.map((message) => (
               <Message key={message.id} message={message} />

@@ -125,7 +125,10 @@ export class ChatService {
         next: (content) => {
           this.updateMessage({ ...chatMessage, content });
         },
-        complete: onComplete,
+        complete: () => {
+            this.isLoading = false;
+            if (onComplete) onComplete();
+        },
         error: (error) => {
           throw error;
         },
@@ -133,7 +136,6 @@ export class ChatService {
     } catch (error) {
       // TODO: handle error
       console.error(error);
-    } finally {
       this.isLoading = false;
     }
   }
