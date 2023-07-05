@@ -15,8 +15,9 @@ const openai = new OpenAIApi(configuration);
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
 /** Given a set of messages, returns the selected agentId */
-export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined/*no agent*/> => {
+export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined /*no agent*/> => {
   try {
+    if(!process.env.NEXT_PUBLIC_OPENAI_API_KEY) throw new Error("Missing OpenAI API key");
     const { data } = await openai.createChatCompletion({
       model: "gpt-4",
       messages,
@@ -42,6 +43,8 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
  * @see https://www.builder.io/blog/stream-ai-javascript */
 export const fetchChatCompletionStream = async (messages: ChatCompletionRequestMessage[]) => {
   try {
+    if(!process.env.NEXT_PUBLIC_OPENAI_API_KEY) throw new Error("Missing OpenAI API key");
+    
     const specs: CreateChatCompletionRequest = {
       model: "gpt-4",
       messages,
@@ -132,6 +135,7 @@ export const readChatCompletionStream = async (subscriber: Subscriber<string>, s
       }
     }
   } catch (error) {
-    subscriber.error(error);
+      console.log("Error:", error);
+      subscriber.error(error);
   }
 };
