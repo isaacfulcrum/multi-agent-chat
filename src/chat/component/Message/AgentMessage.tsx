@@ -21,7 +21,7 @@ export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
   const handleEdit = () => onOpen();
 
   return (
-    <Flex width="100%" role="group" px="6" py="2" gap="0.5em">
+    <Flex width="100%" role="group" px="6" py="2" gap="0.5em" minH="75px" align="center">
       <Flex gap="1em"  maxWidth="90%">
         <Avatar
           name={message.isAgent ? message.agent.name : "Chatbot"}

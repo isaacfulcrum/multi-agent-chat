@@ -26,7 +26,14 @@ export const AgentSelect = () => {
 
   return (
     <Flex gap="1em">
-      <Select placeholder="No agent" value={currentAgentId} onChange={selectAgent} backgroundColor="#40414f" color="white" maxWidth="300px">
+      <Select 
+        placeholder="No agent" 
+        value={currentAgentId} 
+        onChange={selectAgent} 
+        backgroundColor="#40414f" 
+        color="white" 
+        maxW="300px"
+      >
         {
           // Agent list options
           agentServiceInstance.getAgents().map((agent) => (
