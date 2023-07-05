@@ -107,3 +107,14 @@ export const createAssistantMessage = (content: string = ""): NonAgentChatMessag
 export const createAgentMessage = (content: string = "", agent: Agent): AgentChatMessage => {
   return { id: nanoid(), role: ChatMessageRole.Assistant, content, isAgent: true, agent };
 };
+
+// FIXME: Is this the right place for this? 
+// == API Key =====================================================================
+const apiKeyStorageName = "openai-api-key";
+export const getApiKey = (): string | null => {
+  return window.localStorage.getItem(apiKeyStorageName);
+};
+
+export const storeApiKey = (apiKey: string): void => {
+  window.localStorage.setItem(apiKeyStorageName, apiKey);
+};

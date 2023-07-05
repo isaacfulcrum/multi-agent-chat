@@ -4,20 +4,23 @@ import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionReques
 import { Observable, Subscriber } from "rxjs";
 import { toast } from "react-toastify";
 
-import { OpenAIStreamResponse } from "./type";
+import { OpenAIStreamResponse, getApiKey } from "./type";
 import { ChatFunctions, chatFunctions } from "./function";
 
 // ********************************************************************************
-const configuration = new Configuration({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
 /** Given a set of messages, returns the selected agentId */
 export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined /*no agent*/> => {
   try {
-    if(!process.env.NEXT_PUBLIC_OPENAI_API_KEY) throw new Error("Missing OpenAI API key");
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error("Missing OpenAI API key");
+
+    console.log(apiKey);
+
+    const configuration = new Configuration({ apiKey });
+    const openai = new OpenAIApi(configuration);
+    
     const { data } = await openai.createChatCompletion({
       model: "gpt-4",
       messages,
@@ -43,8 +46,9 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
  * @see https://www.builder.io/blog/stream-ai-javascript */
 export const fetchChatCompletionStream = async (messages: ChatCompletionRequestMessage[]) => {
   try {
-    if(!process.env.NEXT_PUBLIC_OPENAI_API_KEY) throw new Error("Missing OpenAI API key");
-    
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error("Missing OpenAI API key");
+
     const specs: CreateChatCompletionRequest = {
       model: "gpt-4",
       messages,
@@ -60,7 +64,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(specs),
     });
@@ -130,12 +134,13 @@ export const readChatCompletionStream = async (subscriber: Subscriber<string>, s
             subscriber.next(incomingMessage);
           }
         } catch (error) {
-          throw new Error("Error parsing message: " + error);
+          //TODO: handle errors. When openai returns an error, crashes the app
+          toast.error("An error occurred while parsing the stream response");
         }
       }
     }
   } catch (error) {
-      console.log("Error:", error);
-      subscriber.error(error);
+    console.log("Error:", error);
+    subscriber.error(error);
   }
 };
