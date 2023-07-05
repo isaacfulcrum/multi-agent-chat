@@ -1,12 +1,11 @@
 import { CardFooter, Flex, IconButton, Input as ChakraInput, Tooltip } from "@chakra-ui/react";
 import { ChangeEventHandler, FormEventHandler, KeyboardEvent, useState } from "react";
 import { ChatIcon } from "@chakra-ui/icons";
-import { nanoid } from "nanoid";
+
+import { agentServiceInstance } from "@/agent/service";
 
 import { chatServiceInstance } from "../service";
-
-import { ChatMessageRole, UserChatMessage } from "../type";
-import { agentServiceInstance } from "@/agent/service";
+import { createUserMessage } from "../type";
 
 // ********************************************************************************
 export const Input = () => {
@@ -18,11 +17,7 @@ export const Input = () => {
   const sendMessage = async (message: string) => {
     try {
       if (message.trim() !== "") {
-        const newMessage: UserChatMessage = {
-          id: nanoid(),
-          role: ChatMessageRole.User,
-          content: message,
-        };
+        const newMessage = createUserMessage(message);
         await chatServiceInstance.addMessage(newMessage);
         setMessage("");
       }
@@ -79,13 +74,13 @@ export const Input = () => {
     <CardFooter p="0">
       <form onSubmit={singleMessageHandler} style={{ flex: 1 }}>
         <Flex gap="1em" padding="6" backgroundColor="#343541" width="100%" mx="auto" maxW="1000px">
-          <ChakraInput 
+        <ChakraInput 
             value={message} 
             placeholder="Type here..." 
             onKeyDown={onKeyDownHandler} 
             onChange={handleInputChange} 
             backgroundColor="#40414f" color="white" autoFocus 
-          />
+          />          
           <Tooltip label="Single message" fontSize="md">
             <IconButton aria-label="Single message" colorScheme="teal" icon={<ChatIcon />} type="submit" isLoading={isLoading} />
           </Tooltip>

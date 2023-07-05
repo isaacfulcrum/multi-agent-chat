@@ -1,5 +1,6 @@
 import { ChatCompletionRequestMessage } from "openai";
 import { Agent } from "@/agent/type";
+import { nanoid } from "nanoid";
 
 // ********************************************************************************
 // NOTE: using custom Enum instead of the one from openai since it's not exported as
@@ -75,7 +76,6 @@ export type OpenAIStreamResponse = {
   object: string;
 };
 
-
 // == Util ========================================================================
 export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
   let name = "chat_user";
@@ -94,4 +94,16 @@ export const chatMessageToCompletionMessage = (message: ChatMessage): ChatComple
     content: message.content,
     name,
   };
+};
+
+export const createUserMessage = (content: string = ""): UserChatMessage => {
+  return { id: nanoid(), role: ChatMessageRole.User, content };
+};
+
+export const createAssistantMessage = (content: string = ""): NonAgentChatMessage => {
+  return { id: nanoid(), role: ChatMessageRole.Assistant, content, isAgent: false };
+};
+
+export const createAgentMessage = (content: string = "", agent: Agent): AgentChatMessage => {
+  return { id: nanoid(), role: ChatMessageRole.Assistant, content, isAgent: true, agent };
 };
