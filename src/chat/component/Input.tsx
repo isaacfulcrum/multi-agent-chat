@@ -1,6 +1,6 @@
 import { CardFooter, Flex, IconButton, Input as ChakraInput, Tooltip } from "@chakra-ui/react";
-import { ChangeEventHandler, FormEventHandler, useState } from "react";
-import { ChatIcon, StarIcon } from "@chakra-ui/icons";
+import { ChangeEventHandler, FormEventHandler, KeyboardEvent, useState } from "react";
+import { ChatIcon } from "@chakra-ui/icons";
 import { nanoid } from "nanoid";
 
 import { chatServiceInstance } from "../service";
@@ -36,25 +36,25 @@ export const Input = () => {
     setMessage(e.target.value);
   };
 
-  const singleMessageHandler = async () => {
+  const singleMessageHandler: FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
     if (isLoading) return;
-
     try {
       setIsLoading(true);
       sendMessage(message);
       const messageHistory = chatServiceInstance.getCompletionMessages();
-      // Runs completion on the selected agent
       const agent = agentServiceInstance.getSelectedAgent();
+      /* run the completion directly */
       await chatServiceInstance.runCompletion(messageHistory, agent);
     } catch (error) {
+      // TODO: Handle error
       console.log(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const automaticMessageHandler: FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
+  const automaticMessageHandler = async () => {
     if (isLoading) return;
 
     try {
@@ -62,22 +62,35 @@ export const Input = () => {
       sendMessage(message);
       await chatServiceInstance.requestCompletion();
     } catch (error) {
+      // TODO: Handle error
       console.log(error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const onKeyDownHandler = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" && event.metaKey) {
+      automaticMessageHandler();
+    }
+  };
+
   return (
     <CardFooter p="0">
-      <form onSubmit={automaticMessageHandler} style={{ flex: 1 }}>
+      <form onSubmit={singleMessageHandler} style={{ flex: 1 }}>
         <Flex gap="1em" padding="6" backgroundColor="#343541" width="100%" mx="auto" maxW="1000px">
-          <ChakraInput value={message} onChange={handleInputChange} placeholder="Type here..." backgroundColor="#40414f" color="white" autoFocus />
+          <ChakraInput 
+            value={message} 
+            placeholder="Type here..." 
+            onKeyDown={onKeyDownHandler} 
+            onChange={handleInputChange} 
+            backgroundColor="#40414f" color="white" autoFocus 
+          />
           <Tooltip label="Single message" fontSize="md">
-            <IconButton aria-label="Single message" colorScheme="teal" icon={<StarIcon />} onClick={singleMessageHandler} isLoading={isLoading} />
+            <IconButton aria-label="Single message" colorScheme="teal" icon={<ChatIcon />} type="submit" isLoading={isLoading} />
           </Tooltip>
           <Tooltip label="Automatic" fontSize="md">
-            <IconButton aria-label="Automatic" colorScheme="teal" icon={<ChatIcon />} type="submit" isLoading={isLoading} />
+            <IconButton aria-label="Automatic" colorScheme="teal" icon={<>🚀</>} onClick={automaticMessageHandler} isLoading={isLoading} />
           </Tooltip>
         </Flex>
       </form>
