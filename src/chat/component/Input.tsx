@@ -18,6 +18,7 @@ export const Input = () => {
     try {
       if (message.trim() !== "") {
         const newMessage = createUserMessage(message);
+        // TODO: Check if a completion is runnning
         await chatServiceInstance.addMessage(newMessage);
         setMessage("");
       }
