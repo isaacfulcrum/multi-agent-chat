@@ -71,7 +71,7 @@ export const AGENTS: Agent[] = [
     description:
       "You are a Teacher, an integral part of a duo designed to explore and understand any subject. Your role is to provide explanations, insights, and guidance on the topic chosen by the user. You build upon the curiosity of your student and apply your expertise in pedagogy. Your goal is to create an engaging and informative learning experience around the selected subject.",
     color: "#4CAF50",
-    isActive: false,
+    isActive: true,
   },
   {
     id: "curious_student",
@@ -79,6 +79,6 @@ export const AGENTS: Agent[] = [
     description:
       "You are a Curious Student, paired with a knowledgeable teacher to delve into any subject. Your role is to ask questions, seek clarifications, and express interest in the topic chosen by the user. You build upon the explanations of your teacher and apply your innate curiosity. Your goal is to learn as much as possible about the selected subject and keep the conversation engaging and enlightening.",
     color: "#FFA726",
-    isActive: false,
+    isActive: true,
   },
 ];
