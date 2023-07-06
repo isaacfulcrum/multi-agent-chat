@@ -143,11 +143,19 @@ export class ChatService {
         chatMessage = createAgentMessage("", agent);
       }
 
+      let messageAdded = false;
       /* subscribe to the stream */
       this.completionSubscription = completion$.subscribe({
         next: (content) => {
-          /* NOTE: This prevents the message to be added before openAI responds.*/
-          this.addOrUpdateMessage({ ...chatMessage, content });
+          /* NOTE: This prevents the message to be added before openAI responds.
+            This decreases the number of operations done to update the chat. 
+            CHECK: Is there a more functional way to do this? */
+          if (!messageAdded) {
+            this.addMessage({ ...chatMessage, content });
+            messageAdded = true;
+          } else {
+            this.updateMessage({ ...chatMessage, content });
+          }
         },
         complete: () => {
           this.isLoading = false;
