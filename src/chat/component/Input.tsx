@@ -37,7 +37,7 @@ export const Input = () => {
     try {
       setIsLoading(true);
       sendMessage(message);
-      const messageHistory = chatServiceInstance.getCompletionMessages();
+      const messageHistory = chatServiceInstance.getOpenaiMessagesFromMessages();
       const agent = agentServiceInstance.getSelectedAgent();
       /* run the completion directly */
       await chatServiceInstance.runCompletion(messageHistory, agent);

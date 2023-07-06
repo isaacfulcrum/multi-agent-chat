@@ -1,5 +1,6 @@
 import { BehaviorSubject, Subscription } from "rxjs";
 import { ChatCompletionRequestMessage } from "openai";
+import { toast } from "react-toastify";
 
 import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
@@ -27,7 +28,6 @@ export class ChatService {
   /** this subscription is used when there's an incoming message from the agent, it's used to update the chat
    * NOTE: In case the chat is closed before the completion is done use the unmout() method */
   private completionSubscription: Subscription | undefined;
-
   /** indicates if the Completion is being run */
   public isLoading: boolean = false;
 
@@ -52,7 +52,7 @@ export class ChatService {
   }
 
   /** returns the messages as OpenAI expects them */
-  public getCompletionMessages() {
+  public getOpenaiMessagesFromMessages() {
     return this.getMessages().map(chatMessageToCompletionMessage);
   }
 
@@ -66,12 +66,24 @@ export class ChatService {
     this.messages$.next(this.getMessages().map((m) => (m.id === message.id ? message : m)));
   }
 
+  /** adds or updates a message in the chat based on its identifier */
+  public async addOrUpdateMessage(message: ChatMessage) {
+    const messages = this.getMessages();
+    const index = messages.findIndex((m) => m.id === message.id);
+    if (index === -1) {
+      await this.addMessage(message);
+    } else {
+      await this.updateMessage(message);
+    }
+  }
+
   /** removes the message from the chat */
   public async removeMessage(messageId: string) {
     this.messages$.next(this.getMessages().filter((m) => m.id !== messageId));
   }
 
   // == Completion ================================================================
+  
   /** Select an Agent to respond to the conversation based on the Context and Agent
    *  description.
    *  Respond based on the following conditions:
@@ -80,43 +92,51 @@ export class ChatService {
    *  2. An agent cannot respond consecutively. */
   public async requestCompletion() {
     try {
-      if (this.isLoading) return /*nothing else to do*/;
-      const messages = this.getCompletionMessages();
-      const isConsecutive = messages /* get the original messages because we need the role */
+      if (this.isLoading) throw new Error("Another completion is already in progress.");
+      
+      const messages = this.getOpenaiMessagesFromMessages();
+      if (!messages) throw new Error("No messages available for completion.");
+      
+      const isConsecutive = messages
         .slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES)
         .every((message) => message.role === ChatMessageRole.Assistant);
-      if (isConsecutive) return /* nothing else to do */;
+      if (isConsecutive) return; 
 
       const selectedAgent = await agentServiceInstance.selectAgent(messages);
-      if (!selectedAgent) return /*nothing else to do*/;
+      if (!selectedAgent) return; /* no agent selected */
 
-      const lastMessageSentBySameAgent = messages.slice(-1)[0].name === selectedAgent.id;
-      if (lastMessageSentBySameAgent) return /*nothing else to do*/;
+      const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
+      if (alreadyResponded) return; 
 
       await this.runCompletion(messages, selectedAgent, () => {
         this.requestCompletion();
       });
     } catch (error) {
-      // TODO: handle error
-      console.error("Error:", error);
+      let errorMessage = "Error requesting completion";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     }
   }
 
   /** Requests a completion to the OpenAI API and updates the message with the response
-   * @param messages the history the completion will be based on
+   * @param messages the history the completion will be based on.
    * @param agent an optional agent that will be the one responding to the completion.
-   *       If no agent is passed, no system message will be added.
+   *        If no agent is passed, no system message will be added.
    * @param onComplete an optional callback that will be called once the stream is completed.
-   *       This can be used in recursive calls to request a completion based on the previous
-   */
+   *        This can be used in recursive calls to request a completion based on the previous. */
   public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent, onComplete?: () => void) {
     try {
-      if (!messages) return;
-      if (this.isLoading) return /*nothing else to do*/;
+      if (!messages) throw new Error("No messages available for completion.");
+      if (this.isLoading) throw new Error("Another completion is already in progress.");
 
       this.isLoading = true;
       const messageHistory = [...messages];
 
+      const completion$ = await fetchChatCompletionStream(messageHistory);
+      if (!completion$) throw new Error("Nothing was returned from the completion stream.");
+      
       let chatMessage: AssistantChatMessage = createAssistantMessage();
       if (agent) {
         /* NOTE: add to the start of the array so it's the first message. */
@@ -125,16 +145,11 @@ export class ChatService {
         chatMessage = createAgentMessage("", agent);
       }
 
-      this.addMessage(chatMessage);
-      const completion$ = await fetchChatCompletionStream(messageHistory);
-      if (!completion$) {
-        throw new Error("Empty response");
-      }
-
       /* subscribe to the stream */
       this.completionSubscription = completion$.subscribe({
         next: (content) => {
-          this.updateMessage({ ...chatMessage, content });
+          /* NOTE: This prevents the message to be added before openAI responds.*/
+          this.addOrUpdateMessage({ ...chatMessage, content });
         },
         complete: () => {
           this.isLoading = false;
@@ -145,9 +160,11 @@ export class ChatService {
         },
       });
     } catch (error) {
-      // TODO: handle error
-      console.error(error);
-      this.isLoading = false;
+      let errorMessage = "Error requesting completion";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     }
   }
 }
