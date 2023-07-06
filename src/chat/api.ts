@@ -2,7 +2,7 @@
 // For demo purposes, we're using it in the client
 import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
 import { Observable, Subscriber } from "rxjs";
-import { toast } from "react-toastify";
+import { isAxiosError } from "axios";
 
 import { OpenAIStreamResponse, getApiKey } from "./type";
 import { ChatFunctions, chatFunctions } from "./function";
@@ -15,12 +15,9 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
   try {
     const apiKey = getApiKey();
     if (!apiKey) throw new Error("Missing OpenAI API key");
-
-    console.log(apiKey);
-
     const configuration = new Configuration({ apiKey });
     const openai = new OpenAIApi(configuration);
-    
+
     const { data } = await openai.createChatCompletion({
       model: "gpt-4",
       messages,
@@ -34,11 +31,11 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
     // Return the arguments of the function call
     return data.choices[0].message?.function_call?.arguments;
   } catch (error) {
-    if (error instanceof Error) {
-      toast.error(error.message);
-    } else {
-      console.error("Error:", error);
+    if (isAxiosError(error)) {
+      const errorMessage = error.response?.data?.error?.message;
+      throw new Error(`OpenAI API returned an error: ${errorMessage}`);
     }
+    throw error;
   }
 };
 
@@ -69,16 +66,18 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
       body: JSON.stringify(specs),
     });
 
+    if (!stream.ok) {
+      const message = await stream.json();
+      const errorMessage = message.error?.message || "Unknown error";
+      throw new Error(`OpenAI API returned an error: ${errorMessage}`);
+    }
+
     // Read the stream
     return new Observable<string>((subscriber) => {
       readChatCompletionStream(subscriber, stream);
     });
   } catch (error) {
-    if (error instanceof Error) {
-      toast.error(error.message);
-    } else {
-      console.error("Error:", error);
-    }
+    throw error;
   }
 };
 
@@ -134,13 +133,12 @@ export const readChatCompletionStream = async (subscriber: Subscriber<string>, s
             subscriber.next(incomingMessage);
           }
         } catch (error) {
-          //TODO: handle errors. When openai returns an error, crashes the app
-          toast.error("An error occurred while parsing the stream response");
+          subscriber.error(`Error parsing stream response: ${error}`);
+          // throw error;
         }
       }
     }
   } catch (error) {
-    console.log("Error:", error);
     subscriber.error(error);
   }
 };

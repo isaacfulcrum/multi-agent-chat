@@ -83,7 +83,7 @@ export class ChatService {
   }
 
   // == Completion ================================================================
-  
+
   /** Select an Agent to respond to the conversation based on the Context and Agent
    *  description.
    *  Respond based on the following conditions:
@@ -93,20 +93,18 @@ export class ChatService {
   public async requestCompletion() {
     try {
       if (this.isLoading) throw new Error("Another completion is already in progress.");
-      
+
       const messages = this.getOpenaiMessagesFromMessages();
-      if (!messages) throw new Error("No messages available for completion.");
-      
-      const isConsecutive = messages
-        .slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES)
-        .every((message) => message.role === ChatMessageRole.Assistant);
-      if (isConsecutive) return; 
+      if (messages.length === 0) throw new Error("No messages available for completion.");
+
+      const isConsecutive = messages.slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES).every((message) => message.role === ChatMessageRole.Assistant);
+      if (isConsecutive) return;
 
       const selectedAgent = await agentServiceInstance.selectAgent(messages);
       if (!selectedAgent) return; /* no agent selected */
 
       const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
-      if (alreadyResponded) return; 
+      if (alreadyResponded) return;
 
       await this.runCompletion(messages, selectedAgent, () => {
         this.requestCompletion();
@@ -128,7 +126,7 @@ export class ChatService {
    *        This can be used in recursive calls to request a completion based on the previous. */
   public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent, onComplete?: () => void) {
     try {
-      if (!messages) throw new Error("No messages available for completion.");
+      if (messages.length === 0) throw new Error("No messages available for completion.");
       if (this.isLoading) throw new Error("Another completion is already in progress.");
 
       this.isLoading = true;
@@ -136,7 +134,7 @@ export class ChatService {
 
       const completion$ = await fetchChatCompletionStream(messageHistory);
       if (!completion$) throw new Error("Nothing was returned from the completion stream.");
-      
+
       let chatMessage: AssistantChatMessage = createAssistantMessage();
       if (agent) {
         /* NOTE: add to the start of the array so it's the first message. */
@@ -160,6 +158,7 @@ export class ChatService {
         },
       });
     } catch (error) {
+      this.isLoading = false;
       let errorMessage = "Error requesting completion";
       if (error instanceof Error) {
         errorMessage = error.message;
