@@ -4,6 +4,7 @@ import { Card, CardBody, Center, Flex, Stack, Text } from "@chakra-ui/react";
 import { chatServiceInstance } from "../service";
 
 import { ChatMessage } from "../type";
+import { AgentSelect } from "../../agent/component/AgentSelect";
 import { Input } from "./Input";
 import { Message } from "./Message";
 import { Settings } from "./Settings";
@@ -38,6 +39,7 @@ export const Chat = () => {
           <Text textAlign="center" fontSize="2xl" fontWeight="bold" color="white">
             Multi-Agent Chat
           </Text>
+          <AgentSelect />
         </Flex>
         <Settings />
       </Center>
