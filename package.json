@@ -15,6 +15,7 @@
     "@emotion/styled": "^11.11.0",
     "@next/font": "13.4.6",
     "axios": "^1.4.0",
+    "firebase": "^9.23.0",
     "framer-motion": "^10.12.16",
     "nanoid": "^4.0.2",
     "next": "13.4.6",
