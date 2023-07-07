@@ -19,7 +19,7 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
     const openai = new OpenAIApi(configuration);
 
     const { data } = await openai.createChatCompletion({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages,
       max_tokens: 600,
       functions: chatFunctions,
@@ -47,7 +47,7 @@ export const fetchChatCompletionStream = async (messages: ChatCompletionRequestM
     if (!apiKey) throw new Error("Missing OpenAI API key");
 
     const specs: CreateChatCompletionRequest = {
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages,
       max_tokens: 600,
       stream: true /** so we can update as it arrives */,
