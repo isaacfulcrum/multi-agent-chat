@@ -7,7 +7,7 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import { onRequest } from "firebase-functions/v2/https";
+import { onCall } from "firebase-functions/v2/https";
 
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
@@ -17,11 +17,16 @@ import { getFirestore } from "firebase-admin/firestore";
 
 initializeApp();
 
-export const addMessage = onRequest(async (req, res) => {
+exports.addMessage = onCall(async (request) => {
   // Grab the text parameter.
-  const original = req.query.text;
+  const original = request.data.text;
   // Push the new message into Firestore using the Firebase Admin SDK.
   const writeResult = await getFirestore().collection("messages").add({ original: original });
   // Send back a message that we've successfully written the message
-  res.json({ result: `Message with ID: ${writeResult.id} added.` });
+  return { result: `Message with ID: ${writeResult.id} added.` };
+});
+
+exports.getMessages = onCall(async (request) => {
+  const messages = await getFirestore().collection("messages").get();
+  return { messages: messages.docs.map((doc) => doc.data()) };
 });
