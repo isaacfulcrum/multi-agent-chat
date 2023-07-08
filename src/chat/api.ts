@@ -1,6 +1,6 @@
 // NOTE: This shouldn't be used in the client, only in the server
 // For demo purposes, we're using it in the client
-import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
+import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, CreateCompletionRequest, OpenAIApi } from "openai";
 import { Observable, Subscriber } from "rxjs";
 import { isAxiosError } from "axios";
 
@@ -10,11 +10,11 @@ import { ChatFunctions, chatFunctions } from "./function";
 // ********************************************************************************
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions";
 
-/** Given a set of messages, returns the selected agentId */
-export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined /*no agent*/> => {
+export const openAIChatCompletion = async (messages: ChatCompletionRequestMessage[], options?: Partial<CreateChatCompletionRequest>) => {
   try {
     const apiKey = getApiKey();
     if (!apiKey) throw new Error("Missing OpenAI API key");
+
     const configuration = new Configuration({ apiKey });
     const openai = new OpenAIApi(configuration);
 
@@ -22,6 +22,42 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
       model: "gpt-3.5-turbo",
       messages,
       max_tokens: 600,
+      ...options,
+    });
+
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const openAICompletion = async (prompt: string, options?: Partial<CreateCompletionRequest>) => {
+  try {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error("Missing OpenAI API key");
+
+    const configuration = new Configuration({ apiKey });
+    const openai = new OpenAIApi(configuration);
+
+    const { data } = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt,
+      max_tokens: 500,
+      ...options,
+    });
+
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+/** Given a set of messages, returns the selected agentId */
+export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined /*no agent*/> => {
+  try {
+    const data = await openAIChatCompletion(messages, {
       functions: chatFunctions,
       function_call: {
         name: ChatFunctions.selectAgent /** forces it to select an agent */,
