@@ -32,28 +32,6 @@ export const openAIChatCompletion = async (messages: ChatCompletionRequestMessag
   }
 };
 
-export const openAICompletion = async (prompt: string, options?: Partial<CreateCompletionRequest>) => {
-  try {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new Error("Missing OpenAI API key");
-
-    const configuration = new Configuration({ apiKey });
-    const openai = new OpenAIApi(configuration);
-
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt,
-      max_tokens: 500,
-      ...options,
-    });
-
-    return data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
 /** Given a set of messages, returns the selected agentId */
 export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined /*no agent*/> => {
   try {
