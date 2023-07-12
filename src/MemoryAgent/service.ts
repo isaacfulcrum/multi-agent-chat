@@ -26,7 +26,7 @@ export class MemoryAgentService {
                 name: { type: "string", description: "Title of the concept" },
                 description: { type: "string", description: "Description of the concept" },
               },
-              required: ["title", "meaning"],
+              required: ["name", "description"],
             },
           },
         },
@@ -41,8 +41,8 @@ export class MemoryAgentService {
   private getMemories = async () => {
     try {
       const getData = httpsCallable(firebaseFunctions, "getMemories");
-      const response = await getData();
-      console.log("Response: ", response);
+      const response = (await getData()) as any;
+      return response.data.result;
     } catch (error) {
       console.error("Error getting memories: ", error);
     }
@@ -62,6 +62,45 @@ export class MemoryAgentService {
   };
 
   // == Memory ======================================================================
+
+  public async mergeConcepts(concepts: Concept[]) {
+    const memories = (await this.getMemories()) as Concept[];
+    console.log("Concepts: ", concepts);
+    console.log("Memories: ", memories as Concept[]);
+   
+
+    const prompt = `OLD CONCEPTS: ${JSON.stringify(memories)} \n\n  NEW CONCEPTS: ${JSON.stringify(concepts)}\n`;
+
+    const userMessage = {
+      role: ChatMessageRole.User,
+      content: "I have a new set of concepts, help me complement them with a list of old concepts I had: " + prompt,
+      name: "User",
+    };
+
+    const completion = await openAIChatCompletion([userMessage], {
+      functions: this.functions,
+      function_call: {
+        name: "informationExtraction",
+      },
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
+
+    console.log("Completion: ", completion);
+
+    if (completion.choices[0].message?.function_call) {
+      const functionCall = completion.choices[0].message.function_call;
+
+      if (!functionCall.arguments) throw new Error("No function call arguments");
+      const args = JSON.parse(functionCall.arguments);
+
+      if (functionCall.name === "informationExtraction") {
+        console.log("Concepts: ", args.info);
+        // await this.setMemories(args.info);
+      }
+    }
+  }
+
   /** Creates a new set of memories based on the given message history */
   public async createMemories(messageHistory: ChatCompletionRequestMessage[]) {
     try {
@@ -92,8 +131,8 @@ export class MemoryAgentService {
         const args = JSON.parse(functionCall.arguments);
 
         if (functionCall.name === "informationExtraction") {
-          console.log("Key Concepts: ", args);
-          await this.setMemories(args.info);
+          await this.mergeConcepts(args.info);
+          // await this.setMemories(args.info);
         }
       } else {
         console.log("No function call message: ", completion.choices[0].message?.content);
