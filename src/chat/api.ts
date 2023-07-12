@@ -1,6 +1,6 @@
 // NOTE: This shouldn't be used in the client, only in the server
 // For demo purposes, we're using it in the client
-import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, CreateCompletionRequest, OpenAIApi } from "openai";
+import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, CreateEmbeddingRequestInput, CreateEmbeddingRequest, OpenAIApi } from "openai";
 import { Observable, Subscriber } from "rxjs";
 import { isAxiosError } from "axios";
 
@@ -23,6 +23,27 @@ export const openAIChatCompletion = async (messages: ChatCompletionRequestMessag
       messages,
       max_tokens: 600,
       ...options,
+    });
+
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const openAIEmbedding = async (prompt: string, options?: Partial<CreateEmbeddingRequest>) => {
+  try {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error("Missing OpenAI API key");
+
+    const configuration = new Configuration({ apiKey });
+    delete configuration.baseOptions.headers['User-Agent'];
+    const openai = new OpenAIApi(configuration);
+
+    const { data } = await openai.createEmbedding({
+      model: "text-embedding-ada-002",
+      input: prompt,
     });
 
     return data;
