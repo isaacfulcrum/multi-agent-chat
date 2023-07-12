@@ -1,9 +1,12 @@
 import { ChatCompletionFunctions, ChatCompletionRequestMessage } from "openai";
+import { httpsCallable } from "firebase/functions";
 
 import { ChatMessageRole } from "@/chat/type";
 import { openAIChatCompletion } from "@/chat/api";
+import { firebaseFunctions } from "@/chat/firebase";
 
 import { MentalModelAgent } from "./agent";
+import { Concept } from "./type";
 
 // ****************************************************************************
 /** Monitors the current coversation to store key information in memory */
@@ -20,8 +23,8 @@ export class MemoryAgentService {
             items: {
               type: "object",
               properties: {
-                title: { type: "string", description: "Title of the concept" },
-                meaning: { type: "string", description: "Description of the concept" },
+                name: { type: "string", description: "Title of the concept" },
+                description: { type: "string", description: "Description of the concept" },
               },
               required: ["title", "meaning"],
             },
@@ -33,6 +36,30 @@ export class MemoryAgentService {
   ];
 
   constructor() {}
+
+  // == Firebase Functions =========================================================
+  private getMemories = async () => {
+    try {
+      const getData = httpsCallable(firebaseFunctions, "getMemories");
+      const response = await getData();
+      console.log("Response: ", response);
+    } catch (error) {
+      console.error("Error getting memories: ", error);
+    }
+  };
+
+  // == Firebase Functions =========================================================
+  private setMemories = async (concepts: Concept[]) => {
+    try {
+      const memories = await this.getMemories();
+      // TODO: Merge the memories with the new concepts
+      const storeData = httpsCallable(firebaseFunctions, "storeMemories");
+      const response = await storeData(concepts);
+      console.log("Response: ", response);
+    } catch (error) {
+      console.error("Error getting memories: ", error);
+    }
+  };
 
   // == Memory ======================================================================
   /** Creates a new set of memories based on the given message history */
@@ -66,7 +93,7 @@ export class MemoryAgentService {
 
         if (functionCall.name === "informationExtraction") {
           console.log("Key Concepts: ", args);
-          // TODO: Store the key concepts in the database
+          await this.setMemories(args.info);
         }
       } else {
         console.log("No function call message: ", completion.choices[0].message?.content);

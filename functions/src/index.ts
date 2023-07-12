@@ -8,17 +8,27 @@ import { getFirestore } from "firebase-admin/firestore";
 
 initializeApp();
 
-exports.storeMemories = onCall<{ [key: string]: string }>(async (request) => {
+exports.storeMemories = onCall<
+  {
+    name: string;
+    description: string;
+  }[]
+>(async (request) => {
   // Grab the text parameter.
   const memories = request.data;
-  // Push the new message into Firestore using the Firebase Admin SDK.
-  const concepts = getFirestore().doc("memories/concepts"); /* Create a new document reference */
-  concepts.update({
-    ...memories,
+
+  const batch = getFirestore().batch();
+  memories.forEach((memory) => {
+    const concept = getFirestore().collection("memories").doc(memory.name);
+    batch.set(concept, memory);
   });
+  await batch.commit();
+  // Push the new message into Firestore using the Firebase Admin SDK.
+  return { result: "Success" };
 });
 
 exports.getMemories = onCall(async (request) => {
-  const memories = await getFirestore().doc("memories/concepts").get();
-  return memories.data();
+  const memories = await getFirestore().collection("memories").get();
+  const result = memories.docs.map((memory) => memory.data());
+  return { result };
 });
