@@ -1,7 +1,10 @@
 import { ChatCompletionRequestMessage } from "openai";
 
+import { openAIEmbedding } from "@/chat/api";
+import { calculateDistance } from "@/utils/vector";
+
 import { Concept, extractInformation } from "./type";
-import { getConcepts } from "./callable";
+import { getConcepts, setConcepts } from "./callable";
 import { MentalModelAgent } from "./agent";
 
 // ****************************************************************************
@@ -10,20 +13,60 @@ export class MemoryAgentService {
   constructor() {
     /*nothing yet*/
   }
-
-  // == Memory ======================================================================
-  public async mergeConcepts(concepts: Concept[]) {
-    const archivedConcepts = (await getConcepts()) as Concept[];
-    if (!archivedConcepts) throw new Error("No concepts found");
-    console.log("Concepts: ", concepts);
-    console.log("Archive: ", archivedConcepts);
-
-    // TODO: Refine this algorithm with embeddings
-    const conceptList = `OLD CONCEPTS: ${JSON.stringify(archivedConcepts)} \n\n  NEW CONCEPTS: ${JSON.stringify(concepts)}\n`;
-    const prompt = "I have a new set of concepts, help me complement them with a list of old concepts I had: " + conceptList;
-    return extractInformation({ prompt });
+  // == Concept Extraction ======================================================================
+  /** Compares two concepts with their embeddings and returns the distance between them (Similarity) */
+  public async getEmbedding(concept: Concept) {
+    try {
+      const prompt = `${concept.name}: ${concept.description}`;
+      const response = await openAIEmbedding(prompt);
+      return response.data[0].embedding;
+    } catch (error) {
+      console.error("Error getting embedding: ", error);
+    }
   }
 
+  public async mergeConcepts(concepts: Concept[]) {
+    try {
+      const archivedConcepts = (await getConcepts()) as Concept[];
+      if (!archivedConcepts) throw new Error("No concepts found");
+
+      const getConceptEmbedding = async (concept: Concept) => this.getEmbedding(concept).then((embedding) => ({ concept, embedding }));
+      const archivedEmbeddings = await Promise.all(archivedConcepts.map(getConceptEmbedding));
+      const newConceptEmbeddings = await Promise.all(concepts.map(getConceptEmbedding));
+
+      // TODO: Make a type
+      const conceptsToMerge: {
+        archivedConcept: Concept;
+        newConcept: Concept;
+      }[] = [];
+
+      /* Compare the new concepts with the archived ones */
+      newConceptEmbeddings.forEach((newC) => {
+        archivedEmbeddings.forEach((archived) => {
+          const distance = calculateDistance(newC.embedding ?? [], archived.embedding ?? []);
+          if (distance < 0.5) {
+            conceptsToMerge.push({ archivedConcept: newC.concept, newConcept: archived.concept });
+          }
+        });
+      });
+
+      const prompt =
+        "Extract a summarized version of each pair of concepts, don't define two concepts with the same name: " +
+        conceptsToMerge.map(
+          (c) => `
+      == Pair =======================================================================
+      OLD: ${c.archivedConcept.name}: ${c.archivedConcept.description}
+      NEW: ${c.newConcept.name}: ${c.newConcept.description}`
+        );
+
+      //TODO: Take into account the new concepts
+      return extractInformation({ prompt, agentDescription: MentalModelAgent });
+    } catch (error) {
+      console.error("Error merging concepts: ", error);
+    }
+  }
+
+  // == Memory ======================================================================
   /** Creates a new set of memories based on the given message history */
   public async createMemories(messageHistory: ChatCompletionRequestMessage[]) {
     try {
@@ -38,8 +81,7 @@ export class MemoryAgentService {
       if (!merged) throw new Error("No concepts returned from merge");
 
       console.log("New concepts: ", merged);
-      // TODO: Once the merge algorithm is refined, store the new concepts
-      // await setConcepts(merged);
+      await setConcepts(merged);
     } catch (error) {
       console.error("Error creating memories: ", error);
     }
