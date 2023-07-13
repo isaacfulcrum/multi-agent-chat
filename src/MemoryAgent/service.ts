@@ -31,11 +31,14 @@ export class MemoryAgentService {
       const archivedConcepts = (await getConcepts()) as Concept[];
       if (!archivedConcepts) throw new Error("No concepts found");
 
+      // TODO: Get the embedding for each concept more efficiently, maybe a vector database?
       const getConceptEmbedding = async (concept: Concept) => this.getEmbedding(concept).then((embedding) => ({ concept, embedding }));
       const archivedEmbeddings = await Promise.all(archivedConcepts.map(getConceptEmbedding));
       const newConceptEmbeddings = await Promise.all(concepts.map(getConceptEmbedding));
 
       // TODO: Make a type
+
+      const newConcepts: Concept[] = [];
       const conceptsToMerge: {
         archivedConcept: Concept;
         newConcept: Concept;
@@ -45,11 +48,16 @@ export class MemoryAgentService {
       newConceptEmbeddings.forEach((newC) => {
         archivedEmbeddings.forEach((archived) => {
           const distance = calculateDistance(newC.embedding ?? [], archived.embedding ?? []);
-          if (distance < 0.5) {
+          if (distance < 0.4) {
             conceptsToMerge.push({ archivedConcept: newC.concept, newConcept: archived.concept });
           }
         });
       });
+      // If a concept wasn't merged, add it to the new concepts
+      newConcepts.push(...concepts.filter((c) => !conceptsToMerge.find((m) => m.newConcept.name === c.name)));
+
+      console.log("New concepts: ", newConcepts);
+      console.log("Concepts to merge: ", conceptsToMerge);
 
       const prompt =
         "Extract a summarized version of each pair of concepts, don't define two concepts with the same name: " +
@@ -60,7 +68,9 @@ export class MemoryAgentService {
       NEW: ${c.newConcept.name}: ${c.newConcept.description}`
         );
 
-      return extractInformation({ prompt });
+      const conceptsToSave = (await extractInformation({ prompt })) ?? [];
+
+      return [...conceptsToSave, ...newConcepts];
     } catch (error) {
       console.error("Error merging concepts: ", error);
     }
@@ -79,9 +89,8 @@ export class MemoryAgentService {
 
       const merged = await this.mergeConcepts(concepts);
       if (!merged) throw new Error("No concepts returned from merge");
-      console.log("New concepts: ", [...concepts, ...merged ]);
-      /* Totally new and updated concepts get registered  */
-      await setConcepts([ ...concepts, ...merged ]);
+      // TODO: Filter out the concepts that are already in the database
+      await setConcepts(merged);
     } catch (error) {
       console.error("Error creating memories: ", error);
     }

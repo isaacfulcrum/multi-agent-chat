@@ -19,8 +19,11 @@ exports.storeMemories = onCall<
 
   const batch = getFirestore().batch();
   memories.forEach((memory) => {
-    const concept = getFirestore().collection("memories").doc(memory.name);
-    batch.set(concept, memory);
+    // Subcollection of concepts
+    const conceptDoc = getFirestore().collection("memories").doc(memory.name);
+    batch.set(conceptDoc, memory);
+    const subcollection = conceptDoc.collection("concepts").doc(); // new concept
+    batch.set(subcollection, memory);
   });
   await batch.commit();
   // Push the new message into Firestore using the Firebase Admin SDK.
