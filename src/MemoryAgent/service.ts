@@ -24,7 +24,7 @@ export class MemoryAgentService {
       console.error("Error getting embedding: ", error);
     }
   }
-  
+
   /** Merges a given list of concepts with the existing one on the database */
   public async mergeConcepts(concepts: Concept[]) {
     try {
@@ -60,8 +60,7 @@ export class MemoryAgentService {
       NEW: ${c.newConcept.name}: ${c.newConcept.description}`
         );
 
-      //TODO: Take into account the new concepts
-      return extractInformation({ prompt, agentDescription: MentalModelAgent });
+      return extractInformation({ prompt });
     } catch (error) {
       console.error("Error merging concepts: ", error);
     }
@@ -80,9 +79,9 @@ export class MemoryAgentService {
 
       const merged = await this.mergeConcepts(concepts);
       if (!merged) throw new Error("No concepts returned from merge");
-
-      console.log("New concepts: ", merged);
-      await setConcepts(merged);
+      console.log("New concepts: ", [...concepts, ...merged ]);
+      /* Totally new and updated concepts get registered  */
+      await setConcepts([ ...concepts, ...merged ]);
     } catch (error) {
       console.error("Error creating memories: ", error);
     }
