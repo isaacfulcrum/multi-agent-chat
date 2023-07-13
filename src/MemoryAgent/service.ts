@@ -14,7 +14,7 @@ export class MemoryAgentService {
     /*nothing yet*/
   }
   // == Concept Extraction ======================================================================
-  /** Compares two concepts with their embeddings and returns the distance between them (Similarity) */
+  /** Gets a vector representation of the given concept */
   public async getEmbedding(concept: Concept) {
     try {
       const prompt = `${concept.name}: ${concept.description}`;
@@ -24,7 +24,8 @@ export class MemoryAgentService {
       console.error("Error getting embedding: ", error);
     }
   }
-
+  
+  /** Merges a given list of concepts with the existing one on the database */
   public async mergeConcepts(concepts: Concept[]) {
     try {
       const archivedConcepts = (await getConcepts()) as Concept[];
