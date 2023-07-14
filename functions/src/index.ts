@@ -1,29 +1,33 @@
 import { onCall } from "firebase-functions/v2/https";
-
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { Timestamp, getFirestore } from "firebase-admin/firestore";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+import { CollectionId, Concept, ConceptStoreRequest } from "./type";
 
+// ****************************************************************************
 initializeApp();
 
-exports.storeMemories = onCall<
-  {
-    name: string;
-    description: string;
-  }[]
->(async (request) => {
-  // Grab the text parameter.
-  const memories = request.data;
+/** Stores the given concepts in the database */
+exports.storeMemories = onCall<ConceptStoreRequest[]>(async (request) => {
+  const conceptsToStore = request.data;
 
   const batch = getFirestore().batch();
-  memories.forEach((memory) => {
-    // Subcollection of concepts
-    const conceptDoc = getFirestore().collection("memories").doc(memory.name);
-    batch.set(conceptDoc, memory);
-    const subcollection = conceptDoc.collection("concepts").doc(); // new concept
-    batch.set(subcollection, memory);
+  conceptsToStore.forEach((concept) => {
+    let conceptDoc;
+    if (concept.documentId) {
+      conceptDoc = getFirestore().collection(CollectionId.Memories).doc(concept.documentId);
+    } else {
+      conceptDoc = getFirestore().collection(CollectionId.Memories).doc();
+      batch.set(conceptDoc, { name: concept.name }); // Add the name of the memory
+    }
+
+    const newDoc = conceptDoc.collection(CollectionId.Concepts).doc();
+    const newConcept: Concept = {
+      name: concept.name,
+      description: concept.description,
+      timestamp: Timestamp.now().toMillis(),
+    };
+    batch.set(newDoc, newConcept);
   });
   await batch.commit();
   // Push the new message into Firestore using the Firebase Admin SDK.
@@ -31,7 +35,20 @@ exports.storeMemories = onCall<
 });
 
 exports.getMemories = onCall(async (request) => {
-  const memories = await getFirestore().collection("memories").get();
-  const result = memories.docs.map((memory) => memory.data());
+  const memories = await getFirestore().collection(CollectionId.Memories).get();
+  
+  // Bring the first concept of each memory ordered by timestamp
+  const querys = memories.docs.map((memory) =>
+  getFirestore()
+  .collection(`${CollectionId.Memories}/${memory.id}/${CollectionId.Concepts}`)
+  .orderBy("timestamp")
+  .limit(1)
+  .get()
+  );
+  
+  const querysResults = await Promise.all(querys);
+  const result = querysResults.map((query) => query.docs.map((doc) => doc.data())).flat();
+  
+  
   return { result };
 });

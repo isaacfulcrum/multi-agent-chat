@@ -6,6 +6,12 @@ import { MentalModelAgent } from "./agent";
 import { openAIChatCompletion } from "@/chat/api";
 
 // ****************************************************************************
+export type ConceptStoreRequest = {
+  documentId: string;
+  name: string;
+  description: string;
+};
+
 export type Concept = {
   name: string;
   description: string;

@@ -29,48 +29,54 @@ export class MemoryAgentService {
   public async mergeConcepts(concepts: Concept[]) {
     try {
       const archivedConcepts = (await getConcepts()) as Concept[];
-      if (!archivedConcepts) throw new Error("No concepts found");
 
-      // TODO: Get the embedding for each concept more efficiently, maybe a vector database?
-      const getConceptEmbedding = async (concept: Concept) => this.getEmbedding(concept).then((embedding) => ({ concept, embedding }));
-      const archivedEmbeddings = await Promise.all(archivedConcepts.map(getConceptEmbedding));
-      const newConceptEmbeddings = await Promise.all(concepts.map(getConceptEmbedding));
+      console.log("Archived concepts: ", archivedConcepts)
 
-      // TODO: Make a type
+      return concepts;
 
-      const newConcepts: Concept[] = [];
-      const conceptsToMerge: {
-        archivedConcept: Concept;
-        newConcept: Concept;
-      }[] = [];
+      // if (!archivedConcepts) throw new Error("No concepts found");
 
-      /* Compare the new concepts with the archived ones */
-      newConceptEmbeddings.forEach((newC) => {
-        archivedEmbeddings.forEach((archived) => {
-          const distance = calculateDistance(newC.embedding ?? [], archived.embedding ?? []);
-          if (distance < 0.4) {
-            conceptsToMerge.push({ archivedConcept: newC.concept, newConcept: archived.concept });
-          }
-        });
-      });
-      // If a concept wasn't merged, add it to the new concepts
-      newConcepts.push(...concepts.filter((c) => !conceptsToMerge.find((m) => m.newConcept.name === c.name)));
+      // // TODO: Get the embedding for each concept more efficiently, maybe a vector database?
+      // const getConceptEmbedding = async (concept: Concept) => this.getEmbedding(concept).then((embedding) => ({ concept, embedding }));
+      // const archivedEmbeddings = await Promise.all(archivedConcepts.map(getConceptEmbedding));
+      // const newConceptEmbeddings = await Promise.all(concepts.map(getConceptEmbedding));
 
-      console.log("New concepts: ", newConcepts);
-      console.log("Concepts to merge: ", conceptsToMerge);
+      // // TODO: Make a type
 
-      const prompt =
-        "Extract a summarized version of each pair of concepts, don't define two concepts with the same name: " +
-        conceptsToMerge.map(
-          (c) => `
-      == Pair =======================================================================
-      OLD: ${c.archivedConcept.name}: ${c.archivedConcept.description}
-      NEW: ${c.newConcept.name}: ${c.newConcept.description}`
-        );
+      // const newConcepts: Concept[] = [];
+      // const conceptsToMerge: {
+      //   archivedConcept: Concept;
+      //   newConcept: Concept;
+      // }[] = [];
 
-      const conceptsToSave = (await extractInformation({ prompt })) ?? [];
+      // TODO: Compare the new concepts with the archived ones, If they are similar, add them to the concepts to merge
+      // /* Compare the new concepts with the archived ones */
+      // newConceptEmbeddings.forEach((newC) => {
+      //   archivedEmbeddings.forEach((archived) => {
+      //     const distance = calculateDistance(newC.embedding ?? [], archived.embedding ?? []);
+      //     if (distance < 0.4) {
+      //       conceptsToMerge.push({ archivedConcept: newC.concept, newConcept: archived.concept });
+      //     }
+      //   });
+      // });
+      // // If a concept wasn't merged, add it to the new concepts
+      // newConcepts.push(...concepts.filter((c) => !conceptsToMerge.find((m) => m.newConcept.name === c.name)));
 
-      return [...conceptsToSave, ...newConcepts];
+      // console.log("New concepts: ", newConcepts);
+      // console.log("Concepts to merge: ", conceptsToMerge);
+
+      // const prompt =
+      //   "Extract a summarized version of each pair of concepts, don't define two concepts with the same name: " +
+      //   conceptsToMerge.map(
+      //     (c) => `
+      // == Pair =======================================================================
+      // OLD: ${c.archivedConcept.name}: ${c.archivedConcept.description}
+      // NEW: ${c.newConcept.name}: ${c.newConcept.description}`
+      //   );
+
+      // const conceptsToSave = (await extractInformation({ prompt })) ?? [];
+
+      
     } catch (error) {
       console.error("Error merging concepts: ", error);
     }
