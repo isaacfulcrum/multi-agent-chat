@@ -15,9 +15,9 @@ exports.storeMemories = onCall<ConceptStoreRequest[]>(async (request) => {
   conceptsToStore.forEach((concept) => {
     let conceptDoc;
     if (concept.documentId) {
-      conceptDoc = getFirestore().collection(CollectionId.Memories).doc(concept.documentId);
+      conceptDoc = getFirestore().collection(CollectionId.Memories).doc(concept.documentId); /* Use existing document */
     } else {
-      conceptDoc = getFirestore().collection(CollectionId.Memories).doc();
+      conceptDoc = getFirestore().collection(CollectionId.Memories).doc(); /* Create a new document */
       batch.set(conceptDoc, { name: concept.name }); // Add the name of the memory
     }
 
@@ -30,25 +30,28 @@ exports.storeMemories = onCall<ConceptStoreRequest[]>(async (request) => {
     batch.set(newDoc, newConcept);
   });
   await batch.commit();
-  // Push the new message into Firestore using the Firebase Admin SDK.
   return { result: "Success" };
 });
 
-exports.getMemories = onCall(async (request) => {
+/** Retrieves concepts from Firestore */
+exports.getMemories = onCall(async () => {
   const memories = await getFirestore().collection(CollectionId.Memories).get();
-  
-  // Bring the first concept of each memory ordered by timestamp
+  // Get the most recent concept for each memory
   const querys = memories.docs.map((memory) =>
-  getFirestore()
-  .collection(`${CollectionId.Memories}/${memory.id}/${CollectionId.Concepts}`)
-  .orderBy("timestamp")
-  .limit(1)
-  .get()
+    getFirestore()
+      .collection(`${CollectionId.Memories}/${memory.id}/${CollectionId.Concepts}`)
+      .orderBy("timestamp") /* Most recent first */
+      .limit(1)
+      .get()
   );
-  
+
   const querysResults = await Promise.all(querys);
-  const result = querysResults.map((query) => query.docs.map((doc) => doc.data())).flat();
-  
-  
+  /* Returns the most recent concept for each memory with the Concept document id */
+  const result = querysResults
+    .map((query) =>
+      query.docs.length ? { documentId: query.docs[0].ref.parent.parent?.id, ...query.docs[0].data() } : null
+    )
+    .filter((memory) => memory); /* Remove null values */
+
   return { result };
 });

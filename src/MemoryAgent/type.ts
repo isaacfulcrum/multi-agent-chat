@@ -1,28 +1,26 @@
 import { ChatCompletionFunctions, ChatCompletionRequestMessage } from "openai";
 
 import { ChatMessageRole } from "@/chat/type";
-
-import { MentalModelAgent } from "./agent";
 import { openAIChatCompletion } from "@/chat/api";
 
 // ****************************************************************************
-export type ConceptStoreRequest = {
+
+// == Concepts ====================================================================
+export type BaseConcept = {
+  name: string;
+  description: string;
+  embedding?: number[]; /* CHECK: Can we make this more explicit? */
+};
+
+/* Comes from Firestore */
+export type DatabaseConcept = BaseConcept & {
+  timestamp: number;
   documentId: string;
-  name: string;
-  description: string;
 };
 
-export type Concept = {
-  name: string;
-  description: string;
-};
+export type Concept = BaseConcept | DatabaseConcept;
 
-export const systemMessage = {
-  role: ChatMessageRole.System,
-  content: MentalModelAgent,
-};
-
-// == Functions ======================================================================
+// == Functions ===================================================================
 enum MemoryAgentFunctions {
   informationExtraction = "informationExtraction",
 }
@@ -59,14 +57,17 @@ type ExtractInformationArgs = {
 /** Returns a list of arguments of key concepts given a prompt
  *  @param prompt This promt should include information to extract concepts from and clear instructions on how to do so.
  *  @param agentDescription This is the description of the agent that will be used to extract information */
-export const extractInformation = async ({ prompt, agentDescription }: ExtractInformationArgs): Promise<Concept[] | undefined /*no response*/> => {
+export const extractInformation = async ({
+  prompt,
+  agentDescription,
+}: ExtractInformationArgs): Promise<Concept[] | undefined /*no response*/> => {
   const instruction = {
     role: ChatMessageRole.User,
     content: prompt,
     name: "user",
   };
   const messages: ChatCompletionRequestMessage[] = [instruction];
-  
+
   if (agentDescription) {
     const systemMessage = {
       role: ChatMessageRole.System,
