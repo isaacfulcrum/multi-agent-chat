@@ -23,12 +23,12 @@ export const Logs = () => {
     <Stack>
       {logs.map((log, index) => (
         <Fade in={true} key={index}>
-          <Box key={index} px="10px" py="5px">
-            <Code fontSize="sm" colorScheme={log.type === LogType.error ? "red" : "blue"} p={"0.5em"} width="100%">
+          <Box key={index} pl="1em" pr="2em" py="5px">
+            <Code fontSize="sm" colorScheme={log.type === LogType.error ? "red" : "blue"} p={"0.5em"} width="100%" whiteSpace="pre-line">
               <Text fontSize="xs" color="gray.600">
                 {log.sender}
               </Text>
-              <pre>{log.message}</pre>
+              {log.message}
             </Code>
           </Box>
         </Fade>

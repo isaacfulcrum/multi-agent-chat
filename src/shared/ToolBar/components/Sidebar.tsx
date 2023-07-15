@@ -4,7 +4,7 @@ import { Box, IconButton, Tab, TabList, TabPanel, TabPanels, Tabs, useDisclosure
 import { Logs } from "@/log/component/Logs";
 
 // *******************************************************************************
-const SIDEBAR_WIDTH = "300px";
+const SIDEBAR_WIDTH = "360px";
 
 export const Sidebar = () => {
   const { isOpen, onToggle } = useDisclosure();

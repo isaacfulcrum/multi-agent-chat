@@ -2,6 +2,7 @@ import { ChatCompletionRequestMessage } from "openai";
 
 import { openAIEmbedding } from "@/chat/api";
 import { calculateDistance } from "@/utils/vector";
+import { logServiceInstance } from "@/log/service";
 
 import { Concept, DatabaseConcept, extractInformation } from "./type";
 import { getConcepts, setConcepts } from "./callable";
@@ -12,13 +13,13 @@ import { BehaviorSubject } from "rxjs";
 /** Monitors the current coversation to store key information in memory. */
 export class MemoryAgentService {
 
-  // /** logs rendered on the ui */
-  private logs$ = new BehaviorSubject<string[]>([]);
-  public onLog$ = () => this.logs$
-
   constructor() {
     /*nothing yet*/
   }
+
+  // == Logs ======================================================================
+  sendInfoLog = (message: string) => logServiceInstance.infoLog(message, "Memory Agent");
+
   // == Concept Extraction ======================================================================
   /** Gets a vector representation of the given concept */
   public async getEmbedding(concept: Concept) {
@@ -41,8 +42,10 @@ export class MemoryAgentService {
       const getConceptEmbedding = async (concept: Concept) =>
         this.getEmbedding(concept).then((embedding) => ({ ...concept, embedding }));
 
-      const evaluatedArchivedConcepts = await Promise.all(archivedConcepts.map(getConceptEmbedding)) as DatabaseConcept[]; 
-      const evaluatedExtractedConcepts = await Promise.all(extractedConcepts.map(getConceptEmbedding)) as Concept[];
+      const evaluatedArchivedConcepts = (await Promise.all(
+        archivedConcepts.map(getConceptEmbedding)
+      )) as DatabaseConcept[];
+      const evaluatedExtractedConcepts = (await Promise.all(extractedConcepts.map(getConceptEmbedding))) as Concept[];
 
       const newConcepts: Concept[] = [];
       /* Compare the new concepts with the archived ones */
@@ -82,11 +85,11 @@ export class MemoryAgentService {
       const prompt = "Extract the key concepts of the next conversation. Conversation: " + conversation;
 
       const concepts = await extractInformation({ prompt, agentDescription: MentalModelAgent });
-      if (!concepts) throw new Error("No concepts found");
-
+      if (!concepts) throw new Error("No concepts found");      
       const merged = await this.mergeConcepts(concepts);
       if (!merged) throw new Error("No concepts returned from merge");
-
+      this.sendInfoLog("New concepts" + merged.map((concept) => `\n\n${concept.name}: ${concept.description}`));
+      
       await setConcepts(merged);
     } catch (error) {
       console.error("Error creating memories: ", error);
