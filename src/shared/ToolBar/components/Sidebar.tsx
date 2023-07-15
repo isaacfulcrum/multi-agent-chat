@@ -1,6 +1,8 @@
 import { ArrowLeftIcon, ArrowRightIcon } from "@chakra-ui/icons";
 import { Box, IconButton, Tab, TabList, TabPanel, TabPanels, Tabs, useDisclosure } from "@chakra-ui/react";
 
+import { Logs } from "@/log/component/Logs";
+
 // *******************************************************************************
 const SIDEBAR_WIDTH = "300px";
 
@@ -26,18 +28,18 @@ export const Sidebar = () => {
         zIndex={10}
         color="white"
         overflowX="hidden"
-        px={isOpen ? "0px" : "1em"}
+        px={0}
         width={isOpen ? "0px" : SIDEBAR_WIDTH}
         backgroundColor="#1F2123"
         transition="all 0.3s ease"
       >
         <Tabs flex="1" defaultIndex={0} colorScheme="teal" minW={SIDEBAR_WIDTH} variant="solid-rounded">
-          <TabList>
+          <TabList px="1em">
             <Tab>Logs</Tab>
           </TabList>
           <TabPanels>
-            <TabPanel>
-              <p>Logs</p>
+            <TabPanel px="0">
+              <Logs />
             </TabPanel>
           </TabPanels>
         </Tabs>

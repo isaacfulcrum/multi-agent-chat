@@ -6,10 +6,16 @@ import { calculateDistance } from "@/utils/vector";
 import { Concept, DatabaseConcept, extractInformation } from "./type";
 import { getConcepts, setConcepts } from "./callable";
 import { MentalModelAgent } from "./agent";
+import { BehaviorSubject } from "rxjs";
 
 // ****************************************************************************
 /** Monitors the current coversation to store key information in memory. */
 export class MemoryAgentService {
+
+  // /** logs rendered on the ui */
+  private logs$ = new BehaviorSubject<string[]>([]);
+  public onLog$ = () => this.logs$
+
   constructor() {
     /*nothing yet*/
   }
@@ -65,6 +71,7 @@ export class MemoryAgentService {
     }
   }
 
+  // CHECK: Is memory a good name for this?
   // == Memory ======================================================================
   /** Creates a new set of memories based on the given message history */
   public async createMemories(messageHistory: ChatCompletionRequestMessage[]) {

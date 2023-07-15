@@ -7,4 +7,5 @@ export enum LogType {
 export type Log = {
   type: LogType;
   message: string;
+  sender?: string;
 };
