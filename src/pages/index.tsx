@@ -1,6 +1,8 @@
 import Head from "next/head";
 import { Inter } from "@next/font/google";
+
 import { Chat } from "@/chat/component";
+import { ToolbarLayout } from "@/shared/ToolBar/components/Layout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,9 +15,9 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
-        <Chat />
-      </main>
+      <ToolbarLayout>
+          <Chat />
+      </ToolbarLayout>
     </>
   );
 }

@@ -10,7 +10,7 @@ export const Settings = () => {
 
   return (
     <>
-      <IconButton aria-label="Select Agents" icon={<SettingsIcon />} colorScheme="teal" onClick={onOpen} />
+      <IconButton zIndex={10} position="absolute" top="1em" right="1em" aria-label="Select Agents" icon={<SettingsIcon />} colorScheme="teal" onClick={onOpen} />
       <Drawer onClose={onClose} isOpen={isOpen} size="sm">
         <DrawerOverlay />
         <DrawerContent color="white" bg="#343541">
