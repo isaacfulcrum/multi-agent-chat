@@ -1,4 +1,17 @@
-import { AbsoluteCenter, Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Checkbox, Divider, Flex, Heading, Text } from "@chakra-ui/react";
+import {
+  AbsoluteCenter,
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Box,
+  Checkbox,
+  Divider,
+  Flex,
+  Heading,
+  Text,
+} from "@chakra-ui/react";
 import { ChangeEvent, useEffect, useState } from "react";
 
 import { agentServiceInstance } from "../service";
@@ -6,7 +19,7 @@ import { agentServiceInstance } from "../service";
 import { Agent } from "../type";
 
 // ********************************************************************************
-export const AgentAccordion = () => {
+export const AgentList = () => {
   // === State ====================================================================
   const [agents, setAgents] = useState<Agent[]>([]);
 
@@ -27,21 +40,24 @@ export const AgentAccordion = () => {
   };
 
   return (
-    <>
-      <Box position="relative" py="10">
+    <Box>
+      <Box position="relative" py="10" px="1em">
         <Divider />
-        <AbsoluteCenter bg="#343541" px="4">
-          Agents
+        <AbsoluteCenter bg="#1F2123" px="4">
+          List
         </AbsoluteCenter>
       </Box>
-      <Text pb="5">
-        Select the agents you want to use for automatic completion.
-      </Text>
+      <Text pb="5" px="1em">Select the agents you want to use for automatic completion.</Text>
       <Accordion allowMultiple>
         {agents.map((agent) => (
           <AccordionItem width="100%" key={agent.id}>
             <Flex width="100%" align="center" gap="1em">
-              <Checkbox size="lg" colorScheme="teal" isChecked={agent.isActive} onChange={(e) => handleAgentToggle(e, agent)} />
+              {/* <Checkbox
+                size="lg"
+                colorScheme="teal"
+                isChecked={agent.isActive}
+                onChange={(e) => handleAgentToggle(e, agent)}
+              /> */}
               <Heading as="h2" flex="1">
                 <AccordionButton>
                   <Box as="span" flex="1" textAlign="left" p="3" fontWeight="bold">
@@ -55,6 +71,6 @@ export const AgentAccordion = () => {
           </AccordionItem>
         ))}
       </Accordion>
-    </>
+    </Box>
   );
 };

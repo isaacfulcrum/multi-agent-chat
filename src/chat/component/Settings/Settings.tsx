@@ -2,7 +2,6 @@ import { SettingsIcon } from "@chakra-ui/icons";
 import { Drawer, DrawerBody, DrawerCloseButton, DrawerContent, DrawerHeader, DrawerOverlay, IconButton, useDisclosure } from "@chakra-ui/react";
 
 import { ApiKey } from "./ApiKey";
-import { AgentAccordion } from "@/agent/component/AgentAccordion";
 
 // ********************************************************************************
 export const Settings = () => {
@@ -18,7 +17,6 @@ export const Settings = () => {
           <DrawerHeader>Chat Settings</DrawerHeader>
           <DrawerBody>
             <ApiKey />
-            <AgentAccordion />
           </DrawerBody>
         </DrawerContent>
       </Drawer>
