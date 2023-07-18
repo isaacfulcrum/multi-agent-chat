@@ -1,5 +1,5 @@
-import { Box, Code, Fade, Stack, Text } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import { AbsoluteCenter, Box, Code, Divider, Fade, Stack, Text } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 import { Log, LogType } from "../type";
 import { logServiceInstance } from "../service";
@@ -24,11 +24,21 @@ export const Logs = () => {
       {logs.map((log, index) => (
         <Fade in={true} key={index}>
           <Box key={index} pl="1em" pr="2em" py="5px">
-            <Code fontSize="sm" colorScheme={log.type === LogType.error ? "red" : "blue"} p={"0.5em"} width="100%" whiteSpace="pre-line">
-              <Text fontSize="xs" color="gray.600">
-                {log.sender}
-              </Text>
-              {log.message}
+            <Code
+              p="0.5em"
+              width="100%"
+              fontSize="sm"
+              colorScheme="none"
+              whiteSpace="pre-line"
+              color={log.type === LogType.error ? "red" : "#333333"}
+            >
+              <Box position="relative" padding="4">
+                <Divider w="100%" />
+                <AbsoluteCenter bg="white" px="4">
+                  <Text fontSize="xs">{log.sender}</Text>
+                </AbsoluteCenter>
+              </Box>
+              <Text fontSize="11px">{log.message}</Text>
             </Code>
           </Box>
         </Fade>

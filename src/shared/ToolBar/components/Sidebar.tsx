@@ -7,7 +7,7 @@ import { Logs } from "@/log/component/Logs";
 const SIDEBAR_WIDTH = "360px";
 
 export const Sidebar = () => {
-  const { isOpen, onToggle } = useDisclosure();
+  const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: false });
 
   return (
     <>
@@ -19,8 +19,8 @@ export const Sidebar = () => {
         onClick={onToggle}
         position="absolute"
         transition="all 0.3s ease"
-        left={isOpen ? "1em" : `calc(${SIDEBAR_WIDTH} + 1em)`}
-        icon={isOpen ? <ArrowRightIcon /> : <ArrowLeftIcon />}
+        left={isOpen ? `calc(${SIDEBAR_WIDTH} + 1em)` : "1em"}
+        icon={isOpen ? <ArrowLeftIcon /> : <ArrowRightIcon />}
       />
       <Box
         py="1em"
@@ -29,8 +29,8 @@ export const Sidebar = () => {
         color="white"
         overflowX="hidden"
         px={0}
-        width={isOpen ? "0px" : SIDEBAR_WIDTH}
-        backgroundColor="#1F2123"
+        width={isOpen ? SIDEBAR_WIDTH : "0px"}
+        backgroundColor="#FCFCFC"
         transition="all 0.3s ease"
       >
         <Tabs flex="1" defaultIndex={0} colorScheme="teal" minW={SIDEBAR_WIDTH} variant="solid-rounded">
