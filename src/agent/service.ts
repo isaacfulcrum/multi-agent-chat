@@ -2,12 +2,13 @@ import { BehaviorSubject } from "rxjs";
 import { ChatCompletionRequestMessage } from "openai";
 import { toast } from "react-toastify";
 
-import { Agent } from "./type";
+import { Agent, createAgentRequest } from "./type";
 import { AGENTS } from "./mock";
 
 import { ChatMessageRole } from "@/chat/type";
 import { moderatorDescription } from "@/chat/function";
 import { fetchAgent } from "@/chat/api";
+import { createAgent } from "./callable";
 
 // ********************************************************************************
 export class AgentService {
@@ -82,13 +83,14 @@ export class AgentService {
     return this.getAgents().find((agent) => agent.id === id);
   }
 
-  /** update an agent based on his id */
-  public updateAgent(agent: Agent) {
-    const agents = [...this.getAgents()];
-    const index = agents.findIndex((a) => a.id === agent.id);
-    if (index === -1) return;
-    agents[index] = agent;
-    this.agents$.next(agents);
+  /** Saves a new agent to the database */
+  public async newAgent(agent: createAgentRequest) {
+    try {
+      await createAgent(agent);
+    } catch (error) {
+      console.error(error);
+    }
+    // How to update the agent list?
   }
 }
 

@@ -2,6 +2,8 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import { AbsoluteCenter, Box, Button, Divider, Input, Stack, Textarea } from "@chakra-ui/react";
 
 import { getRandomHex } from "@/utils/colors";
+import { agentServiceInstance } from "../service";
+import { toast } from "react-toastify";
 
 // *******************************************************************************
 export const AgentCreation = () => {
@@ -20,10 +22,16 @@ export const AgentCreation = () => {
   const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) =>
     changeNewAgent("description", e.target.value);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const color = getRandomHex();
-    console.log("Submit: ", { ...newAgent, color });
+    try {
+      await agentServiceInstance.newAgent({ ...newAgent, color });
+      setNewAgent({ name: "", description: "" });
+      toast.success("Agent created successfully");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -36,8 +44,8 @@ export const AgentCreation = () => {
       </Box>
       <form onSubmit={handleSubmit}>
         <Stack spacing="4">
-          <Input placeholder="Name" onChange={handleNameChange} backgroundColor="#40414f" />
-          <Textarea placeholder="Description" onChange={handleDescriptionChange} backgroundColor="#40414f" />
+          <Input placeholder="Name" value={newAgent.name} onChange={handleNameChange} backgroundColor="#40414f" />
+          <Textarea placeholder="Description" value={newAgent.description} onChange={handleDescriptionChange} backgroundColor="#40414f" />
           <Button colorScheme="teal" variant="solid" type="submit" isDisabled={!isValid}>
             Create
           </Button>
