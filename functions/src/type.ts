@@ -1,6 +1,7 @@
 export enum CollectionId {
   Memories = "memories",
   Concepts = "concepts",
+  Agents = "agents",
 }
 
 export type Concept = {

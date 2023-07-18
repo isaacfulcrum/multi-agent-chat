@@ -3,6 +3,7 @@ import { initializeApp } from "firebase-admin/app";
 import { Timestamp, getFirestore } from "firebase-admin/firestore";
 
 import { CollectionId, Concept, ConceptStoreRequest } from "./type";
+import { createAgent, getAgents } from "./agents/functions";
 
 // ****************************************************************************
 initializeApp();
@@ -55,3 +56,7 @@ exports.getMemories = onCall(async () => {
 
   return { result };
 });
+
+// === Agent Functions ========================================================
+exports.createAgent = createAgent;
+exports.getAgents = getAgents;
