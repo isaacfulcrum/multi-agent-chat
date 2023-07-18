@@ -12,7 +12,7 @@ export const Sidebar = () => {
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: false });
   const [tabIndex, setTabIndex] = useState(0)
   // === Background Color =========================================================
-  const colors = ["#FCFCFC",/*Logs*/, "#1F2123"/*Agents*/];
+  const colors = ["#FCFCFC"/*Logs*/, "#1F2123"/*Agents*/];
   const bg = colors[tabIndex]
 
   // === Handler ==================================================================

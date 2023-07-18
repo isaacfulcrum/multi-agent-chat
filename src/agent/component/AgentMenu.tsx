@@ -1,8 +1,12 @@
-import React from "react";
 import { AgentList } from "./AgentList";
+import { AgentCreation } from "./AgentCreation";
 
-type Props = {};
-
-export const AgentMenu = (props: Props) => {
-  return <AgentList />;
+// *******************************************************************************
+export const AgentMenu = () => {
+  return (
+    <>
+      <AgentCreation />
+      <AgentList />
+    </>
+  );
 };
