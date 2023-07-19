@@ -6,13 +6,12 @@ import {
   AccordionItem,
   AccordionPanel,
   Box,
-  Checkbox,
   Divider,
   Flex,
   Heading,
   Text,
 } from "@chakra-ui/react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { agentServiceInstance } from "../service";
 
@@ -26,18 +25,15 @@ export const AgentList = () => {
   // === Effect ===================================================================
   /** subscribe to agents changes */
   useEffect(() => {
-    const subscription = agentServiceInstance.onAgents$().subscribe((newAgents) => {
-      setAgents(newAgents);
+    const subscription = agentServiceInstance.onFirestoreAgents$().subscribe({
+      next: (snapshot) => {
+        setAgents(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Agent)));
+      }
     });
     return () => {
       subscription.unsubscribe();
     };
   }, []);
-
-  // === Handler ==================================================================
-  const handleAgentToggle = (e: ChangeEvent<HTMLInputElement>, agent: Agent) => {
-    agentServiceInstance.updateAgent({ ...agent, isActive: e.target.checked });
-  };
 
   return (
     <Box>
@@ -52,12 +48,6 @@ export const AgentList = () => {
         {agents.map((agent) => (
           <AccordionItem width="100%" key={agent.id}>
             <Flex width="100%" align="center" gap="1em">
-              {/* <Checkbox
-                size="lg"
-                colorScheme="teal"
-                isChecked={agent.isActive}
-                onChange={(e) => handleAgentToggle(e, agent)}
-              /> */}
               <Heading as="h2" flex="1">
                 <AccordionButton>
                   <Box as="span" flex="1" textAlign="left" p="3" fontWeight="bold">

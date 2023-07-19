@@ -9,6 +9,7 @@ import { ChatMessageRole } from "@/chat/type";
 import { moderatorDescription } from "@/chat/function";
 import { fetchAgent } from "@/chat/api";
 import { createAgent } from "./callable";
+import { firestoreAgents$ } from "./observable";
 
 // ********************************************************************************
 export class AgentService {
@@ -20,6 +21,8 @@ export class AgentService {
   // ------------------------------------------------------------------------------
   private agents$: BehaviorSubject<Agent[]>;
   public onAgents$ = () => this.agents$;
+
+  public onFirestoreAgents$ = () => firestoreAgents$;
 
   private selectedAgent$: BehaviorSubject<Agent | undefined>;
   public onSelectedAgent$ = () => this.selectedAgent$;
