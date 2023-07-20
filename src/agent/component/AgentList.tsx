@@ -1,16 +1,4 @@
-import {
-  AbsoluteCenter,
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
-  Divider,
-  Flex,
-  Heading,
-  Text,
-} from "@chakra-ui/react";
+import { AbsoluteCenter,Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Divider, Flex, Heading, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 import { agentServiceInstance } from "../service";
@@ -25,10 +13,8 @@ export const AgentList = () => {
   // === Effect ===================================================================
   /** subscribe to agents changes */
   useEffect(() => {
-    const subscription = agentServiceInstance.onFirestoreAgents$().subscribe({
-      next: (snapshot) => {
-        setAgents(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Agent)));
-      }
+    const subscription = agentServiceInstance.onAgents$().subscribe({
+      next: (snapshot) => setAgents(snapshot)
     });
     return () => {
       subscription.unsubscribe();

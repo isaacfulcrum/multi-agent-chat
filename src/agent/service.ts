@@ -1,47 +1,48 @@
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, lastValueFrom, map } from "rxjs";
 import { ChatCompletionRequestMessage } from "openai";
-import { toast } from "react-toastify";
 
 import { Agent, createAgentRequest } from "./type";
-import { AGENTS } from "./mock";
+import { createAgent } from "./callable";
+import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
 
 import { ChatMessageRole } from "@/chat/type";
 import { moderatorDescription } from "@/chat/function";
 import { fetchAgent } from "@/chat/api";
-import { createAgent } from "./callable";
-import { firestoreAgents$ } from "./observable";
 
 // ********************************************************************************
+/** Manages all agent related tasks on the app */
 export class AgentService {
-  private static instance: AgentService;
+  private static instance: AgentService; // singleton
   public static getInstance(): AgentService {
     if (!AgentService.instance) AgentService.instance = new AgentService();
     return AgentService.instance;
   }
   // ------------------------------------------------------------------------------
-  private agents$: BehaviorSubject<Agent[]>;
-  public onAgents$ = () => this.agents$;
-
-  public onFirestoreAgents$ = () => firestoreAgents$;
-
+  /* Returns an observable of the list of all current agents in the database */
+  public onAgents$() {
+    return agents$;
+  }
   private selectedAgent$: BehaviorSubject<Agent | undefined>;
-  public onSelectedAgent$ = () => this.selectedAgent$;
+  /** Returns an observable of the selected agent */
+  public onSelectedAgent$() {
+    return this.selectedAgent$;
+  }
 
   // == Lifecycle =================================================================
   protected constructor() {
-    this.agents$ = new BehaviorSubject(AGENTS);
     this.selectedAgent$ = new BehaviorSubject<Agent | undefined>(undefined);
   }
 
-  // == Agent =====================================================================
+  // == Active agent ==============================================================
   /** Semantically chooses an Agent based on a history of messages and the Agent's
    *  description */
   public async selectAgent(messages: ChatCompletionRequestMessage[]): Promise<Agent | null /*not found*/> {
     try {
+      const agentList = await this.getAgents();
       // Message with the description of the agents
       const systemMessage = {
         role: ChatMessageRole.System,
-        content: moderatorDescription + JSON.stringify(agentServiceInstance.getActiveAgents()),
+        content: moderatorDescription + JSON.stringify(agentList),
       };
 
       const agentSelection = await fetchAgent([systemMessage, ...messages]);
@@ -50,50 +51,43 @@ export class AgentService {
       const args = JSON.parse(agentSelection ?? "{}");
       if (!args.agentId) return null;
 
-      return agentServiceInstance.getAgent(args.agentId) ?? null;
+      const agent = await this.getAgent(args.agentId);
+      return agent;
     } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      }
-      return null;
+      throw new Error(`Error selecting agent: ${error}`);
     }
   }
-
-  // == Public Methods ============================================================
-
   /** return the selected agent */
   public getSelectedAgent() {
     return this.selectedAgent$.getValue();
   }
-
   /** set the selected agent */
-  public setSelectedAgent(agent?: Agent) {
+  public async setSelectedAgent(agentId: string) {
+    const agent = await this.getAgent(agentId);
     this.selectedAgent$.next(agent);
   }
 
-  /** return agent list */
-  public getAgents() {
-    return this.agents$.getValue();
-  }
+  // == Agent List ================================================================
 
-  /** return active agent list */
-  public getActiveAgents() {
-    return this.agents$.getValue().filter((agent) => agent.isActive);
+  // -- Read -----------------------------------------------------------------------
+  /** returns the list of all agents */
+  public async getAgents() {
+    return lastValueFrom(agentsOnce$);
   }
 
   /** return an agent by his id */
-  public getAgent(id: string) {
-    return this.getAgents().find((agent) => agent.id === id);
+  public async getAgent(id: string) {
+    return lastValueFrom(agentOnceById$(id));
   }
 
+  // -- Write ---------------------------------------------------------------------
   /** Saves a new agent to the database */
   public async newAgent(agent: createAgentRequest) {
     try {
       await createAgent(agent);
     } catch (error) {
-      console.error(error);
+      throw new Error(`Error creating agent: ${error}`);
     }
-    // How to update the agent list?
   }
 }
 
