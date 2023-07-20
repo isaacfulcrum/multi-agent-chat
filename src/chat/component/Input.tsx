@@ -6,9 +6,11 @@ import { agentServiceInstance } from "@/agent/service";
 
 import { chatServiceInstance } from "../service";
 import { createUserMessage } from "../type";
+import { useIsMounted } from "@/shared/hook/useIsMounted";
 
 // ********************************************************************************
 export const Input = () => {
+  const isMounted = useIsMounted()
   // === State ====================================================================
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +22,7 @@ export const Input = () => {
         const newMessage = createUserMessage(message);
         // TODO: Check if a completion is runnning
         await chatServiceInstance.addMessage(newMessage);
+        if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
         setMessage("");
       }
     } catch (error) {
@@ -75,13 +78,13 @@ export const Input = () => {
     <CardFooter p="0">
       <form onSubmit={singleMessageHandler} style={{ flex: 1 }}>
         <Flex gap="1em" padding="6" backgroundColor="#343541" width="100%" mx="auto" maxW="1000px">
-        <ChakraInput 
-            value={message} 
-            placeholder="Type here..." 
-            onKeyDown={onKeyDownHandler} 
-            onChange={handleInputChange} 
-            backgroundColor="#40414f" color="white" autoFocus 
-          />          
+          <ChakraInput
+            value={message}
+            placeholder="Type here..."
+            onKeyDown={onKeyDownHandler}
+            onChange={handleInputChange}
+            backgroundColor="#40414f" color="white" autoFocus
+          />
           <Tooltip label="Single message" fontSize="md">
             <IconButton aria-label="Single message" colorScheme="teal" icon={<ChatIcon />} type="submit" isLoading={isLoading} />
           </Tooltip>

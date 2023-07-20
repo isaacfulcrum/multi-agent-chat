@@ -3,10 +3,12 @@ import { AbsoluteCenter, Box, Button, Divider, Input, Stack, Textarea, useToast 
 
 import { getRandomHex } from "@/utils/colors";
 import { agentServiceInstance } from "../service";
+import { useIsMounted } from "@/shared/hook/useIsMounted";
 
 // *******************************************************************************
 export const AgentCreation = () => {
   const toast = useToast();
+  const isMounted = useIsMounted();
   // === State ================================================================
   const [agentName, setAgentName] = useState("");
   const [agentDescription, setAgentDescription] = useState("");
@@ -21,7 +23,10 @@ export const AgentCreation = () => {
     const color = getRandomHex();
     try {
       await agentServiceInstance.newAgent({ name: agentName, description: agentDescription, color });
+      if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
       toast({ title: "Agent created", status: "success", description: `Agent ${agentName} created` });
+      setAgentName(""); setAgentDescription("");
+
     } catch (error) {
       console.log(error);
       toast({ status: "error", title: "Error", description: "An error occured while creating the agent" });
