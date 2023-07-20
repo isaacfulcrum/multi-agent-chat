@@ -25,7 +25,9 @@ export class ChatService {
   /** stream of chat messages sent to the subscribers */
   // NOTE: we use a BehaviorSubject so the subscribers get the last value when they subscribe
   private messages$: BehaviorSubject<ChatMessage[]>;
-  public onMessage$ = () => this.messages$;
+  public onMessage$() {
+    return this.messages$
+  }
 
   /** this subscription is used when there's an incoming message from the agent, it's used to update the chat
    * NOTE: In case the chat is closed before the completion is done use the unmout() method */
@@ -161,7 +163,7 @@ export class ChatService {
         },
         complete: () => {
           this.isLoading = false;
-          memoryAgent.createMemories(this.getOpenaiMessagesFromMessages());
+          // memoryAgent.createMemories(this.getOpenaiMessagesFromMessages());
           if (onComplete) onComplete(); /* on complete callback */
         },
         error: (error) => {
