@@ -1,11 +1,11 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { AbsoluteCenter, Box, Divider, Flex, IconButton, Input, Tooltip } from "@chakra-ui/react";
-import { toast } from "react-toastify";
+import { AbsoluteCenter, Box, Divider, Flex, IconButton, Input, Tooltip, useToast } from "@chakra-ui/react";
 
 import { getApiKey, storeApiKey } from "@/chat/type";
 
 // ********************************************************************************
 export const ApiKey = () => {
+  const toast = useToast();
   // === State ====================================================================
   const [apiKey, setApiKey] = useState<string>("");
 
@@ -27,11 +27,10 @@ export const ApiKey = () => {
     try {
       e.preventDefault();
       storeApiKey(apiKey);
-      toast.success("API Key saved", {
-        position: "bottom-right",
-      });
+      toast({ title: "API Key saved", status: "success", description: `Your OpenAI API Key has been saved correctly` });
     } catch (error) {
       console.log(error);
+      toast({ status: "error", title: "Error", description: "An error occured while saving your API Key" });
     }
   };
 

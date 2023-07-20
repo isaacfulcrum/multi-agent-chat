@@ -1,12 +1,12 @@
 import { ChangeEvent, FormEvent, useState } from "react";
-import { AbsoluteCenter, Box, Button, Divider, Input, Stack, Textarea } from "@chakra-ui/react";
+import { AbsoluteCenter, Box, Button, Divider, Input, Stack, Textarea, useToast } from "@chakra-ui/react";
 
 import { getRandomHex } from "@/utils/colors";
 import { agentServiceInstance } from "../service";
-import { toast } from "react-toastify";
 
 // *******************************************************************************
 export const AgentCreation = () => {
+  const toast = useToast();
   // === State ================================================================
   const [agentName, setAgentName] = useState("");
   const [agentDescription, setAgentDescription] = useState("");
@@ -21,9 +21,10 @@ export const AgentCreation = () => {
     const color = getRandomHex();
     try {
       await agentServiceInstance.newAgent({ name: agentName, description: agentDescription, color });
-      toast.success("Agent created successfully");
+      toast({ title: "Agent created", status: "success", description: `Agent ${agentName} created` });
     } catch (error) {
       console.log(error);
+      toast({ status: "error", title: "Error", description: "An error occured while creating the agent" });
     }
   };
 

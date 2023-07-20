@@ -1,6 +1,5 @@
 import { BehaviorSubject, Subscription } from "rxjs";
 import { ChatCompletionRequestMessage } from "openai";
-import { toast } from "react-toastify";
 
 import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
@@ -118,7 +117,7 @@ export class ChatService {
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      toast.error(errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
@@ -176,7 +175,7 @@ export class ChatService {
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      toast.error(errorMessage);
+      throw new Error(errorMessage);
     }
   }
 }
