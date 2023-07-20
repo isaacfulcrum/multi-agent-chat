@@ -1,8 +1,7 @@
 // NOTE: This shouldn't be used in the client, only in the server
 // For demo purposes, we're using it in the client
-import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, CreateEmbeddingRequestInput, CreateEmbeddingRequest, OpenAIApi } from "openai";
+import { ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequest, CreateEmbeddingRequest, OpenAIApi } from "openai";
 import { Observable, Subscriber } from "rxjs";
-import { isAxiosError } from "axios";
 
 import { OpenAIStreamResponse, getApiKey } from "./type";
 import { ChatFunctions, chatFunctions } from "./function";
@@ -66,10 +65,15 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
     // Return the arguments of the function call
     return data.choices[0].message?.function_call?.arguments;
   } catch (error) {
-    if (isAxiosError(error)) {
-      const errorMessage = error.response?.data?.error?.message;
+    // Type assertion: Treat the error as 'any'
+    const errorWithResponse = error as any;
+
+    // Check if the error object has a property called 'response'
+    if (errorWithResponse.response) {
+      const errorMessage = errorWithResponse.response?.data?.error?.message;
       throw new Error(`OpenAI API returned an error: ${errorMessage}`);
     }
+    // If it doesn't have a 'response' property, re-throw the original error
     throw error;
   }
 };
