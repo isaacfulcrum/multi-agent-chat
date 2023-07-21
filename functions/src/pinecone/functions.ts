@@ -1,5 +1,6 @@
 import { onCall } from "firebase-functions/v2/https";
 import { PineconeClient } from "@pinecone-database/pinecone";
+import { ConceptVectorStoreRequest, IndexIdentifier } from "./type";
 
 // ****************************************************************************
 // == Pinecone ====================================================================
@@ -13,47 +14,26 @@ const getPinecone = async () => {
 };
 
 // == Write =====================================================================
-export const createIndex = onCall(async () => {
+/** store a list of concepts in the pinecone database
+ * @param agentId the agent that the list of concepts belongs to
+ * @param concepts the concepts to store
+ */
+export const storeVectorConcepts = onCall<ConceptVectorStoreRequest>(async (req) => {
   try {
+    const { agentId, concepts } = req.data;
+
     const pinecone = await getPinecone();
-    await pinecone.createIndex({
-      createRequest: {
-        name: "example-index",
-        dimension: 1024,
+    const index = pinecone.Index(IndexIdentifier);
+
+    const result = await index.upsert({
+      upsertRequest: {
+        vectors: concepts,
+        namespace: agentId,
       },
     });
+    return { result };
   } catch (error) {
-    console.log("PineconeService.createIndex error", error);
-  }
-});
-
-export const upsert = onCall(async () => {
-  try {
-    const pinecone = await getPinecone();
-    const index = pinecone.Index("example-index");
-    const upsertRequest = {
-      vectors: [
-        {
-          id: "vec1",
-          values: [0.1, 0.2, 0.3, 0.4],
-          metadata: {
-            genre: "drama",
-          },
-        },
-        {
-          id: "vec2",
-          values: [0.2, 0.3, 0.4, 0.5],
-          metadata: {
-            genre: "action",
-          },
-        },
-      ],
-      namespace: "example-namespace",
-    };
-    const upsertResponse = await index.upsert({ upsertRequest });
-    return { result: upsertResponse };
-  } catch (error) {
-    console.log("PineconeService.createIndex error", error);
+    console.log("PineconeService.storeVectorConcepts error", error);
     return { result: "Error" };
   }
 });
