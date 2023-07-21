@@ -18,7 +18,7 @@ const getPinecone = async () => {
  * @param agentId the agent that the list of concepts belongs to
  * @param concepts the concepts to store
  */
-export const storeVectorConcepts = onCall<ConceptVectorStoreRequest>(async (req) => {
+export const storeConceptVectors = onCall<ConceptVectorStoreRequest>(async (req) => {
   try {
     const { agentId, concepts } = req.data;
 
