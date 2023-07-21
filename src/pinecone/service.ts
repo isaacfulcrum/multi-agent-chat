@@ -1,4 +1,10 @@
-import { createIndex, upsert } from "./callable";
+import { Concept } from "functions/src/type";
+import { storeConceptVectors } from "./callable";
+import { ConceptVector, ConceptVectorStoreRequest } from "./type";
+import { DatabaseConcept } from "@/MemoryAgent/type";
+import { MemoryAgentService } from "@/MemoryAgent/service";
+
+const memoryAgent = new MemoryAgentService();
 
 /** Manages everything related to Pinecone vector database */
 // ****************************************************************************
@@ -16,19 +22,54 @@ export class PineconeService {
   protected constructor() {}
 
   // == Write =====================================================================
-  public async create() {
+  public async saveConcepts(concepts: ConceptVectorStoreRequest) {
     try {
-      const response = createIndex();
+      const response = await storeConceptVectors(concepts);
       console.log("PineconeService.create response", response);
     } catch (error) {
       console.log("PineconeService.create error", error);
     }
   }
 
-  public async insert() {
+  public async simulation() {
     try {
-      const response = upsert();
-      console.log("PineconeService.upsert response", response);
+      const concepts: DatabaseConcept[] = [
+        {
+          documentId: "test-concept-1",
+          name: "React",
+          description: "A JavaScript library for building user interfaces",
+          timestamp: Date.now(),
+        },
+        // JavaScript
+        {
+          documentId: "test-concept-2",
+          name: "JavaScript",
+          description: "A programming language that conforms to the ECMAScript specification",
+          timestamp: Date.now(),
+        },
+      ];
+
+      console.log("PineconeService.simulation concepts", concepts);
+
+      // Get embeddings for each concept
+      const getConceptEmbedding = async (concept: DatabaseConcept): Promise<ConceptVector> =>
+        memoryAgent.getEmbedding(concept).then((embedding) => ({
+          id: concept.documentId,
+          values: embedding || [],
+          metadata: {
+            name: concept.name,
+            description: concept.description,
+          },
+        }));
+
+      const conceptVectors = await Promise.all(concepts.map(getConceptEmbedding));
+
+      console.log("PineconeService.simulation conceptVectors", conceptVectors);
+
+      this.saveConcepts({
+        agentId: "test-agent",
+        concepts: conceptVectors,
+      });
     } catch (error) {
       console.log("PineconeService.upsert error", error);
     }
