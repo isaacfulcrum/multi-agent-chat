@@ -1,7 +1,6 @@
-import { Concept } from "functions/src/type";
-import { storeConceptVectors } from "./callable";
+import { queryConceptVector, storeConceptVectors } from "./callable";
 import { ConceptVector, ConceptVectorStoreRequest } from "./type";
-import { DatabaseConcept } from "@/MemoryAgent/type";
+import { Concept, DatabaseConcept } from "@/MemoryAgent/type";
 import { MemoryAgentService } from "@/MemoryAgent/service";
 
 const memoryAgent = new MemoryAgentService();
@@ -31,6 +30,18 @@ export class PineconeService {
     }
   }
 
+  // == Read ======================================================================
+  public async queryConcept(agentId: string, concept: Concept) {
+    try {
+      const embedding = await memoryAgent.getEmbedding(concept);
+      return queryConceptVector({ agentId, conceptEmbedding: embedding || [] });
+    } catch (error) {
+      console.log("PineconeService.queryConcept error", error);
+    }
+  }
+
+  // == Simulation =================================================================
+  /** Only for dev purposes */
   public async simulation() {
     try {
       const concepts: DatabaseConcept[] = [
@@ -75,5 +86,19 @@ export class PineconeService {
     }
   }
 
-  // == Read =====================================================================
+  public async simulateQuery() {
+    try {
+      const concept: Concept = {
+        name: "React",
+        description: "A ui library for building user interfaces",
+      };
+      console.log("PineconeService.simulation concepts", concept);
+
+      // Get embeddings for each concept
+      const response = await this.queryConcept("test-agent", concept);
+      console.log("PineconeService.simulation response", response);
+    } catch (error) {
+      console.log("PineconeService.upsert error", error);
+    }
+  }
 }
