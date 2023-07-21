@@ -4,6 +4,7 @@ import { Timestamp, getFirestore } from "firebase-admin/firestore";
 
 import { CollectionId, Concept, ConceptStoreRequest } from "./type";
 import { createAgent, getAgents } from "./agents/functions";
+import { createIndex, upsert } from "./pinecone/functions";
 
 // ****************************************************************************
 initializeApp();
@@ -60,3 +61,7 @@ exports.getMemories = onCall(async () => {
 // === Agent Functions ========================================================
 exports.createAgent = createAgent;
 exports.getAgents = getAgents;
+
+// === Pinecone Functions =====================================================
+exports.createIndex = createIndex;
+exports.upsert = upsert;
