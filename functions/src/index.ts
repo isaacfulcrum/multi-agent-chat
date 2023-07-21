@@ -4,7 +4,7 @@ import { Timestamp, getFirestore } from "firebase-admin/firestore";
 
 import { CollectionId, Concept, ConceptStoreRequest } from "./type";
 import { createAgent, getAgents } from "./agents/functions";
-import { storeConceptVectors } from "./pinecone/functions";
+import { queryConceptVector, storeConceptVectors } from "./pinecone/functions";
 
 // ****************************************************************************
 initializeApp();
@@ -64,3 +64,4 @@ exports.getAgents = getAgents;
 
 // === Pinecone Functions =====================================================
 exports.storeConceptVectors = storeConceptVectors;
+exports.queryConceptVector = queryConceptVector;

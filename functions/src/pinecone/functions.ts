@@ -1,6 +1,6 @@
 import { onCall } from "firebase-functions/v2/https";
 import { PineconeClient } from "@pinecone-database/pinecone";
-import { ConceptVectorStoreRequest, IndexIdentifier } from "./type";
+import { ConceptVectorStoreRequest, IndexIdentifier, QueryConceptRequest } from "./type";
 
 // ****************************************************************************
 // == Pinecone ====================================================================
@@ -31,6 +31,34 @@ export const storeConceptVectors = onCall<ConceptVectorStoreRequest>(async (req)
         namespace: agentId,
       },
     });
+    return { result };
+  } catch (error) {
+    console.log("PineconeService.storeVectorConcepts error", error);
+    return { result: "Error" };
+  }
+});
+
+// == Read ======================================================================
+/** query the pinecone database for the most similar concepts to the given concept embedding 
+ * @param agentId the agent that the concept belongs to
+ * @param conceptEmbedding the concept embedding to query
+*/
+export const queryConceptVector = onCall<QueryConceptRequest>(async (req) => {
+  try {
+    const { agentId, conceptEmbedding } = req.data;
+
+    const pinecone = await getPinecone();
+    const index = pinecone.Index(IndexIdentifier);
+
+    const result = await index.query({
+      queryRequest: {
+        vector: conceptEmbedding,
+        topK: 1,
+        includeValues: true,
+        namespace: agentId,
+      },
+    });
+
     return { result };
   } catch (error) {
     console.log("PineconeService.storeVectorConcepts error", error);
