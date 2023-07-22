@@ -1,4 +1,6 @@
 // ********************************************************************************
+// == Agent =======================================================================
+export type AgentIdentifier = string /*alias*/;
 export type Agent = {
     name: string;
     description: string;

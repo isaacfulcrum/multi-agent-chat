@@ -1,7 +1,7 @@
 import { firebaseFunctions } from "@/chat/firebase";
 
 import { httpsCallable } from "firebase/functions";
-import { Concept } from "./type";
+import { Concept, ConceptDescriptionStorageRequest } from "./type";
 
 /** Retrieves concepts from Firestore */
 export const getConcepts = async () => {
@@ -14,12 +14,6 @@ export const getConcepts = async () => {
   }
 };
 
-/** Stores concepts in Firestore */
-export const setConcepts = async (concepts: Concept[]) => {
-  try {
-    const storeData = httpsCallable(firebaseFunctions, "storeMemories");
-    await storeData(concepts);
-  } catch (error) {
-    console.error("Error setting memories: ", error);
-  }
-};
+/** Stores the description of the {@link Concept}s for the given agent */
+export const conceptDescriptionStore = async (req: ConceptDescriptionStorageRequest) =>
+  httpsCallable(firebaseFunctions, "conceptDescriptionStore")(req);
