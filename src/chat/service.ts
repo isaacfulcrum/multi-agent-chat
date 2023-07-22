@@ -3,12 +3,12 @@ import { ChatCompletionRequestMessage } from "openai";
 
 import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
-import { MemoryAgentService } from "@/MemoryAgent/service";
+import { ConceptService } from "@/concept/service";
 
 import { fetchChatCompletionStream } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRole, createAssistantMessage, createAgentMessage } from "./type";
 
-const memoryAgent = new MemoryAgentService();
+const memoryAgent = new ConceptService();
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
 
 // ********************************************************************************

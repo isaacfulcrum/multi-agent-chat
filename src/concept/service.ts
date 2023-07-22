@@ -8,17 +8,17 @@ import { Concept, DatabaseConcept, extractInformation } from "./type";
 import { getConcepts, setConcepts } from "./callable";
 import { MentalModelAgent } from "./agent";
 import { BehaviorSubject } from "rxjs";
+import { agentServiceInstance } from "@/agent/service";
 
 // ****************************************************************************
 /** Monitors the current coversation to store key information in memory. */
-export class MemoryAgentService {
-
+export class ConceptService {
   constructor() {
     /*nothing yet*/
   }
 
   // == Logs ======================================================================
-  sendInfoLog = (message: string) => logServiceInstance.infoLog(message, "Memory Agent");
+  sendInfoLog = (message: string) => logServiceInstance.infoLog(message, "ConceptService");
 
   // == Concept Extraction ======================================================================
   /** Gets a vector representation of the given concept */
@@ -77,19 +77,26 @@ export class MemoryAgentService {
   // CHECK: Is memory a good name for this?
   // == Memory ======================================================================
   /** Creates a new set of memories based on the given message history */
-  public async createMemories(messageHistory: ChatCompletionRequestMessage[]) {
+  public async storeConcepts(messageHistory: ChatCompletionRequestMessage[]) {
     try {
+      const activeAgent = agentServiceInstance.getSelectedAgent();
+      if (!activeAgent) {
+        this.sendInfoLog("No active agent selected");
+        return;
+      }
+
       /* Format the conversation to be sent to the memory agent */
       // TODO: This should take into account the context window
       const conversation = messageHistory.map((message) => `${message.name}: ${message.content}`).join("\n");
       const prompt = "Extract the key concepts of the next conversation. Conversation: " + conversation;
 
       const concepts = await extractInformation({ prompt, agentDescription: MentalModelAgent });
-      if (!concepts) throw new Error("No concepts found");      
+      if (!concepts) throw new Error("No concepts found");
+      
       const merged = await this.mergeConcepts(concepts);
       if (!merged) throw new Error("No concepts returned from merge");
       this.sendInfoLog("New concepts" + merged.map((concept) => `\n\n${concept.name}: ${concept.description}`));
-      
+
       await setConcepts(merged);
     } catch (error) {
       console.error("Error creating memories: ", error);

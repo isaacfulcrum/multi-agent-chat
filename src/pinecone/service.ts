@@ -1,9 +1,9 @@
 import { queryConceptVector, storeConceptVectors } from "./callable";
 import { ConceptVector, ConceptVectorStoreRequest } from "./type";
-import { Concept, DatabaseConcept } from "@/MemoryAgent/type";
-import { MemoryAgentService } from "@/MemoryAgent/service";
+import { Concept, DatabaseConcept } from "@/concept/type";
+import { ConceptService } from "@/concept/service";
 
-const memoryAgent = new MemoryAgentService();
+const memoryAgent = new ConceptService();
 
 /** Manages everything related to Pinecone vector database */
 // ****************************************************************************
