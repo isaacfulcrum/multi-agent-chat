@@ -20,7 +20,7 @@ export const conceptDescriptionStore = onCall<ConceptDescriptionStorageRequest>(
       conceptDoc = agentConceptCollection.doc(concept.conceptId); /* Use the same document */
     } else {
       conceptDoc = agentConceptCollection.doc();
-      batch.set(conceptDoc, { name: concept.name }); /* Set the name of the concept */
+      batch.set(conceptDoc, { name: concept.name, description: concept.description/*TODO: this must be a summary of all descriptions */ });
     }
 
     const descriptionDoc = conceptDoc.collection(CollectionId.Descriptions).doc();
