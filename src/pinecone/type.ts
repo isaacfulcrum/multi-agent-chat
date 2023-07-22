@@ -1,7 +1,9 @@
+import { ConceptIdentifier } from "@/concept/type";
+
+// *****************************************************************************
 // == Vector ====================================================================
-type ConceptVectorIdentifier = string /*alias*/;
 export type ConceptVector = {
-  id: ConceptVectorIdentifier;
+  id: ConceptIdentifier;
   values: number[] /*embedding*/;
   metadata: {
     name: string;
