@@ -4,21 +4,29 @@ import { ChatMessageRole } from "@/chat/type";
 import { openAIChatCompletion } from "@/chat/api";
 
 // ****************************************************************************
-
-// == Concepts ====================================================================
-export type BaseConcept = {
+// == Concept ===================================================================
+export type ConceptIdentifier = string /*alias*/;
+type BaseConcept = {
   name: string;
   description: string;
-  embedding?: number[]; /* CHECK: Can we make this more explicit? */
 };
 
-/* Comes from Firestore */
-export type DatabaseConcept = BaseConcept & {
-  timestamp: number;
-  documentId: string;
+export type KnownConcept = BaseConcept & {
+  conceptId: ConceptIdentifier; /*the existing id of the concept in the database*/
 };
 
-export type Concept = BaseConcept | DatabaseConcept;
+type withEmbedding = {
+  embedding: number[];
+};
+
+export type Concept = BaseConcept | KnownConcept;
+export type ConceptWithEmbedding = Concept & withEmbedding;
+
+// == Request ===================================================================
+export type ConceptDescriptionStorageRequest = {
+  agentId: string; /*the agent that the concept belongs to*/
+  concepts: Concept[];
+};
 
 // == Functions ===================================================================
 enum MemoryAgentFunctions {

@@ -1,14 +1,13 @@
 import { ChatCompletionRequestMessage } from "openai";
 
 import { openAIEmbedding } from "@/chat/api";
-import { calculateDistance } from "@/utils/vector";
 import { logServiceInstance } from "@/log/service";
-
-import { Concept, DatabaseConcept, extractInformation } from "./type";
-import { getConcepts, setConcepts } from "./callable";
-import { MentalModelAgent } from "./agent";
-import { BehaviorSubject } from "rxjs";
 import { agentServiceInstance } from "@/agent/service";
+import { PineconeService } from "@/pinecone/service";
+
+import { MentalModelAgent } from "./agent";
+import { conceptDescriptionStore } from "./callable";
+import { Concept, ConceptIdentifier, ConceptWithEmbedding, extractInformation } from "./type";
 
 // ****************************************************************************
 /** Monitors the current coversation to store key information in memory. */
@@ -20,84 +19,83 @@ export class ConceptService {
   // == Logs ======================================================================
   sendInfoLog = (message: string) => logServiceInstance.infoLog(message, "ConceptService");
 
-  // == Concept Extraction ======================================================================
+  // == Classification ============================================================
   /** Gets a vector representation of the given concept */
-  public async getEmbedding(concept: Concept) {
+  public async getEmbeddingFromConcept(concept: Concept): Promise<ConceptWithEmbedding | null /*error*/> {
     try {
       const prompt = `${concept.name}: ${concept.description}`;
       const response = await openAIEmbedding(prompt);
-      return response.data[0].embedding;
+      return {
+        ...concept,
+        embedding: response.data[0].embedding,
+      };
+    } catch (error) {
+      console.error("Error getting embedding: ", error);
+      return null;
+    }
+  }
+
+  /** Returns a query to the vector database for the given concept */
+  public async queryConcept(agentId: string, concept: Concept) {
+    try {
+      const conceptEmbedding = await this.getEmbeddingFromConcept(concept);
+      if (!conceptEmbedding) throw new Error("No concept returned from embedding");
+
+      return PineconeService.getInstance().queryConcept(agentId, conceptEmbedding.embedding);
     } catch (error) {
       console.error("Error getting embedding: ", error);
     }
   }
 
-  /** Merges a given list of concepts with the existing one on the database */
-  public async mergeConcepts(extractedConcepts: Concept[]) {
+  /** Returns the same array of concepts, but if the concept is known,
+   * it will have its respective {@link ConceptIdentifier} */
+  public classifyConcepts = async (agentId: string, concepts: Concept[]) => {
     try {
-      const archivedConcepts = (await getConcepts()) as DatabaseConcept[];
-      if (archivedConcepts.length === 0) return extractedConcepts;
+      // Query the database for each concept
+      const queryConcept = async (concept: Concept) =>
+        this.queryConcept(agentId, concept).then((evaluation) => ({ concept, evaluation }));
+      const conceptQueries = await Promise.all(concepts.map(queryConcept));
 
-      // FIXME: Get the embedding for each concept more efficiently, maybe a vector database?
-      const getConceptEmbedding = async (concept: Concept) =>
-        this.getEmbedding(concept).then((embedding) => ({ ...concept, embedding }));
+      // Evaluate the distance between the query and the concept
+      const classified = conceptQueries.map(({ concept, evaluation }) => {
+        console.log("Concept: ", concept);
+        console.log("Evaluation: ", evaluation);
+        // TODO: Make the actual classification
 
-      const evaluatedArchivedConcepts = (await Promise.all(
-        archivedConcepts.map(getConceptEmbedding)
-      )) as DatabaseConcept[];
-      const evaluatedExtractedConcepts = (await Promise.all(extractedConcepts.map(getConceptEmbedding))) as Concept[];
-
-      const newConcepts: Concept[] = [];
-      /* Compare the new concepts with the archived ones */
-      // NOTE: For now this is an O(n^2) operation, with time the number of concepts will increase and this can become a problem
-      evaluatedExtractedConcepts.forEach((extracted) => {
-        let isNewConcept = true;
-        evaluatedArchivedConcepts.forEach((archived) => {
-          const distance = calculateDistance(extracted.embedding ?? [], archived.embedding ?? []);
-          if (distance < 0.1) isNewConcept = false; /* Most likely the same concept, skip it */
-          else if (distance >= 0.1 && distance < 0.4) {
-            isNewConcept = false;
-            newConcepts.push({
-              documentId: archived.documentId /* Keep the same document id */,
-              ...extracted,
-            });
-          }
-        });
-        if (isNewConcept) {
-          /* No match found, add it to the list of new concepts */
-          newConcepts.push(extracted);
-        }
+        return concept;
       });
-      return newConcepts;
-    } catch (error) {
-      console.error("Error merging concepts: ", error);
-    }
-  }
 
-  // CHECK: Is memory a good name for this?
-  // == Memory ======================================================================
+      return classified;
+    } catch (error) {
+      console.error("Error getting embedding: ", error);
+    }
+  };
+
+  // == Extraction ================================================================
   /** Creates a new set of memories based on the given message history */
-  public async storeConcepts(messageHistory: ChatCompletionRequestMessage[]) {
+  public async extractConcepts(messageHistory: ChatCompletionRequestMessage[]) {
     try {
       const activeAgent = agentServiceInstance.getSelectedAgent();
       if (!activeAgent) {
         this.sendInfoLog("No active agent selected");
         return;
       }
-
       /* Format the conversation to be sent to the memory agent */
       // TODO: This should take into account the context window
       const conversation = messageHistory.map((message) => `${message.name}: ${message.content}`).join("\n");
       const prompt = "Extract the key concepts of the next conversation. Conversation: " + conversation;
-
       const concepts = await extractInformation({ prompt, agentDescription: MentalModelAgent });
       if (!concepts) throw new Error("No concepts found");
-      
-      const merged = await this.mergeConcepts(concepts);
-      if (!merged) throw new Error("No concepts returned from merge");
-      this.sendInfoLog("New concepts" + merged.map((concept) => `\n\n${concept.name}: ${concept.description}`));
 
-      await setConcepts(merged);
+      // Classify the concepts
+      const classifiedConcepts = await this.classifyConcepts(activeAgent.id, concepts);
+      if (!classifiedConcepts) throw new Error("No concepts returned from classification");
+
+      // Store the concepts in Firebase
+      const response = await conceptDescriptionStore({ agentId: activeAgent.id, concepts: classifiedConcepts });
+
+      // Store the concepts in Pinecone
+      // TODO: Rethink how to store the concepts in Pinecone
     } catch (error) {
       console.error("Error creating memories: ", error);
     }

@@ -8,7 +8,7 @@ import { ConceptService } from "@/concept/service";
 import { fetchChatCompletionStream } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRole, createAssistantMessage, createAgentMessage } from "./type";
 
-const memoryAgent = new ConceptService();
+const conceptAgent = new ConceptService();
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
 
 // ********************************************************************************
@@ -162,7 +162,7 @@ export class ChatService {
         },
         complete: () => {
           this.isLoading = false;
-          // memoryAgent.createMemories(this.getOpenaiMessagesFromMessages());
+          conceptAgent.extractConcepts(this.getOpenaiMessagesFromMessages());
           if (onComplete) onComplete(); /* on complete callback */
         },
         error: (error) => {
