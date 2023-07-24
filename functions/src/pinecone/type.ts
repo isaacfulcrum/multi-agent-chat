@@ -1,3 +1,5 @@
+import { ConceptEmbedding } from "../concept/type";
+
 export const IndexIdentifier = "agent-concepts"; /*the only index we have right now*/
 
 // == Vector ====================================================================
@@ -19,5 +21,5 @@ export type ConceptVectorStoreRequest = {
 
 export type QueryConceptRequest = {
   agentId: string /*the agent that the concept belongs to*/;
-  conceptEmbedding: number[] /*the concepts to store*/;
+  conceptEmbedding: ConceptEmbedding /*the concepts to store*/;
 };
