@@ -50,6 +50,8 @@ export class ConceptService {
       const concepts = await extractInformation({ prompt, agentDescription: MentalModelAgent });
       if (!concepts) throw new Error("No concepts found");
 
+      this.sendInfoLog("Concepts found: " + concepts.map((concept) => concept.name).join("\n"));
+
       // Format the concepts with their respective embeddings
       const formattedConcepts = await Promise.all(
         concepts.map(async (concept) => this.getEmbeddingFromConcept(concept))

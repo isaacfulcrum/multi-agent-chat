@@ -28,11 +28,11 @@ export const conceptDescriptionStore = onCall<ConceptDescriptionStorageRequest>(
         conceptDoc = agentConceptCollection.doc(conceptId); /* Use the same document */
       } else {
         conceptDoc = agentConceptCollection.doc();
-        batch.set(conceptDoc, {
-          name: concept.name,
-          description: concept.description /*TODO: this must be a summary of all descriptions */,
-        });
       }
+      batch.set(conceptDoc, {
+        name: concept.name,
+        description: concept.description /*TODO: this must be a summary of all descriptions */,
+      });
       const descriptionDoc = conceptDoc.collection(CollectionId.Descriptions).doc();
       const conceptDescription = {
         description: concept.description,
@@ -64,7 +64,7 @@ const isKnownConcept = async (args: QueryConceptRequest): Promise<ConceptIdentif
     const score = match?.score;
     // distance between embeddings
     if (!score) return null;
-    if (score < 0.6) return null;
+    if (score < 0.90) return null; /* For now this works the best */
 
     return match?.id;
   } catch (error) {
