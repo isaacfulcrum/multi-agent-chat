@@ -25,7 +25,7 @@ export type ConceptWithEmbedding = Concept & withEmbedding;
 // == Request ===================================================================
 export type ConceptDescriptionStorageRequest = {
   agentId: string; /*the agent that the concept belongs to*/
-  concepts: Concept[];
+  concepts: ConceptWithEmbedding[];
 };
 
 // == Functions ===================================================================
