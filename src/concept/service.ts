@@ -1,12 +1,12 @@
 import { ChatCompletionRequestMessage } from "openai";
 
-import { openAIEmbedding } from "@/chat/api";
 import { logServiceInstance } from "@/log/service";
 import { agentServiceInstance } from "@/agent/service";
 
 import { MentalModelAgent } from "./agent";
 import { conceptDescriptionStore } from "./callable";
 import { Concept, ConceptWithEmbedding, extractInformation } from "./type";
+import { OpenAIService } from "@/openai/service";
 
 // ****************************************************************************
 /** Monitors the current coversation to store key information in memory. */
@@ -22,8 +22,9 @@ export class ConceptService {
   /** Gets a vector representation of the given concept */
   public async getEmbeddingFromConcept(concept: Concept): Promise<ConceptWithEmbedding | null /*error*/> {
     try {
-      const prompt = `${concept.name}: ${concept.description}`;
-      const response = await openAIEmbedding(prompt);
+      const input = `${concept.name}: ${concept.description}`;
+      const response = await OpenAIService.getInstance().getEmbedding({ input });
+      if (!response) throw new Error("No embedding found");
       return {
         ...concept,
         embedding: response.data[0].embedding,

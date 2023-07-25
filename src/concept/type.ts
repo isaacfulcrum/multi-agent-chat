@@ -1,7 +1,7 @@
 import { ChatCompletionFunctions, ChatCompletionRequestMessage } from "openai";
 
 import { ChatMessageRole } from "@/chat/type";
-import { openAIChatCompletion } from "@/chat/api";
+import { OpenAIService } from "@/openai/service";
 
 // ****************************************************************************
 // == Concept ===================================================================
@@ -12,7 +12,7 @@ type BaseConcept = {
 };
 
 export type KnownConcept = BaseConcept & {
-  conceptId: ConceptIdentifier; /*the existing id of the concept in the database*/
+  conceptId: ConceptIdentifier /*the existing id of the concept in the database*/;
 };
 
 type withEmbedding = {
@@ -24,7 +24,7 @@ export type ConceptWithEmbedding = Concept & withEmbedding;
 
 // == Request ===================================================================
 export type ConceptDescriptionStorageRequest = {
-  agentId: string; /*the agent that the concept belongs to*/
+  agentId: string /*the agent that the concept belongs to*/;
   concepts: ConceptWithEmbedding[];
 };
 
@@ -85,13 +85,16 @@ export const extractInformation = async ({
   }
 
   try {
-    const completion = await openAIChatCompletion(messages, {
+    const completion = await OpenAIService.getInstance().chatCompletion({
+      messages,
       functions,
       function_call: {
         name: MemoryAgentFunctions.informationExtraction,
       },
       max_tokens: 1000,
     });
+    if (!completion) throw new Error("No completion returned");
+
     const functionCall = completion.choices[0].message?.function_call;
     if (functionCall && functionCall.arguments) {
       const args = JSON.parse(functionCall.arguments);

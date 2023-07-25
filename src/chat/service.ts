@@ -1,12 +1,12 @@
 import { BehaviorSubject, Subscription } from "rxjs";
-import { ChatCompletionRequestMessage } from "openai";
+import { ChatCompletionRequestMessage, OpenAIApi } from "openai";
 
 import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
 import { ConceptService } from "@/concept/service";
 
-import { fetchChatCompletionStream } from "./api";
 import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRole, createAssistantMessage, createAgentMessage } from "./type";
+import { OpenAIService } from "@/openai/service";
 
 const conceptAgent = new ConceptService();
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
@@ -135,7 +135,9 @@ export class ChatService {
       this.isLoading = true;
       const messageHistory = [...messages];
 
-      const completion$ = await fetchChatCompletionStream(messageHistory);
+      const completion$ = await OpenAIService.getInstance().chatCompletionStream({
+        messages: messageHistory,
+      });
       if (!completion$) throw new Error("Nothing was returned from the completion stream.");
 
       let chatMessage: AssistantChatMessage = createAssistantMessage();

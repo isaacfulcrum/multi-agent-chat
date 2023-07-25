@@ -1,13 +1,12 @@
 import { BehaviorSubject, lastValueFrom, map } from "rxjs";
 import { ChatCompletionRequestMessage } from "openai";
 
-import { Agent, createAgentRequest } from "./type";
+import { Agent, createAgentRequest, fetchAgent } from "./type";
 import { createAgent } from "./callable";
 import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
 
 import { ChatMessageRole } from "@/chat/type";
 import { moderatorDescription } from "@/chat/function";
-import { fetchAgent } from "@/chat/api";
 
 // ********************************************************************************
 /** Manages all agent related tasks on the app */
