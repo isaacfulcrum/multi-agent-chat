@@ -23,6 +23,13 @@ class LogService {
   public infoLog(message: string, sender?: string) {
     this.addLog({ type: LogType.info, message, sender });
   }
+
+  /** adds an error log to the list
+   * @param message The message to log. Accepts markdown. */
+  public errorLog(message: string, sender?: string) {
+    this.addLog({ type: LogType.error, message, sender });
+  }
+
   private addLog(log: Log) {
     this.logs$.next([...this.logs$.getValue(), log]);
   }

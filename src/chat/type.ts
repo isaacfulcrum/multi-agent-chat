@@ -53,29 +53,6 @@ export type FunctionChatMessage = BaseChatMessage & {
 // --------------------------------------------------------------------------------
 export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage | FunctionChatMessage;
 
-// == OpenAI ======================================================================
-type OpenAIStreamChoice = {
-  delta: {
-    content?: string;
-    function_call?: {
-      name: string;
-      arguments: {
-        [key: string]: string;
-      };
-    };
-  };
-  finish_reason: string;
-  index: number;
-};
-
-// NOTE: using a custom Type because it doesn't seem to an official one
-export type OpenAIStreamResponse = {
-  choices: OpenAIStreamChoice[];
-  id: string;
-  model: string;
-  object: string;
-};
-
 // == Util ========================================================================
 export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
   let name = "chat_user";
@@ -106,15 +83,4 @@ export const createAssistantMessage = (content: string = ""): NonAgentChatMessag
 
 export const createAgentMessage = (content: string = "", agent: Agent): AgentChatMessage => {
   return { id: nanoid(), role: ChatMessageRole.Assistant, content, isAgent: true, agent };
-};
-
-// FIXME: Is this the right place for this? 
-// == API Key =====================================================================
-const apiKeyStorageName = "openai-api-key";
-export const getApiKey = (): string | null => {
-  return window.localStorage.getItem(apiKeyStorageName);
-};
-
-export const storeApiKey = (apiKey: string): void => {
-  window.localStorage.setItem(apiKeyStorageName, apiKey);
 };
