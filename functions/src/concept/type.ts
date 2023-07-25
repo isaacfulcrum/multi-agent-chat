@@ -4,7 +4,7 @@ import { AgentIdentifier } from "../agents/type";
 export type ConceptIdentifier = string /*alias*/;
 export type ConceptEmbedding = number[] /*alias*/;
 
-type Concept = {
+export type Concept = {
   name: string;
   description: string;
   embedding: ConceptEmbedding;

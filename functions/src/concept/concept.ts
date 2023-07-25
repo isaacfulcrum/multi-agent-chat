@@ -3,8 +3,8 @@ import { Timestamp, getFirestore } from "firebase-admin/firestore";
 
 import { ConceptDescriptionStorageRequest, ConceptIdentifier } from "./type";
 import { CollectionId } from "../type";
-import { queryConceptVector } from "../pinecone/functions";
-import { QueryConceptRequest } from "../pinecone/type";
+import { queryConceptVector, storeConceptVectors } from "../pinecone/functions";
+import { ConceptVector, QueryConceptRequest, conceptToVectorConcept } from "../pinecone/type";
 
 /** Stores the description of the {@link Concept}s for the given agent */
 export const conceptDescriptionStore = onCall<ConceptDescriptionStorageRequest>(async (request) => {
@@ -16,8 +16,9 @@ export const conceptDescriptionStore = onCall<ConceptDescriptionStorageRequest>(
     .collection(CollectionId.Concepts); /* Get the collection of concepts for the agent */
 
   const batch = getFirestore().batch();
+  const vectorConcepts: ConceptVector[] = [];
 
-  Promise.all(
+  await Promise.all(
     concepts.map(async (concept) => {
       console.log("ConceptService.conceptDescriptionStore concept", concept);
       // Query vector database for the concept
@@ -32,16 +33,23 @@ export const conceptDescriptionStore = onCall<ConceptDescriptionStorageRequest>(
           description: concept.description /*TODO: this must be a summary of all descriptions */,
         });
       }
-
       const descriptionDoc = conceptDoc.collection(CollectionId.Descriptions).doc();
       const conceptDescription = {
         description: concept.description,
         timestamp: Timestamp.now().toMillis(),
       };
       batch.set(descriptionDoc, conceptDescription);
+      vectorConcepts.push(conceptToVectorConcept(conceptDoc.id, concept));
     })
   );
   await batch.commit();
+
+  // Store the concepts in the vector database
+  await storeConceptVectors({
+    agentId,
+    concepts: vectorConcepts,
+  });
+
   return { result: "Success" };
 });
 
@@ -52,11 +60,13 @@ const isKnownConcept = async (args: QueryConceptRequest): Promise<ConceptIdentif
     if (!query.matches?.length) return null /*not found*/;
 
     const match = query.matches[0];
+
+    const score = match?.score;
     // distance between embeddings
+    if (!score) return null;
+    if (score < 0.6) return null;
 
-    console.log("ConceptService.isKnownConcept match", match);
-
-    return null;
+    return match?.id;
   } catch (error) {
     console.log("ConceptService.isKnownConcept error", error);
     return null;
