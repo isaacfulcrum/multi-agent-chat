@@ -49,4 +49,47 @@ Don't use first for second person. Third person works best in these documents si
 When rewriting the list of concrete nouns, relationships, actions, lifecycle, etc. attempt to order it such that it starts with foundation concepts and builds on top of it. Ideally (though it may not always be possible) concepts are always presented before they are used.
 It is commonly useful to refer to the defined concepts in some distinctive way (e.g. always use init-cap, bold or italic them) so that one can easily distinguish a term that has a defined meaning (i.e. is part of the nomenclature) versus a generic use. For example it is common to have to refer to "users" in general (meaning "humankind") versus "Users" which are specifically defined entities in a system. Multi-word terms should be "Waitlist Button" rather than "Waitlist button" to again distinguish between a specific thing and a general term.
 Keep an ongoing list of questions that have yet to be resolved. It's ok to not solve everything in one pass but it's not ok to leave it unidentified. Ideally identifying the dependencies of those questions is important to ensure that critical decisions are not left until it is too late.
-You must follow your methodology in every situation that presents itself. Work in an iterative fashion. It is common to have to revisit the same concepts multiple times. This is ok. It is a sign that the concepts are being refined and that the understanding is deepening.'`
+You must follow your methodology in every situation that presents itself. Work in an iterative fashion. It is common to have to revisit the same concepts multiple times. This is ok. It is a sign that the concepts are being refined and that the understanding is deepening.'`;
+
+export const ScoringAgent = `You'll be faced with the task of scoring multiple concepts based on their relevancy of a given Agent (an LLM with a persona), begin by identifying the participants who will contribute to solving the task. 
+Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
+Do not add any concepts that are not in the input list.
+
+Here is an example:
+---
+Input: "AGENT DESCRIPTION: You are a Graphic Designer that has worked in UI/UX design for the last 10 years. You'll be working on a new project for a client that is a big fan of Star Wars and wants to create a new website for the franchise.
+
+CONCEPTS
+Climate change: A change in global or regional climate patterns.
+Melting ice caps: The melting of the polar ice caps due to global warming.
+Star wars: A series of science fiction movies by George Lucas.
+Design patterns: A general, reusable solution to a commonly occurring problem within a given context in software design.
+UI/UX: User interface and user experience.
+Quantum physics: The branch of physics concerned with quantum theory.
+Logo: A symbol or other small design adopted by an organization to identify its products, uniform, vehicles, etc."
+
+Participants: AI Assistant (you); Ux Designer expert;
+
+Start collaboration!
+
+Ux Designer Expert: Let's analyze the task in detail. You need to be sure that the scores favor the most relevant concepts. In general which concepts are more relevant to a Graphic Designer?
+AI Assistant (you): Thanks for the hints! I'll start understanding the concepts and score them accordingly. My first guess are the concepts related to design: Design patterns, UI/UX, Logo, Climate Change.
+Ux Designer Expert: Let's check the answer step by step. Design patterns, UI/UX, Logo are all related to design, but how is Climate Change related to a Graphic Designer?
+AI Assistant (you): I think Climate Change is a pressing issue that affects everyone, so that's why I included it in the list.
+Ux Designer Expert: Climate Change does indeed affect everyone, but it is not related to the task described. Can you remove it from the list?
+AI Assistant (you): Thanks for pointing out the mistake. Here is the revised list: Design patterns, UI/UX, Logo, Web Design.
+Ux Designer Expert: Let's first check if the list is correct and then we can move on to the next step. Design patterns, UI/UX, Logo are all related to design, but Web Design is not in the input list for a Graphic Designer. Can you remove it from the list?
+AI Assistant (you): You are right, here is a revised solution with the correct concepts: Design patterns, UI/UX, Logo. 
+Ux Designer Expert: Let's check the answer again. Design patterns, UI/UX, Logo are all related to design. You used Design patterns, UI/UX, Logo which is identical to the input Design patterns, UI/UX, Logo. Everything looks good!
+AI Assistant (you): I'll rate UI/UI, Logo and Design patterns as 1.0 and Climate Change as 0.0.
+Ux Designer Expert: Let's check if the scores are correct. UI/UX, Logo and Design patterns are all related to design. UI/UX and Logo are more relevant than Design patterns. Can we decrease the score of Design patterns to 0.6?
+AI Assistant (you): You are right, here is a revised solution with the correct scores: UI/UX: 1.0, Logo: 1.0, Design patterns: 0.6.
+Ux Designer Expert: Let's check the answer again. UI/UX, Logo and Design patterns are all related to design. UI/UX and Logo are more relevant than Design patterns.
+AI Assistant (you): The other concepts are not relevant to the task, so I'll rate them as 0.0. The complete list is as follows: UI/UX: 1.0, Logo: 1.0, Design patterns: 0.6, Climate Change: 0.0, Melting ice caps: 0.0, Star wars: 0.0, Quantum physics: 0.0. 
+Ux Designer Expert: When reading about the agent description, I noticed that the agent is working on a Star Wars project. Can you increase the score of Star wars?
+AI Assistant (you): You are right, here is a revised solution with the correct scores: UI/UX: 1.0, Logo: 1.0, Design patterns: 0.6, Climate Change: 0.0, Melting ice caps: 0.0, Star wars: 0.8, Quantum physics: 0.0.
+Ux Designer Expert: Let's check the answer again. UI/UX, Logo and Design patterns are all related to design. UI/UX and Logo are more relevant than Design patterns. Star wars is more relevant than Climate Change, Melting ice caps and Quantum physics. Everything looks good!
+AI Assistant (you): All the concepts are scored, I'll send the final answer to the client.
+
+Finish collaboration!
+---`;

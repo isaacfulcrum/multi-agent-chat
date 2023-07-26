@@ -3,7 +3,7 @@ import { ChatCompletionRequestMessage } from "openai";
 import { logServiceInstance } from "@/log/service";
 import { agentServiceInstance } from "@/agent/service";
 
-import { MentalModelAgent } from "./agent";
+import { MentalModelAgent, ScoringAgent } from "./agent";
 import { conceptDescriptionStore } from "./callable";
 import {
   Concept,
@@ -47,50 +47,10 @@ export class ConceptService {
   // == Scoring ===================================================================
 
   private async scoreConcepts(agentDescription: string, concepts: Concept[]): Promise<ConceptWithScore[]> {
-    const prompt = `Your task is to score concepts based on how relevant they are the Agent's description. 
-    You can give them a score between 0 and 1 where 0 is not relevant at all and 1 is very relevant. 
-    Relevant concepts are those that are important to the agent's main task. 
-      You can apply the following methodology to score the concepts:
-      1. Understand what does an agent do. What is their main task?
-      2. Read iteratively through the concepts, as many times as necessary to understand them. 
-      3. For each concept ask yourself: How relevant is this concept to the agent's main task?`;
-
     const messages: ChatCompletionRequestMessage[] = [
       {
         role: "system",
-        content: prompt,
-      },
-      {
-        role: "user",
-        content: `
-        AGENT DESCRIPTION: You are a Graphic Designer that has worked in UI/UX design for the last 10 years. You'll be working on a new project for a client that is a big fan of Star Wars.
-
-        CONCEPTS
-        Weather: The state of the atmosphere at a place and time as regards heat, dryness, sunshine, wind, rain, etc.
-        Computer: An electronic device for storing and processing data, typically in binary form, according to instructions given to it in a variable program.
-        Software: The programs and other operating information used by a computer.
-        Star wars: A series of science fiction movies by George Lucas.
-        Design patterns: A general, reusable solution to a commonly occurring problem within a given context in software design.
-        Greek mythology: The body of myths originally told by the ancient Greeks.
-        UI/UX: User interface and user experience.
-        Quantum physics: The branch of physics concerned with quantum theory.
-        `,
-      },
-      {
-        role: "function",
-        name: ConceptFunctions.conceptScoring,
-        content: JSON.stringify({
-          info: [
-            { name: "Weather", score: 0.1 },
-            { name: "Greek mythology", score: 0.1 },
-            { name: "Quantum physics", score: 0.1 },
-            { name: "Computer", score: 0.6 },
-            { name: "Design patterns", score: 0.5 },
-            { name: "Software", score: 0.5 },
-            { name: "Star wars", score: 1 },
-            { name: "UI/UX", score: 1 },
-          ],
-        }),
+        content: ScoringAgent,
       },
       {
         role: "user",
@@ -111,12 +71,12 @@ export class ConceptService {
         name: ConceptFunctions.conceptScoring,
         content: JSON.stringify({
           info: [
-            { name: "Weather", score: 0.1 },
-            { name: "React", score: 0.1 },
-            { name: "Alien", score: 0.1 },
-            { name: "Brain", score: 0.9 },
-            { name: "Dopamine", score: 0.9 },
-            { name: "People", score: 0.6 },
+            { name: "Weather", score: 0.0 },
+            { name: "React", score: 0.0 },
+            { name: "Alien", score: 0.0 },
+            { name: "Brain", score: 1.0 },
+            { name: "Dopamine", score: 1.0 },
+            { name: "People", score: 0.5 },
           ],
         }),
       },
@@ -165,16 +125,15 @@ export class ConceptService {
       const prompt = "Extract the key concepts of the next conversation. Conversation: " + conversation;
       const concepts = await extractInformation({ prompt, agentDescription: MentalModelAgent });
       if (!concepts) throw new Error("No concepts found");
+      this.sendInfoLog("Concepts found: \n" + concepts.map((concept) => concept.name).join("\n"));
 
       const scored = await this.scoreConcepts(activeAgent.description, concepts);
-      console.log("Scored: ", scored);
-
-      this.sendInfoLog("Concepts found: " + concepts.map((concept) => concept.name).join("\n"));
+      this.sendInfoLog(
+        "Scored concepts by relevancy: \n" + scored.map((concept) => `${concept.name}: ${concept.score}`).join("\n")
+      );
 
       // Format the concepts with their respective embeddings
-      const formattedConcepts = await Promise.all(
-        concepts.map(async (concept) => this.getEmbeddingFromConcept(concept))
-      );
+      const formattedConcepts = await Promise.all(scored.map(async (concept) => this.getEmbeddingFromConcept(concept)));
 
       // Remove null
       const filteredConcepts = formattedConcepts.filter((concept) => concept !== null) as ConceptWithEmbedding[];
