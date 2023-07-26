@@ -47,6 +47,7 @@ export class AgentService {
       if (!args.agentId) return null;
 
       const agent = await this.getAgent(args.agentId);
+      if (!agent) return null;
       return agent;
     } catch (error) {
       throw new Error(`Error selecting agent: ${error}`);

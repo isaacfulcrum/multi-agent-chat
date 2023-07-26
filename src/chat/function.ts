@@ -12,7 +12,7 @@ export enum ChatFunctions {
 /** This Agent monitors the conversation, and chooses the most appropriate agent to respond to the user. */
 export const moderatorDescription = `
 You are a moderator on a chat platform; the chat has multiple assistants that can respond to the user. This assistants are called agents and each agent has a unique task and personality.
-Your main task is to analyze the conversation and select the most appropriate agent to respond to the user.
+Your main task is to analyze the conversation and select the most appropriate agent to respond. It's acceptable that multiple agents respond to the user, but it's not acceptable that an agent responds multiple times in a row.
 
 Begin by identifying the participants who will contribute to solving the task. 
 Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
@@ -57,28 +57,59 @@ OUTPUT
 agentId: 2k9OahiD8Kuicsj0zxVG
 
 `;
+/* NOTE: At he moment none of this are really giving good results, we need to think about changing the way we do this. */
+const chainOfThoughtDescription = `
+You are a moderator on a chat platform; the chat has multiple assistants that can respond to the user. This assistants are called agents and each agent has a unique task and personality.
+Your main task is to analyze the conversation and select the most appropriate agent to respond. It's acceptable that multiple agents respond to the user, but it's not acceptable that an agent responds multiple times in a row.
+
+Input:
+CONVERSATION
+[list of messages]
+LIST OF AGENTS
+[list of available agents]
+
+Chain of thought:
+1. Give a pass to the whole conversation, and identify the main topic of the conversation.
+2. Once you have identified the main topic, identify the participants of the conversation. 
+3. What are they talking about? What do they expect from the next message?
+4. Once the purpose of the next message is clear, select the most appropriate agent to respond.
+5. Select the agent and send it's id.
+
+Output: function call with the agent id.
+
+Example:
+---
+Input: 
+CONVERSATION
+user: Hi, I'm looking for a team to help me with my project. I want to build a website for my company.
+Project Manager(agent): Hi, I'm a project manager and I can help you with your project. What is your company about?
+user: We are a small company that sells organic food.
+Project Manager(agent): I see, I can help you with your project. Our team has experience with building websites for small companies.
+Programmer(agent): Hi, may I suggest using React for your website?
+
+LIST OF AGENTS
+Project Manager(8OiFwInPQf2R7KPcppw7): You're a project manager, you are part of a team that builds websites. You are an expert in project management.
+Programmer(1DYEeHv71G6uBr8OL5MG): You're a programmer, you are part of a team that builds websites. You are an expert in React.
+Designer(2k9OahiD8Kuicsj0zxVG): You're a designer, you are part of a team that builds websites. You are an expert in UI/UX.
+Star Wars Expert(6BTlxdgrfK6KWBiUzcEl): You're a Star Wars expert, the user will ask you questions about Star Wars.
+
+Chain of thought:
+1. The conversation is about building a website for a company.
+2. The participants are the user, the project manager and the programmer.
+3. They are talking about how to build the website. They expect the next message to be about the design.
+4. The most likely participant to keep the conversation flowing is the designer.
+5. Select the designer id: 2k9OahiD8Kuicsj0zxVG
+
+Output: selectAgent(2k9OahiD8Kuicsj0zxVG)
+---
+
+Remember it's acceptable that multiple agents respond to the user, but it's not acceptable not to select an agent.  
+`;
 
 const moderatorPrompt: ChatCompletionRequestMessage[] = [
   {
     role: "system",
-    content: moderatorDescription,
-  },
-  {
-    role: "user",
-    content: `CONVERSATION
-    user: Hi, I'm looking to learn about tortoise care.
-    
-    LIST OF AGENTS
-    Programmer(1DYEfHv71G6uBr8OR5MG): You're a programmer, you are part of a team that builds websites. You are an expert in React.
-    School Teacher(6NTlxdgrfA6KWBiUzcEl): You're a school teacher, you are fascinated by the universe and you love to teach. You are an expert in physics.
-    Curious Student(1BTxhjrfA6KWBiUzcBl): You're a curious student, you are a part of a class and you ask a lot of questions. You give insight through your questions.`,
-  },
-  {
-    role: "function",
-    name: `selectAgent`,
-    content: JSON.stringify({
-      agentId: "6NTlxdgrfA6KWBiUzcEl",
-    }),
+    content: chainOfThoughtDescription,
   },
 ];
 
@@ -92,7 +123,7 @@ export const chatFunctions: ChatCompletionFunctions[] = [
       properties: {
         agentId: {
           type: "string",
-          description: "Selected agent id",
+          description: "Selected agent id e.g: 8OiFwInPQf2R7KPcppw7",
         },
       },
     },
