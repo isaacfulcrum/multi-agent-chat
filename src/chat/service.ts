@@ -97,13 +97,14 @@ export class ChatService {
     try {
       if (this.isLoading) throw new Error("Another completion is already in progress.");
 
+      const rawMessages = this.getMessages();
       const messages = this.getOpenaiMessagesFromMessages();
       if (messages.length === 0) throw new Error("No messages available for completion.");
 
       const isConsecutive = messages.slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES).every((message) => message.role === ChatMessageRole.Assistant);
       if (isConsecutive) return;
 
-      const selectedAgent = await agentServiceInstance.selectAgent(messages);
+      const selectedAgent = await agentServiceInstance.selectAgent(rawMessages);
       if (!selectedAgent) return; /* no agent selected */
 
       const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;

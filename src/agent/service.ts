@@ -1,12 +1,11 @@
-import { BehaviorSubject, lastValueFrom, map } from "rxjs";
-import { ChatCompletionRequestMessage } from "openai";
+import { BehaviorSubject, lastValueFrom } from "rxjs";
 
 import { Agent, createAgentRequest, fetchAgent } from "./type";
 import { createAgent } from "./callable";
 import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
 
-import { ChatMessageRole } from "@/chat/type";
-import { moderatorDescription } from "@/chat/function";
+import { ChatMessage, ChatMessageRole } from "@/chat/type";
+import { getModeratorPrompt, moderatorDescription } from "@/chat/function";
 
 // ********************************************************************************
 /** Manages all agent related tasks on the app */
@@ -35,16 +34,13 @@ export class AgentService {
   // == Active agent ==============================================================
   /** Semantically chooses an Agent based on a history of messages and the Agent's
    *  description */
-  public async selectAgent(messages: ChatCompletionRequestMessage[]): Promise<Agent | null /*not found*/> {
+  public async selectAgent(messages: ChatMessage[]): Promise<Agent | null /*not found*/> {
     try {
       const agentList = await this.getAgents();
       // Message with the description of the agents
-      const systemMessage = {
-        role: ChatMessageRole.System,
-        content: moderatorDescription + JSON.stringify(agentList),
-      };
+      const prompt = getModeratorPrompt(messages, agentList);
 
-      const agentSelection = await fetchAgent([systemMessage, ...messages]);
+      const agentSelection = await fetchAgent(prompt);
       if (!agentSelection) return null;
 
       const args = JSON.parse(agentSelection ?? "{}");
