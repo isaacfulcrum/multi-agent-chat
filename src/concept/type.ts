@@ -11,16 +11,19 @@ type BaseConcept = {
   description: string;
 };
 
-export type KnownConcept = BaseConcept & {
-  conceptId: ConceptIdentifier /*the existing id of the concept in the database*/;
-};
-
 type withEmbedding = {
   embedding: number[];
 };
 
-export type Concept = BaseConcept | KnownConcept;
-export type ConceptWithEmbedding = Concept & withEmbedding;
+type withScore = {
+  score: number;
+};
+
+export type ConceptWithEmbedding = BaseConcept & withEmbedding;
+export type ConceptWithScore = BaseConcept & withScore;
+export type CompleteConcept = BaseConcept & withEmbedding & withScore;
+
+export type Concept = BaseConcept | ConceptWithEmbedding | ConceptWithScore | CompleteConcept;
 
 // == Request ===================================================================
 export type ConceptDescriptionStorageRequest = {
@@ -29,12 +32,13 @@ export type ConceptDescriptionStorageRequest = {
 };
 
 // == Functions ===================================================================
-enum MemoryAgentFunctions {
+export enum ConceptFunctions {
   informationExtraction = "informationExtraction",
+  conceptScoring = "conceptScoring",
 }
 export const functions: ChatCompletionFunctions[] = [
   {
-    name: MemoryAgentFunctions.informationExtraction,
+    name: ConceptFunctions.informationExtraction,
     description: `Extracts the key concepts from a conversation.`,
     parameters: {
       type: "object",
@@ -48,6 +52,30 @@ export const functions: ChatCompletionFunctions[] = [
               description: { type: "string", description: "Description of the concept" },
             },
             required: ["name", "description"],
+          },
+        },
+      },
+      required: ["info"],
+    },
+  },
+];
+
+export const scoringFunctions: ChatCompletionFunctions[] = [
+  {
+    name: ConceptFunctions.conceptScoring,
+    description: `Scores the given concepts based on how relevant they are to the agent's description.`,
+    parameters: {
+      type: "object",
+      properties: {
+        info: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Title of the concept" },
+              score: { type: "number", description: "Score of the concept" },
+            },
+            required: ["name", "score"],
           },
         },
       },
@@ -89,7 +117,7 @@ export const extractInformation = async ({
       messages,
       functions,
       function_call: {
-        name: MemoryAgentFunctions.informationExtraction,
+        name: ConceptFunctions.informationExtraction,
       },
       max_tokens: 1000,
     });
