@@ -102,9 +102,17 @@ export class ConceptService {
     const functionCall = completion.choices[0].message?.function_call;
 
     if (functionCall && functionCall.arguments) {
-      console.log("Completion: ", functionCall.arguments);
       const args = JSON.parse(functionCall.arguments);
-      return args.info as ConceptWithScore[];
+      const scores = args.info as ConceptWithScore[];
+
+      // Merge the scores with the concepts
+      return concepts.map((concept) => {
+        const conceptWithScore = scores.find((score) => score.name === concept.name); /*search by name*/
+        return {
+          ...concept,
+          score: conceptWithScore ? conceptWithScore.score : 0,
+        };
+      });
     } else {
       throw new Error("No function call arguments");
     }

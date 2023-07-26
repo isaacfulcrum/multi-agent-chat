@@ -36,6 +36,7 @@ export const conceptDescriptionStore = onCall<ConceptDescriptionStorageRequest>(
       const descriptionDoc = conceptDoc.collection(CollectionId.Descriptions).doc();
       const conceptDescription = {
         description: concept.description,
+        score: concept.score,
         timestamp: Timestamp.now().toMillis(),
       };
       batch.set(descriptionDoc, conceptDescription);
@@ -64,7 +65,7 @@ const isKnownConcept = async (args: QueryConceptRequest): Promise<ConceptIdentif
     const score = match?.score;
     // distance between embeddings
     if (!score) return null;
-    if (score < 0.90) return null; /* For now this works the best */
+    if (score < 0.85) return null; /* For now this works the best */
 
     return match?.id;
   } catch (error) {

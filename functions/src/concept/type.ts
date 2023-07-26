@@ -8,6 +8,7 @@ export type Concept = {
   name: string;
   description: string;
   embedding: ConceptEmbedding;
+  score: number;
 };
 
 // == Request ===================================================================
