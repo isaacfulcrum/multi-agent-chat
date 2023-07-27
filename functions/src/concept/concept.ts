@@ -1,7 +1,8 @@
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { onCall } from "firebase-functions/v2/https";
 import { Timestamp, getFirestore } from "firebase-admin/firestore";
 
-import { ConceptDescriptionStorageRequest, ConceptIdentifier } from "./type";
+import { Concept, ConceptDescriptionStorageRequest, ConceptIdentifier, DatabaseConcept } from "./type";
 import { CollectionId } from "../type";
 import { queryConceptVector, storeConceptVectors } from "../pinecone/functions";
 import { ConceptVector, QueryConceptRequest, conceptToVectorConcept } from "../pinecone/type";
@@ -20,7 +21,6 @@ export const conceptDescriptionStore = onCall<ConceptDescriptionStorageRequest>(
 
   await Promise.all(
     concepts.map(async (concept) => {
-      console.log("ConceptService.conceptDescriptionStore concept", concept);
       // Query vector database for the concept
       const conceptId = await isKnownConcept({ agentId, conceptEmbedding: concept.embedding });
       let conceptDoc;
@@ -73,3 +73,27 @@ const isKnownConcept = async (args: QueryConceptRequest): Promise<ConceptIdentif
     return null;
   }
 };
+
+/** When a new entry is added to the history of a concept, update the
+ * name, description and score of the concept */
+export const updateConcept = onDocumentCreated(
+  `${CollectionId.Agents}/{agentId}/${CollectionId.Concepts}/{conceptId}/${CollectionId.Descriptions}/{entryId}`,
+
+  async (event) => {
+    const { agentId, conceptId } = event.params;
+
+    const descriptions = getFirestore()
+      .collection(CollectionId.Agents)
+      .doc(agentId)
+      .collection(CollectionId.Concepts)
+      .doc(conceptId)
+      .collection(CollectionId.Descriptions);
+
+    const snapshots = await descriptions.get();
+    const conceptHistory = snapshots.docs.map((doc) => doc.data()) as DatabaseConcept[];
+
+
+
+    console.log("ConceptService.updateConcept conceptHistory", conceptHistory);
+  }
+);

@@ -3,7 +3,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
 import { CollectionId } from "./type";
-import { conceptDescriptionStore } from "./concept";
+import { conceptDescriptionStore, updateConcept } from "./concept";
 
 import { createAgent, getAgents } from "./agents/functions";
 import { queryConceptVector, storeConceptVectors } from "./pinecone/functions";
@@ -13,6 +13,7 @@ initializeApp();
 
 /** Stores the given concepts in the database */
 exports.conceptDescriptionStore = conceptDescriptionStore;
+exports.onUpdateConcept = updateConcept;
 
 /** Retrieves concepts from Firestore */
 exports.getMemories = onCall(async () => {
