@@ -14,7 +14,6 @@ import {
   createAgentMessage,
 } from "./type";
 import { OpenAIService } from "@/openai/service";
-import { truncateMessagesToMaxTokens } from "@/utils/tokens";
 
 const conceptAgent = new ConceptService();
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 10;
@@ -117,8 +116,8 @@ export class ChatService {
       const selectedAgent = await agentServiceInstance.selectAgent(rawMessages);
       if (!selectedAgent) return; /* no agent selected */
 
-      // const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
-      // if (alreadyResponded) return;
+      const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
+      if (alreadyResponded) return;
 
       await this.runCompletion(messages, selectedAgent, () => {
         this.requestCompletion();
@@ -147,7 +146,7 @@ export class ChatService {
       if (this.isLoading) throw new Error("Another completion is already in progress.");
 
       this.isLoading = true;
-      const messageHistory = [...truncateMessagesToMaxTokens(messages, 1500)];
+      const messageHistory = [...messages];
       let chatMessage: AssistantChatMessage = createAssistantMessage();
 
       if (agent) {
