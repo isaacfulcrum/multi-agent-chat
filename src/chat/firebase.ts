@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
 // Your web app's Firebase configuration
@@ -21,3 +21,5 @@ connectFunctionsEmulator(firebaseFunctions, "127.0.0.1", 5001);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const firestore = getFirestore(app);
+connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
+
