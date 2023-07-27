@@ -5,11 +5,19 @@ import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
 import { ConceptService } from "@/concept/service";
 
-import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRole, createAssistantMessage, createAgentMessage } from "./type";
+import {
+  chatMessageToCompletionMessage,
+  AssistantChatMessage,
+  ChatMessage,
+  ChatMessageRole,
+  createAssistantMessage,
+  createAgentMessage,
+} from "./type";
 import { OpenAIService } from "@/openai/service";
+import { truncateMessagesToMaxTokens } from "@/utils/tokens";
 
 const conceptAgent = new ConceptService();
-const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
+const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 10;
 
 // ********************************************************************************
 export class ChatService {
@@ -25,7 +33,7 @@ export class ChatService {
   // NOTE: we use a BehaviorSubject so the subscribers get the last value when they subscribe
   private messages$: BehaviorSubject<ChatMessage[]>;
   public onMessage$() {
-    return this.messages$
+    return this.messages$;
   }
 
   /** this subscription is used when there's an incoming message from the agent, it's used to update the chat
@@ -101,14 +109,16 @@ export class ChatService {
       const messages = this.getOpenaiMessagesFromMessages();
       if (messages.length === 0) throw new Error("No messages available for completion.");
 
-      const isConsecutive = messages.slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES).every((message) => message.role === ChatMessageRole.Assistant);
+      const isConsecutive = messages
+        .slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES)
+        .every((message) => message.role === ChatMessageRole.Assistant);
       if (isConsecutive) return;
 
       const selectedAgent = await agentServiceInstance.selectAgent(rawMessages);
       if (!selectedAgent) return; /* no agent selected */
 
-      const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
-      if (alreadyResponded) return;
+      // const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
+      // if (alreadyResponded) return;
 
       await this.runCompletion(messages, selectedAgent, () => {
         this.requestCompletion();
@@ -130,24 +140,26 @@ export class ChatService {
    *        This can be used in recursive calls to request a completion based on the previous. */
   public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent, onComplete?: () => void) {
     try {
+
+      console.log("ChatService.runCompletion messages", messages);
+
       if (messages.length === 0) throw new Error("No messages available for completion.");
       if (this.isLoading) throw new Error("Another completion is already in progress.");
 
       this.isLoading = true;
-      const messageHistory = [...messages];
-
-      const completion$ = await OpenAIService.getInstance().chatCompletionStream({
-        messages: messageHistory,
-      });
-      if (!completion$) throw new Error("Nothing was returned from the completion stream.");
-
+      const messageHistory = [...truncateMessagesToMaxTokens(messages, 1500)];
       let chatMessage: AssistantChatMessage = createAssistantMessage();
+
       if (agent) {
         /* NOTE: add to the start of the array so it's the first message. */
         const systemMessage = { role: ChatMessageRole.System, content: agent.description };
         messageHistory.unshift(systemMessage);
         chatMessage = createAgentMessage("", agent);
       }
+      const completion$ = await OpenAIService.getInstance().chatCompletionStream({
+        messages: messageHistory,
+      });
+      if (!completion$) throw new Error("Nothing was returned from the completion stream.");
 
       let messageAdded = false;
       /* subscribe to the stream */

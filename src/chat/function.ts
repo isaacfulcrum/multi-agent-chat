@@ -137,8 +137,7 @@ export const getModeratorPrompt = (messages: ChatMessage[], agents: Agent[]) => 
       // user message
       if (message.role === "user") return `user: ${message.content}`;
       // assistant with agent
-      if (message.role === "assistant" && message.isAgent)
-        return `${message.agent.name}(${message.agent.id}): ${message.content}`;
+      if (message.role === "assistant" && message.isAgent) return `${message.agent.name}: ${message.content}`;
       // assistant without agent
       else if (message.role === "assistant") return `Assistant: ${message.content}`;
       return "";
@@ -148,9 +147,10 @@ export const getModeratorPrompt = (messages: ChatMessage[], agents: Agent[]) => 
   const message: ChatCompletionRequestMessage = {
     role: "user",
     content: `CONVERSATION
-      ${messageList}
-      AGENTS
-      ${agentList}`,
+    ${messageList}
+
+    LIST OF AGENTS
+    ${agentList}`,
   };
 
   return [...moderatorPrompt, message];
