@@ -3,6 +3,8 @@ import { AgentIdentifier } from "../agents/type";
 // ****************************************************************************
 // == Concept ===================================================================
 export type ConceptIdentifier = string /*alias*/;
+export type ConceptEmbedding = number[] /*alias*/;
+
 type BaseConcept = {
   name: string;
   description: string;

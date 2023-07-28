@@ -1,4 +1,4 @@
-import { Concept, ConceptEmbedding } from "../concept/type";
+import { ConceptEmbedding, ConceptWithEmbedding } from "../concept/type";
 
 export const IndexIdentifier = "agent-concepts"; /*the only index we have right now*/
 
@@ -26,7 +26,7 @@ export type QueryConceptRequest = {
 
 // == Util ======================================================================
 
-export const conceptToVectorConcept = (conceptId: ConceptVectorIdentifier, concept: Concept): ConceptVector => {
+export const conceptToVectorConcept = (conceptId: ConceptVectorIdentifier, concept: ConceptWithEmbedding): ConceptVector => {
   return {
     id: conceptId,
     values: concept.embedding,
