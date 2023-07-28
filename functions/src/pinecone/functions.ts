@@ -46,7 +46,7 @@ export const queryConceptVector = async ({ agentId, conceptEmbedding }: QueryCon
   return index.query({
     queryRequest: {
       vector: conceptEmbedding,
-      topK: 1,
+      topK: 3, /* TODO: Think about updating the first 3 concepts, instead of just the first one */
       includeValues: true,
       namespace: agentId,
     },
