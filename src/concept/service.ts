@@ -128,9 +128,12 @@ export class ConceptService {
         return;
       }
       /* Format the conversation to be sent to the memory agent */
-      // TODO: This should take into account the context window
       const conversation = messageHistory.map((message) => `${message.name}: ${message.content}`).join("\n");
-      const prompt = "Extract the key concepts of the next conversation. Conversation: " + conversation;
+      const prompt =
+        `Extract the key concepts of the next conversation. 
+         Limit yourself to the more important concepts, no more than 10 are required. 
+         Try extracting concepts you as an LLM don't know about.
+         Conversation: ` + conversation;
       const concepts = await extractInformation({ prompt, agentDescription: MentalModelAgent });
       if (!concepts) throw new Error("No concepts found");
       this.sendInfoLog("Concepts found: \n" + concepts.map((concept) => concept.name).join("\n"));

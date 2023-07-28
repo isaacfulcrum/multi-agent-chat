@@ -44,6 +44,7 @@ export const functions: ChatCompletionFunctions[] = [
       type: "object",
       properties: {
         info: {
+          description: "The key concepts extracted from the conversation. No more than 10 concepts.",
           type: "array",
           items: {
             type: "object",
