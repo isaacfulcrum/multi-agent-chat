@@ -27,7 +27,7 @@ describe("Concept summary", () => {
       console.log("summary", summary);
       expect(summary).toMatchObject({
         name: expect.any(String),
-        summary: expect.any(String),
+        description: expect.any(String),
       });
     } catch (error: any) {
       // Type assertion: Treat the error as 'any'
