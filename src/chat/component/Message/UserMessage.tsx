@@ -1,6 +1,6 @@
 import { Box, Flex, Stack, Text, useDisclosure } from "@chakra-ui/react";
 
-import { chatServiceInstance } from "@/chat/service";
+import { ChatService } from "@/chat/service";
 
 import { UserChatMessage } from "@/chat/type";
 
@@ -13,7 +13,7 @@ export const UserMessage: React.FC<UserChatMessage> = (message) => {
   const { isOpen, onClose, onOpen } = useDisclosure();
 
   // == Handler ===================================================================
-  const handleDelete = () => chatServiceInstance.removeMessage(message.id);
+  const handleDelete = () => ChatService.getInstance().removeMessage(message.id);
   const handleEdit = () => onOpen();
 
   return (
@@ -22,7 +22,7 @@ export const UserMessage: React.FC<UserChatMessage> = (message) => {
         <EditButton onClick={handleEdit} />
         <DeleteButton onClick={handleDelete} />
       </Stack>
-      <Box backgroundColor="teal" color="white" padding="4" boxShadow="lg" borderRadius="lg"maxWidth="90%">
+      <Box backgroundColor="teal" color="white" padding="4" boxShadow="lg" borderRadius="lg" maxWidth="90%">
         <Text whiteSpace="pre-line">{message.content}</Text>
       </Box>
       <EditModal message={message} isOpen={isOpen} onClose={onClose} />

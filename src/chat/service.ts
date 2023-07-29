@@ -21,10 +21,10 @@ const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 10;
 // ********************************************************************************
 export class ChatService {
   // == Singleton =================================================================
-  private static instance: ChatService;
-  public static getInstance(): ChatService {
-    if (!ChatService.instance) ChatService.instance = new ChatService();
-    return ChatService.instance;
+  private static singleton: ChatService;
+  public static getInstance() {
+    if (!ChatService.singleton) ChatService.singleton = new ChatService();
+    return ChatService.singleton;
   }
 
   // ------------------------------------------------------------------------------
@@ -193,6 +193,3 @@ export class ChatService {
     }
   }
 }
-
-// ********************************************************************************
-export const chatServiceInstance = ChatService.getInstance();

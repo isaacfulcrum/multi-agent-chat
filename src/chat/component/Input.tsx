@@ -4,7 +4,7 @@ import { ChatIcon } from "@chakra-ui/icons";
 
 import { agentServiceInstance } from "@/agent/service";
 
-import { chatServiceInstance } from "../service";
+import { ChatService } from "../service";
 import { createUserMessage } from "../type";
 import { useIsMounted } from "@/shared/hook/useIsMounted";
 
@@ -21,7 +21,7 @@ export const Input = () => {
       if (message.trim() !== "") {
         const newMessage = createUserMessage(message);
         // TODO: Check if a completion is runnning
-        await chatServiceInstance.addMessage(newMessage);
+        await ChatService.getInstance().addMessage(newMessage);
         if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
         setMessage("");
       }
@@ -41,10 +41,10 @@ export const Input = () => {
     try {
       setIsLoading(true);
       sendMessage(message);
-      const messageHistory = chatServiceInstance.getOpenaiMessagesFromMessages();
+      const messageHistory = ChatService.getInstance().getOpenaiMessagesFromMessages();
       const agent = agentServiceInstance.getSelectedAgent();
       /* run the completion directly */
-      await chatServiceInstance.runCompletion(messageHistory, agent);
+      await ChatService.getInstance().runCompletion(messageHistory, agent);
     } catch (error) {
       // TODO: Handle error
       console.log(error);
@@ -59,7 +59,7 @@ export const Input = () => {
     try {
       setIsLoading(true);
       sendMessage(message);
-      await chatServiceInstance.requestCompletion();
+      await ChatService.getInstance().requestCompletion();
     } catch (error) {
       // TODO: Handle error
       console.log(error);

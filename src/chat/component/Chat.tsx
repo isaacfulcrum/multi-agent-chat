@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, CardBody, Center, Flex, Stack, Text } from "@chakra-ui/react";
 
-import { chatServiceInstance } from "../service";
+import { ChatService } from "../service";
 
 import { ChatMessage } from "../type";
 import { AgentSelect } from "../../agent/component/AgentSelect";
 import { Input } from "./Input";
 import { Message } from "./Message";
-import { Settings } from "./Settings";
 
 // ********************************************************************************
 export const Chat = () => {
@@ -19,7 +18,7 @@ export const Chat = () => {
   // === Effect ===================================================================
   /** subscribe to the messages updates */
   useEffect(() => {
-    const subscription = chatServiceInstance.onMessage$().subscribe((newMessages) => {
+    const subscription = ChatService.getInstance().onMessage$().subscribe((newMessages) => {
       setMessages(newMessages);
     });
     // unsubscribe when the component is unmounted
