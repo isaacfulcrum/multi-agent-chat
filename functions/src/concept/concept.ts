@@ -70,7 +70,7 @@ const isKnownConcept = async (args: QueryConceptRequest): Promise<ConceptIdentif
     const score = match?.score;
     // distance between embeddings
     if (!score) return null;
-    if (score < 0.92) return null; /* For now this works the best */
+    if (score < 0.88) return null; /* For now this works the best */
 
     return match?.id;
   } catch (error) {
