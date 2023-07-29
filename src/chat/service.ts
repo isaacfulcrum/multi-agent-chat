@@ -1,18 +1,11 @@
 import { BehaviorSubject, Subscription } from "rxjs";
-import { ChatCompletionRequestMessage, OpenAIApi } from "openai";
+import { ChatCompletionRequestMessage } from "openai";
 
 import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
 import { ConceptService } from "@/concept/service";
 
-import {
-  chatMessageToCompletionMessage,
-  AssistantChatMessage,
-  ChatMessage,
-  ChatMessageRole,
-  createAssistantMessage,
-  createAgentMessage,
-} from "./type";
+import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRole, createAssistantMessage, createAgentMessage } from "./type";
 import { OpenAIService } from "@/openai/service";
 
 const conceptAgent = new ConceptService();
@@ -108,9 +101,7 @@ export class ChatService {
       const messages = this.getOpenaiMessagesFromMessages();
       if (messages.length === 0) throw new Error("No messages available for completion.");
 
-      const isConsecutive = messages
-        .slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES)
-        .every((message) => message.role === ChatMessageRole.Assistant);
+      const isConsecutive = messages.slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES).every((message) => message.role === ChatMessageRole.Assistant);
       if (isConsecutive) return;
 
       const selectedAgent = await agentServiceInstance.selectAgent(rawMessages);
@@ -119,9 +110,9 @@ export class ChatService {
       const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
       if (alreadyResponded) return;
 
-      await this.runCompletion(messages, selectedAgent, () => {
-        this.requestCompletion();
-      });
+      // await this.runCompletion(messages, selectedAgent, () => {
+      //   this.requestCompletion();
+      // });
     } catch (error) {
       let errorMessage = "Error requesting completion";
       if (error instanceof Error) {
@@ -131,60 +122,50 @@ export class ChatService {
     }
   }
 
+  sendAgentMessage = async (mode: "single" | "multiple") => {
+    const messages = this.getMessages();
+    let selectedAgent: Agent | null = null;
+
+    if (mode === "single") {
+      selectedAgent = agentServiceInstance.getSelectedAgent();
+    } else if (mode === "multiple") {
+      selectedAgent = await agentServiceInstance.selectAgent(messages);
+    }
+    const completion = await this.runCompletion(this.getOpenaiMessagesFromMessages(), selectedAgent ?? undefined);
+  };
+
   /** Requests a completion to the OpenAI API and updates the message with the response
    * @param messages the history the completion will be based on.
    * @param agent an optional agent that will be the one responding to the completion.
    *        If no agent is passed, no system message will be added.
-   * @param onComplete an optional callback that will be called once the stream is completed.
-   *        This can be used in recursive calls to request a completion based on the previous. */
-  public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent, onComplete?: () => void) {
+   */
+  public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent) {
     try {
-
-      console.log("ChatService.runCompletion messages", messages);
-
       if (messages.length === 0) throw new Error("No messages available for completion.");
-      if (this.isLoading) throw new Error("Another completion is already in progress.");
-
-      this.isLoading = true;
-      const messageHistory = [...messages];
       let chatMessage: AssistantChatMessage = createAssistantMessage();
 
       if (agent) {
         /* NOTE: add to the start of the array so it's the first message. */
         const systemMessage = { role: ChatMessageRole.System, content: agent.description };
-        messageHistory.unshift(systemMessage);
+        messages.unshift(systemMessage);
         chatMessage = createAgentMessage("", agent);
       }
-      const completion$ = await OpenAIService.getInstance().chatCompletionStream({
-        messages: messageHistory,
-      });
-      if (!completion$) throw new Error("Nothing was returned from the completion stream.");
 
       let messageAdded = false;
-      /* subscribe to the stream */
-      this.completionSubscription = completion$.subscribe({
-        next: (content) => {
-          /* NOTE: This prevents the message to be added before openAI responds.
-            This decreases the number of operations done to update the chat. 
-            CHECK: Is there a more functional way to do this? */
+      return OpenAIService.getInstance().chatCompletionStream(
+        {
+          messages,
+        },
+        (value) => {
           if (!messageAdded) {
-            this.addMessage({ ...chatMessage, content });
             messageAdded = true;
+            this.addMessage({ ...chatMessage, content: value });
           } else {
-            this.updateMessage({ ...chatMessage, content });
+            this.updateMessage({ ...chatMessage, content: value });
           }
-        },
-        complete: () => {
-          this.isLoading = false;
-          conceptAgent.extractConcepts(this.getOpenaiMessagesFromMessages());
-          if (onComplete) onComplete(); /* on complete callback */
-        },
-        error: (error) => {
-          throw error;
-        },
-      });
+        }
+      );
     } catch (error) {
-      this.isLoading = false;
       let errorMessage = "Error requesting completion";
       if (error instanceof Error) {
         errorMessage = error.message;

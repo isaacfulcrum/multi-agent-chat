@@ -1,4 +1,5 @@
 import { BehaviorSubject, lastValueFrom } from "rxjs";
+import { ChatCompletionRequestMessage } from 'openai'
 
 import { Agent, createAgentRequest, fetchAgent } from "./type";
 import { createAgent } from "./callable";
@@ -55,7 +56,7 @@ export class AgentService {
   }
   /** return the selected agent */
   public getSelectedAgent() {
-    return this.selectedAgent$.getValue();
+    return this.selectedAgent$.getValue() ?? null;
   }
   /** set the selected agent */
   public async setSelectedAgent(agentId: string) {
@@ -85,6 +86,9 @@ export class AgentService {
       throw new Error(`Error creating agent: ${error}`);
     }
   }
+
+  // -- Chat ----------------------------------------------------------------------
+  /** Adds a system prompt with the Agent's description to the message history */
 }
 
 // ********************************************************************************

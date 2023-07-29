@@ -41,10 +41,8 @@ export const Input = () => {
     try {
       setIsLoading(true);
       sendMessage(message);
-      const messageHistory = ChatService.getInstance().getOpenaiMessagesFromMessages();
-      const agent = agentServiceInstance.getSelectedAgent();
       /* run the completion directly */
-      await ChatService.getInstance().runCompletion(messageHistory, agent);
+      await ChatService.getInstance().sendAgentMessage("single");
     } catch (error) {
       // TODO: Handle error
       console.log(error);

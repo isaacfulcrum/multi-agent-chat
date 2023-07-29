@@ -4,7 +4,6 @@ import { getApiKey, openAIChatCompletion, openAIChatCompletionStream, openAIEmbe
 import { MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIChatCompletionRequest, OpenAIChatCompletionStreamRequest, OpenAIEmbeddingRequest } from "./type";
 import { truncateMessagesToMaxTokens } from "@/utils/tokens";
 
-
 /** Handles everything related to the OpenAI API */
 // **********************************************************************************
 export class OpenAIService {
@@ -50,10 +49,10 @@ export class OpenAIService {
     }
   }
 
-  public async chatCompletionStream({ messages, ...options }: OpenAIChatCompletionStreamRequest) {
+  public async chatCompletionStream({ messages, ...options }: OpenAIChatCompletionStreamRequest, onUpdate: (val: string) => void) {
     try {
       const truncatedMessages = truncateMessagesToMaxTokens(messages, MAX_REQUEST_TOKENS);
-      return openAIChatCompletionStream({ messages: truncatedMessages, ...options });
+      return openAIChatCompletionStream({ messages: truncatedMessages, ...options }, onUpdate);
     } catch (e) {
       console.error("Error getting chat completion: ", e);
       if (e instanceof Error) this.errorLog(e.message);

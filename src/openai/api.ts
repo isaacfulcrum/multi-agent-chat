@@ -3,12 +3,7 @@
 import { Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
 import { Observable, Subscriber } from "rxjs";
 
-import {
-  OpenAIChatCompletionRequest,
-  OpenAIChatCompletionStreamRequest,
-  OpenAIEmbeddingRequest,
-  OpenAIStreamResponse,
-} from "./type";
+import { OpenAIChatCompletionRequest, OpenAIChatCompletionStreamRequest, OpenAIEmbeddingRequest, OpenAIStreamResponse } from "./type";
 
 // ********************************************************************************
 const OPENAI_CHAT_API = "https://api.openai.com/v1/chat/completions"; /*for stream responses*/
@@ -67,7 +62,7 @@ export const openAIChatCompletion = async ({ messages, ...options }: OpenAIChatC
 // -- Stream ----------------------------------------------------------------------
 /** Returns a stream response from the OpenAI API
  * @see https://www.builder.io/blog/stream-ai-javascript */
-export const openAIChatCompletionStream = async ({ messages, ...options }: OpenAIChatCompletionStreamRequest) => {
+export const openAIChatCompletionStream = async ({ messages, ...options }: OpenAIChatCompletionStreamRequest, onUpdate: (val: string) => void) => {
   const specs: CreateChatCompletionRequest = {
     messages,
     model: chatCompletionModel,
@@ -96,13 +91,11 @@ export const openAIChatCompletionStream = async ({ messages, ...options }: OpenA
   }
 
   // Read the stream
-  return new Observable<string>((subscriber) => {
-    readChatCompletionStream(subscriber, stream);
-  });
+  return readChatCompletionStream(onUpdate, stream);
 };
 
 /** Reads a stream and executes a callback once it gets a new chunk of data*/
-export const readChatCompletionStream = async (subscriber: Subscriber<string>, stream: Response) => {
+export const readChatCompletionStream = async (onUpdate: (val: string) => void, stream: Response) => {
   try {
     // Check if the stream has a body
     if (!stream.body) {
@@ -134,7 +127,6 @@ export const readChatCompletionStream = async (subscriber: Subscriber<string>, s
       for (const line of lines) {
         const message = line.replace(/^data: /, "");
         if (message === "[DONE]") {
-          subscriber.complete();
           return; // Stream finished
         }
 
@@ -150,15 +142,15 @@ export const readChatCompletionStream = async (subscriber: Subscriber<string>, s
             // -- Message ----------------------------------------------------------------
           } else if (delta.content) {
             incomingMessage += delta.content;
-            subscriber.next(incomingMessage);
+            onUpdate(incomingMessage);
           }
         } catch (error) {
-          subscriber.error(`Error parsing stream response: ${error}`);
+          throw new Error(`Error parsing stream response: ${error}`);
           // throw error;
         }
       }
     }
   } catch (error) {
-    subscriber.error(error);
+    throw new Error(`Error reading stream: ${error}`);
   }
 };
