@@ -1,15 +1,14 @@
-import { BehaviorSubject, Subscription } from "rxjs";
-import { ChatCompletionRequestMessage } from "openai";
+import { BehaviorSubject } from "rxjs";
 
 import { Agent } from "@/agent/type";
 import { agentServiceInstance } from "@/agent/service";
 import { ConceptService } from "@/concept/service";
 
-import { chatMessageToCompletionMessage, AssistantChatMessage, ChatMessage, ChatMessageRole, createAssistantMessage, createAgentMessage } from "./type";
+import { AssistantChatMessage, ChatMessage, ChatMessageRole, createAssistantMessage, createAgentMessage, isAgentMessage, CompletionMode, chatMessagesToCompletionMessages } from "./type";
 import { OpenAIService } from "@/openai/service";
 
 const conceptAgent = new ConceptService();
-const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 10;
+const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
 
 // ********************************************************************************
 export class ChatService {
@@ -28,9 +27,6 @@ export class ChatService {
     return this.messages$;
   }
 
-  /** this subscription is used when there's an incoming message from the agent, it's used to update the chat
-   * NOTE: In case the chat is closed before the completion is done use the unmout() method */
-  private completionSubscription: Subscription | undefined;
   /** indicates if the Completion is being run */
   public isLoading: boolean = false;
 
@@ -39,24 +35,12 @@ export class ChatService {
     this.messages$ = new BehaviorSubject<ChatMessage[]>([]);
   }
 
-  // NOTE: call this if the chat instance is going to be destroyed
-  public unmount() {
-    // Unsuscribe from the completion stream
-    if (this.completionSubscription) {
-      this.completionSubscription.unsubscribe();
-      this.completionSubscription = undefined;
-    }
-  }
-
-  // == Chat ======================================================================
+  // == Messages ======================================================================
   //** returns the current messages directly from the source */
   private getMessages() {
+    /*TODO: getValue() method is not standard throughout this project (as is only a BehaviorSubject method),
+    refactor  to use the observable directly*/
     return this.messages$.getValue();
-  }
-
-  /** returns the messages as OpenAI expects them */
-  public getOpenaiMessagesFromMessages() {
-    return this.getMessages().map(chatMessageToCompletionMessage);
   }
 
   /** adds the new message to the chat */
@@ -69,108 +53,90 @@ export class ChatService {
     this.messages$.next(this.getMessages().map((m) => (m.id === message.id ? message : m)));
   }
 
-  /** adds or updates a message in the chat based on its identifier */
-  public async addOrUpdateMessage(message: ChatMessage) {
-    const messages = this.getMessages();
-    const index = messages.findIndex((m) => m.id === message.id);
-    if (index === -1) {
-      await this.addMessage(message);
-    } else {
-      await this.updateMessage(message);
-    }
-  }
-
   /** removes the message from the chat */
   public async removeMessage(messageId: string) {
     this.messages$.next(this.getMessages().filter((m) => m.id !== messageId));
   }
 
   // == Completion ================================================================
-
-  /** Select an Agent to respond to the conversation based on the Context and Agent
-   *  description.
+  /** Support for different modes of sending messages to the chat as an agent
    *  Respond based on the following conditions:
    *  1. The previous {@link MAX_CONSECUTIVE_ASSISTANT_MESSAGES } messages where not
    *     sent exclusively by the assistant.
    *  2. An agent cannot respond consecutively. */
-  public async requestCompletion() {
-    try {
-      if (this.isLoading) throw new Error("Another completion is already in progress.");
-
-      const rawMessages = this.getMessages();
-      const messages = this.getOpenaiMessagesFromMessages();
-      if (messages.length === 0) throw new Error("No messages available for completion.");
-
-      const isConsecutive = messages.slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES).every((message) => message.role === ChatMessageRole.Assistant);
-      if (isConsecutive) return;
-
-      const selectedAgent = await agentServiceInstance.selectAgent(rawMessages);
-      if (!selectedAgent) return; /* no agent selected */
-
-      const alreadyResponded = messages.slice(-1)[0].name === selectedAgent.id;
-      if (alreadyResponded) return;
-
-      // await this.runCompletion(messages, selectedAgent, () => {
-      //   this.requestCompletion();
-      // });
-    } catch (error) {
-      let errorMessage = "Error requesting completion";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      throw new Error(errorMessage);
-    }
-  }
-
-  sendAgentMessage = async (mode: "single" | "multiple") => {
+  public requestCompletion = async (mode: CompletionMode) => {
     const messages = this.getMessages();
-    let selectedAgent: Agent | null = null;
+    let selectedAgent: Agent | null /*not found*/ = null;
+    if (this.isLoading) throw new Error("Another completion is already in progress.");
 
-    if (mode === "single") {
+    const isConsecutive = messages.slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES).every((message) => message.role === ChatMessageRole.Assistant);
+    if (isConsecutive) return;
+
+    /* NOTE: Between modes the only difference is the way the agent is selected.
+       CHECK: Maybe a switch is clearer?*/
+    if (mode === CompletionMode.Single) {
       selectedAgent = agentServiceInstance.getSelectedAgent();
-    } else if (mode === "multiple") {
+    } else if (CompletionMode.Multiple) {
       selectedAgent = await agentServiceInstance.selectAgent(messages);
     }
-    const completion = await this.runCompletion(this.getOpenaiMessagesFromMessages(), selectedAgent ?? undefined);
+    // TODO: Add "Self Performance Promting" technique in another case
+
+    if (selectedAgent) {
+      const lastMessage = messages[messages.length - 1];
+      const alreadyResponded = isAgentMessage(lastMessage) && lastMessage.agent.id === selectedAgent.id;
+      if (alreadyResponded) return;
+    }
+
+    await this.runCompletion(messages, selectedAgent ?? undefined /*TODO: refactor*/);
+
+    /* This is a promise, but we don't need to wait for it
+    if this the best way to handle this? */
+    conceptAgent.extractConcepts(messages);
+
+    // Keep responding if the mode is multiple
+    if (mode === CompletionMode.Multiple) {
+      this.requestCompletion(mode);
+    }
   };
 
   /** Requests a completion to the OpenAI API and updates the message with the response
    * @param messages the history the completion will be based on.
    * @param agent an optional agent that will be the one responding to the completion.
-   *        If no agent is passed, no system message will be added.
-   */
-  public async runCompletion(messages: ChatCompletionRequestMessage[], agent?: Agent) {
+   *        If no agent is passed, no system message will be added.*/
+  private async runCompletion(messages: ChatMessage[], agent?: Agent) {
     try {
       if (messages.length === 0) throw new Error("No messages available for completion.");
+      this.isLoading = true;
+
+      const completionMessages = chatMessagesToCompletionMessages(messages);
       let chatMessage: AssistantChatMessage = createAssistantMessage();
 
       if (agent) {
         /* NOTE: add to the start of the array so it's the first message. */
         const systemMessage = { role: ChatMessageRole.System, content: agent.description };
-        messages.unshift(systemMessage);
+        completionMessages.unshift(systemMessage);
         chatMessage = createAgentMessage("", agent);
       }
 
+      // TODO: Find a way to avoid this
       let messageAdded = false;
-      return OpenAIService.getInstance().chatCompletionStream(
-        {
-          messages,
-        },
-        (value) => {
-          if (!messageAdded) {
-            messageAdded = true;
-            this.addMessage({ ...chatMessage, content: value });
-          } else {
-            this.updateMessage({ ...chatMessage, content: value });
-          }
+      return OpenAIService.getInstance().chatCompletionStream({ messages: completionMessages }, (value) => {
+        if (!messageAdded) {
+          messageAdded = true;
+          this.addMessage({ ...chatMessage, content: value });
+        } else {
+          this.updateMessage({ ...chatMessage, content: value });
         }
-      );
+      });
     } catch (error) {
+      this;
       let errorMessage = "Error requesting completion";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
       throw new Error(errorMessage);
+    } finally {
+      this.isLoading = false;
     }
   }
 }

@@ -3,6 +3,12 @@ import { Agent } from "@/agent/type";
 import { nanoid } from "nanoid";
 
 // ********************************************************************************
+// == Completion ==================================================================
+export enum CompletionMode {
+  Single = "single",
+  Multiple = "multiple",
+}
+
 // NOTE: using custom Enum instead of the one from openai since it's not exported as
 // an enum
 export enum ChatMessageRole {
@@ -53,14 +59,18 @@ export type FunctionChatMessage = BaseChatMessage & {
 // --------------------------------------------------------------------------------
 export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage | FunctionChatMessage;
 
+export const isAgentMessage = (message: ChatMessage): message is AgentChatMessage => {
+  return message.role === ChatMessageRole.Assistant && message.isAgent;
+};
+
 // == Util ========================================================================
-export const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
+const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
   let name = "chat_user";
   if (message.role === ChatMessageRole.Function) {
     name = message.name;
   }
-  if (message.role === ChatMessageRole.Assistant) {
-    if (message.isAgent) {
+  if (ChatMessageRole.Assistant) {
+    if (isAgentMessage(message)) {
       name = message.agent.id;
     } else {
       name = "chat_assistant";
@@ -71,6 +81,11 @@ export const chatMessageToCompletionMessage = (message: ChatMessage): ChatComple
     content: message.content,
     name,
   };
+};
+
+/** Converts a list of chat messages to a list of completion messages (for OpenAI) */
+export const chatMessagesToCompletionMessages = (messages: ChatMessage[]): ChatCompletionRequestMessage[] => {
+  return messages.map(chatMessageToCompletionMessage);
 };
 
 export const createUserMessage = (content: string = ""): UserChatMessage => {
