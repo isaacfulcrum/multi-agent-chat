@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, CardBody, Center, Flex, Stack, Text } from "@chakra-ui/react";
 
-import { ChatService } from "../service";
+import { ChatServiceSingle } from "../service";
 
 import { ChatMessage } from "../type";
 import { AgentSelect } from "../../agent/component/AgentSelect";
@@ -18,7 +18,7 @@ export const Chat = () => {
   // === Effect ===================================================================
   /** subscribe to the messages updates */
   useEffect(() => {
-    const subscription = ChatService.getInstance().onMessage$().subscribe((newMessages) => {
+    const subscription = ChatServiceSingle.getInstance().onMessage$().subscribe((newMessages) => {
       setMessages(newMessages);
     });
     // unsubscribe when the component is unmounted
