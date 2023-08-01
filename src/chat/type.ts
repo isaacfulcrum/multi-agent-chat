@@ -25,20 +25,10 @@ export type BaseChatMessage = {
 };
 
 // -- Assistant -------------------------------------------------------------------
-export type BaseAssistantChatMessage = BaseChatMessage & {
+export type AssistantChatMessage = BaseChatMessage & {
   role: ChatMessageRole.Assistant;
-};
-export type WithAgent = {
-  isAgent: true;
   agent: Agent;
 };
-export type WithoutAgent = {
-  isAgent: false;
-};
-
-export type AgentChatMessage = BaseAssistantChatMessage & WithAgent;
-export type NonAgentChatMessage = BaseAssistantChatMessage & WithoutAgent;
-export type AssistantChatMessage = AgentChatMessage | NonAgentChatMessage;
 
 // -- System ----------------------------------------------------------------------
 export type SystemChatMessage = BaseChatMessage & {
@@ -59,22 +49,14 @@ export type FunctionChatMessage = BaseChatMessage & {
 // --------------------------------------------------------------------------------
 export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage | FunctionChatMessage;
 
-export const isAgentMessage = (message: ChatMessage): message is AgentChatMessage => {
-  return message.role === ChatMessageRole.Assistant && message.isAgent;
-};
-
 // == Util ========================================================================
 const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
   let name = "chat_user";
   if (message.role === ChatMessageRole.Function) {
     name = message.name;
   }
-  if (ChatMessageRole.Assistant) {
-    if (isAgentMessage(message)) {
-      name = message.agent.id;
-    } else {
-      name = "chat_assistant";
-    }
+  if (message.role === ChatMessageRole.Assistant) {
+    name = message.agent.id;
   }
   return {
     role: message.role,
@@ -92,10 +74,6 @@ export const createUserMessage = (content: string = ""): UserChatMessage => {
   return { id: nanoid(), role: ChatMessageRole.User, content };
 };
 
-export const createAssistantMessage = (content: string = ""): NonAgentChatMessage => {
-  return { id: nanoid(), role: ChatMessageRole.Assistant, content, isAgent: false };
-};
-
-export const createAgentMessage = (content: string = "", agent: Agent): AgentChatMessage => {
-  return { id: nanoid(), role: ChatMessageRole.Assistant, content, isAgent: true, agent };
+export const createAgentMessage = (content: string = "", agent: Agent): AssistantChatMessage => {
+  return { id: nanoid(), role: ChatMessageRole.Assistant, content, agent };
 };
