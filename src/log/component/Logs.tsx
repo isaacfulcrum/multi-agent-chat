@@ -20,7 +20,7 @@ export const Logs = () => {
   }, []);
 
   return (
-    <Stack>
+    <Stack bg="#FCFCFC" width="100%" height="100%">
       {logs.map((log, index) => (
         <Fade in={true} key={index}>
           <Box key={index} pl="1em" pr="2em" py="5px">

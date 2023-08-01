@@ -1,25 +1,14 @@
-import { SettingsIcon } from "@chakra-ui/icons";
-import { Drawer, DrawerBody, DrawerCloseButton, DrawerContent, DrawerHeader, DrawerOverlay, IconButton, useDisclosure } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 
 import { ApiKey } from "./ApiKey";
 
+/** setting of the chat app
+ * NOTE: for now, it only contains the api key, but it will be extended in the future*/
 // ********************************************************************************
 export const Settings = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
   return (
-    <>
-      <IconButton zIndex={10} position="absolute" top="1em" right="1em" aria-label="Select Agents" icon={<SettingsIcon />} colorScheme="teal" onClick={onOpen} />
-      <Drawer onClose={onClose} isOpen={isOpen} size="sm">
-        <DrawerOverlay />
-        <DrawerContent color="white" bg="#343541">
-          <DrawerCloseButton />
-          <DrawerHeader>Chat Settings</DrawerHeader>
-          <DrawerBody>
-            <ApiKey />
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
-    </>
+    <Stack width="100%" height="100%" px="1em">
+      <ApiKey />
+    </Stack>
   );
 };

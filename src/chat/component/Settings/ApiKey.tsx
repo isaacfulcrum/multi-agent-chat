@@ -39,7 +39,7 @@ export const ApiKey = () => {
     <>
       <Box position="relative" py="10">
         <Divider />
-        <AbsoluteCenter bg="#343541" px="4">
+        <AbsoluteCenter bg="#17171C" px="4">
           OpenAI API Key
         </AbsoluteCenter>
       </Box>

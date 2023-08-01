@@ -25,7 +25,7 @@ export const AgentList = () => {
     <Box>
       <Box position="relative" py="10" px="1em">
         <Divider />
-        <AbsoluteCenter bg="#1F2123" px="4">
+        <AbsoluteCenter bg="#17171C" px="4">
           List
         </AbsoluteCenter>
       </Box>
