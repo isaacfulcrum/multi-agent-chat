@@ -6,13 +6,18 @@ import { ConversationalAgentOpenAI } from "@/agent/service";
 // ********************************************************************************
 interface IChatService {
   // == Messages ==================================================================
+  /** stream of chat messages sent to the subscribers */
   onMessage$(): BehaviorSubject<ChatMessage[]>;
+  /** returns the current messages directly from the source */
   getMessages(): ChatMessage[];
+  /** adds the new message to the chat */
   addMessage(message: ChatMessage): void;
-  removeMessage(messageId: string): void;
+  /** searches and updates a new message in the chat */
+  updateMessage(message: ChatMessage): void;
+  /** removes the message from the chat */
+  removeMessage(messageId: string): void /** CHECK: change messageId for consistency? */;
 
   // == Completion ================================================================
-  isLoading: boolean;
   requestCompletion(mode: CompletionMode): Promise<void>;
 }
 
@@ -54,18 +59,19 @@ class AbstractChatService implements IChatService {
   }
 
   // == Completion ================================================================
-  isLoading: boolean;
+  protected isLoading: boolean;
   async requestCompletion(mode: CompletionMode): Promise<void> {
-    throw new Error("Method not implemented."); // Provide a default error for unimplemented methods
+    /*template method*/
   }
 }
 
-export class ChatServiceSingle extends AbstractChatService {
+//
+export class SingleAgentChat extends AbstractChatService {
   // == Singleton =================================================================
-  private static singleton: ChatServiceSingle;
+  private static singleton: SingleAgentChat;
   public static getInstance() {
-    if (!ChatServiceSingle.singleton) ChatServiceSingle.singleton = new ChatServiceSingle();
-    return ChatServiceSingle.singleton;
+    if (!SingleAgentChat.singleton) SingleAgentChat.singleton = new SingleAgentChat();
+    return SingleAgentChat.singleton;
   }
 
   // == Lifecycle =================================================================
@@ -74,24 +80,29 @@ export class ChatServiceSingle extends AbstractChatService {
   }
 
   // == Completion ================================================================
-  /** Support for different modes of sending messages to the chat as an agent
-   *  Respond based on the following conditions:
-   *  1. The previous {@link MAX_CONSECUTIVE_ASSISTANT_MESSAGES } messages where not
-   *     sent exclusively by the assistant.
-   *  2. An agent cannot respond consecutively. */
+  /** Single agent completion request, in this mode the selected agent in XXX will
+   * be the one responding*/
   public requestCompletion = async () => {
     try {
-      const agent = new ConversationalAgentOpenAI("agent-id", "agent-name", "agent-description");
-      this.isLoading = true;
-      // add the message and keep updating it until the agent finishes responding
+      /*get the selected agent from XXX*/
+      const agent = new ConversationalAgentOpenAI("1", "Multi-Agent ChatBot", "You are a helpful assistant designed talking to a user on a conversation app called Multi-Agent Chat", "#BABABA");
       const message = agent.createNewMessage();
-      this.addMessage(message);
-      await agent.getResponse(chatMessagesToCompletionMessages(this.getMessages()), (content) => this.updateMessage({ ...message, content }));
+
+      this.isLoading = true;
+      let messageAdded = false; /*add the message only when we have an actual response*/
+      await agent.getResponse(chatMessagesToCompletionMessages(this.getMessages()), (content) => {
+        if (!messageAdded) {
+          this.addMessage({ ...message, content });
+          messageAdded = true;
+          return;
+        }
+        this.updateMessage({ ...message, content });
+      });
+      this.isLoading = false;
     } catch (error) {
       console.error(error);
       // Handle error
     } finally {
-      this.isLoading = false;
     }
   };
 }

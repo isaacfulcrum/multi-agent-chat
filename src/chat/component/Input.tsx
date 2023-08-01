@@ -2,7 +2,7 @@ import { CardFooter, Flex, IconButton, Input as ChakraInput, Tooltip } from "@ch
 import { ChangeEventHandler, FormEventHandler, KeyboardEvent, useState } from "react";
 import { ChatIcon } from "@chakra-ui/icons";
 
-import { ChatServiceSingle } from "../service";
+import { SingleAgentChat } from "../service";
 import { CompletionMode, createUserMessage } from "../type";
 import { useIsMounted } from "@/shared/hook/useIsMounted";
 
@@ -19,7 +19,7 @@ export const Input = () => {
       if (message.trim() !== "") {
         const newMessage = createUserMessage(message);
         // TODO: Check if a completion is runnning
-        await ChatServiceSingle.getInstance().addMessage(newMessage);
+        await SingleAgentChat.getInstance().addMessage(newMessage);
         if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
         setMessage("");
       }
@@ -40,7 +40,7 @@ export const Input = () => {
       setIsLoading(true);
       sendMessage(message);
       /* run the completion directly */
-      await ChatServiceSingle.getInstance().requestCompletion(CompletionMode.Single);
+      await SingleAgentChat.getInstance().requestCompletion(CompletionMode.Single);
     } catch (error) {
       // TODO: Handle error
       console.log(error);
@@ -55,7 +55,7 @@ export const Input = () => {
     try {
       setIsLoading(true);
       sendMessage(message);
-      await ChatServiceSingle.getInstance().requestCompletion(CompletionMode.Multiple);
+      await SingleAgentChat.getInstance().requestCompletion(CompletionMode.Multiple);
     } catch (error) {
       // TODO: Handle error
       console.log(error);
