@@ -5,7 +5,7 @@ import { Agent, createAgentRequest, fetchAgent } from "./type";
 import { createAgent } from "./callable";
 import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
 
-import { ChatMessage, ChatMessageRole, createAgentMessage } from "@/chat/type";
+import { AssistantChatMessage, ChatMessage, ChatMessageRole, createAgentMessage } from "@/chat/type";
 import { getRandomHex } from "@/utils/colors";
 import { OpenAIService } from "@/openai/service";
 import { nanoid } from "nanoid";
@@ -13,15 +13,8 @@ import { nanoid } from "nanoid";
 // ********************************************************************************
 
 /** Agent */
-
-type Response = {
-  id: string;
-  role: ChatMessageRole.Assistant;
-  content: string;
-  name: string;
-};
 interface IConversationalAgent {
-  getResponse(messages: ChatMessage[]): Promise<Response>;
+  getResponse(messages: ChatMessage[]): Promise<AssistantChatMessage>;
 }
 
 class ConversationalAgentAbstract implements IConversationalAgent {
@@ -30,7 +23,7 @@ class ConversationalAgentAbstract implements IConversationalAgent {
     this.color = getRandomHex();
   }
 
-  public async getResponse(messages: ChatMessage[]): Promise<Response> {
+  public async getResponse(messages: ChatMessage[]): Promise<AssistantChatMessage> {
     throw new Error("Method not implemented."); // Provide a default error for unimplemented methods
   }
 }
@@ -40,11 +33,21 @@ export class ConversationalAgentOpenAI extends ConversationalAgentAbstract {
     super(name, description);
   }
 
-  public async getResponse(messages: ChatCompletionRequestMessage[]): Promise<Response> {
+  public async getResponse(messages: ChatCompletionRequestMessage[]): Promise<AssistantChatMessage> {
     const response = await OpenAIService.getInstance().chatCompletion({
       messages,
     });
     const content = response?.choices[0]?.message?.content ?? "";
-    return { id: nanoid(), role: ChatMessageRole.Assistant, content, name: this.name };
+    return {
+      id: nanoid(),
+      role: ChatMessageRole.Assistant,
+      content,
+      agent: {
+        id: this.id,
+        name: this.name,
+        color: this.color,
+        description: this.description,
+      },
+    };
   }
 }

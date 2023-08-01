@@ -1,6 +1,7 @@
 import { BehaviorSubject } from "rxjs";
 
-import { ChatMessage, CompletionMode } from "./type";
+import { ChatMessage, CompletionMode, chatMessagesToCompletionMessages } from "./type";
+import { ConversationalAgentOpenAI } from "@/agent/service";
 
 // ********************************************************************************
 interface IChatService {
@@ -80,5 +81,13 @@ export class ChatServiceSingle extends AbstractChatService {
    *  2. An agent cannot respond consecutively. */
   public requestCompletion = async (mode: CompletionMode) => {
     console.log("requestCompletion", mode);
+
+    const agent = new ConversationalAgentOpenAI("agent-id", "agent-name", "agent-description");
+
+    this.isLoading = true;
+    const message = await agent.getResponse(chatMessagesToCompletionMessages(this.getMessages()));
+    console.log("message", message);
+
+    this.addMessage(message);
   };
 }

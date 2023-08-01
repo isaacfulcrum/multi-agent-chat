@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Flex, Select } from "@chakra-ui/react";
 
-import { agentServiceInstance } from "@/agent/service";
+// import { agentServiceInstance } from "@/agent/service";
 import { Agent } from "../type";
 
 // ********************************************************************************
@@ -12,23 +12,23 @@ export const AgentSelect = () => {
 
   // === Effect ===================================================================
   /** subscribe to active agent changes */
-  useEffect(() => {
-    const subscription = agentServiceInstance.onSelectedAgent$().subscribe((agent) => {
-      setCurrentAgentId(agent?.id);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-  /* agent list */
-  useEffect(() => {
-    const subscription = agentServiceInstance.onAgents$().subscribe((agents) => {
-      setAgents(agents);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  // useEffect(() => {
+  //   const subscription = agentServiceInstance.onSelectedAgent$().subscribe((agent) => {
+  //     setCurrentAgentId(agent?.id);
+  //   });
+  //   return () => subscription.unsubscribe();
+  // }, []);
+  // /* agent list */
+  // useEffect(() => {
+  //   const subscription = agentServiceInstance.onAgents$().subscribe((agents) => {
+  //     setAgents(agents);
+  //   });
+  //   return () => subscription.unsubscribe();
+  // }, []);
 
   // === Handler ==================================================================
   const selectAgent = (e: ChangeEvent<HTMLSelectElement>) => {
-    agentServiceInstance.setSelectedAgent(e.target.value);
+    // agentServiceInstance.setSelectedAgent(e.target.value);
   };
 
   return (

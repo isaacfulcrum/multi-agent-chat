@@ -1,7 +1,7 @@
 import { AbsoluteCenter,Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Divider, Flex, Heading, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-import { agentServiceInstance } from "../service";
+// import { agentServiceInstance } from "../service";
 
 import { Agent } from "../type";
 
@@ -12,14 +12,14 @@ export const AgentList = () => {
 
   // === Effect ===================================================================
   /** subscribe to agents changes */
-  useEffect(() => {
-    const subscription = agentServiceInstance.onAgents$().subscribe({
-      next: (snapshot) => setAgents(snapshot)
-    });
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  // useEffect(() => {
+  //   const subscription = agentServiceInstance.onAgents$().subscribe({
+  //     next: (snapshot) => setAgents(snapshot)
+  //   });
+  //   return () => {
+  //     subscription.unsubscribe();
+  //   };
+  // }, []);
 
   return (
     <Box>
