@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Textarea } from "@chakra-ui/react";
 
 import { ChatMessage } from "@/chat/type";
-import { ChatService } from "@/chat/service";
+import { ChatServiceSingle } from "@/chat/service";
 
 // ********************************************************************************
 type Props = {
@@ -26,7 +26,7 @@ export const EditModal: React.FC<Props> = ({ isOpen, onClose, message }) => {
   };
 
   const handleEditMessage = () => {
-    ChatService.getInstance().updateMessage({ ...message, content });
+    ChatServiceSingle.getInstance().updateMessage({ ...message, content });
     onClose();
   };
 

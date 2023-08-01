@@ -1,6 +1,6 @@
 import { Box, Flex, Stack, Text, useDisclosure } from "@chakra-ui/react";
 
-import { ChatService } from "@/chat/service";
+import { ChatServiceSingle } from "@/chat/service";
 
 import { UserChatMessage } from "@/chat/type";
 
@@ -13,7 +13,7 @@ export const UserMessage: React.FC<UserChatMessage> = (message) => {
   const { isOpen, onClose, onOpen } = useDisclosure();
 
   // == Handler ===================================================================
-  const handleDelete = () => ChatService.getInstance().removeMessage(message.id);
+  const handleDelete = () => ChatServiceSingle.getInstance().removeMessage(message.id);
   const handleEdit = () => onOpen();
 
   return (
