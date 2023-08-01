@@ -79,15 +79,19 @@ export class ChatServiceSingle extends AbstractChatService {
    *  1. The previous {@link MAX_CONSECUTIVE_ASSISTANT_MESSAGES } messages where not
    *     sent exclusively by the assistant.
    *  2. An agent cannot respond consecutively. */
-  public requestCompletion = async (mode: CompletionMode) => {
-    console.log("requestCompletion", mode);
-
-    const agent = new ConversationalAgentOpenAI("agent-id", "agent-name", "agent-description");
-
-    this.isLoading = true;
-    const message = await agent.getResponse(chatMessagesToCompletionMessages(this.getMessages()));
-    console.log("message", message);
-
-    this.addMessage(message);
+  public requestCompletion = async () => {
+    try {
+      const agent = new ConversationalAgentOpenAI("agent-id", "agent-name", "agent-description");
+      this.isLoading = true;
+      // add the message and keep updating it until the agent finishes responding
+      const message = agent.createNewMessage();
+      this.addMessage(message);
+      await agent.getResponse(chatMessagesToCompletionMessages(this.getMessages()), (content) => this.updateMessage({ ...message, content }));
+    } catch (error) {
+      console.error(error);
+      // Handle error
+    } finally {
+      this.isLoading = false;
+    }
   };
 }

@@ -1,11 +1,6 @@
-import { BehaviorSubject, lastValueFrom } from "rxjs";
 import { ChatCompletionRequestMessage } from "openai";
 
-import { Agent, createAgentRequest, fetchAgent } from "./type";
-import { createAgent } from "./callable";
-import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
-
-import { AssistantChatMessage, ChatMessage, ChatMessageRole, createAgentMessage } from "@/chat/type";
+import { AssistantChatMessage, ChatMessage, createAgentMessage } from "@/chat/type";
 import { getRandomHex } from "@/utils/colors";
 import { OpenAIService } from "@/openai/service";
 import { nanoid } from "nanoid";
@@ -14,7 +9,8 @@ import { nanoid } from "nanoid";
 
 /** Agent */
 interface IConversationalAgent {
-  getResponse(messages: ChatMessage[]): Promise<AssistantChatMessage>;
+  createNewMessage(): AssistantChatMessage;
+  getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null>;
 }
 
 class ConversationalAgentAbstract implements IConversationalAgent {
@@ -23,7 +19,16 @@ class ConversationalAgentAbstract implements IConversationalAgent {
     this.color = getRandomHex();
   }
 
-  public async getResponse(messages: ChatMessage[]): Promise<AssistantChatMessage> {
+  public createNewMessage(): AssistantChatMessage {
+    return createAgentMessage("" /*empty*/, {
+      id: nanoid(),
+      name: this.name,
+      color: this.color,
+      description: this.description,
+    });
+  }
+
+  public async getResponse(messages: ChatCompletionRequestMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
     throw new Error("Method not implemented."); // Provide a default error for unimplemented methods
   }
 }
@@ -33,21 +38,7 @@ export class ConversationalAgentOpenAI extends ConversationalAgentAbstract {
     super(name, description);
   }
 
-  public async getResponse(messages: ChatCompletionRequestMessage[]): Promise<AssistantChatMessage> {
-    const response = await OpenAIService.getInstance().chatCompletion({
-      messages,
-    });
-    const content = response?.choices[0]?.message?.content ?? "";
-    return {
-      id: nanoid(),
-      role: ChatMessageRole.Assistant,
-      content,
-      agent: {
-        id: this.id,
-        name: this.name,
-        color: this.color,
-        description: this.description,
-      },
-    };
+  public async getResponse(messages: ChatCompletionRequestMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
+    return OpenAIService.getInstance().chatCompletionStream({ messages }, onUpdate);
   }
 }
