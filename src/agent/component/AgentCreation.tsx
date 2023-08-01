@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { AbsoluteCenter, Box, Button, Divider, Input, Stack, Textarea, useToast } from "@chakra-ui/react";
 
-import { getRandomHex } from "@/utils/colors";
+import { getRandomHex } from "@/util/colors";
 // import { agentServiceInstance } from "../service";
 import { useIsMounted } from "@/shared/hook/useIsMounted";
 

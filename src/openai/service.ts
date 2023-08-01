@@ -2,7 +2,7 @@ import { logServiceInstance } from "@/log/service";
 import { getApiKey, openAIChatCompletion, openAIChatCompletionStream, openAIEmbedding, storeApiKey } from "./api";
 
 import { MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIChatCompletionRequest, OpenAIChatCompletionStreamRequest, OpenAIEmbeddingRequest } from "./type";
-import { truncateMessagesToMaxTokens } from "@/utils/tokens";
+import { truncateMessagesToMaxTokens } from "@/util/tokens";
 
 /** Handles everything related to the OpenAI API */
 // **********************************************************************************

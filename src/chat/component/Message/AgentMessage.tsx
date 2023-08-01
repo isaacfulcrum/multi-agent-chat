@@ -3,7 +3,7 @@ import { Avatar, Box, Flex, Stack, Text, useDisclosure } from "@chakra-ui/react"
 import { SingleAgentChat } from "@/chat/service";
 
 import { AssistantChatMessage } from "@/chat/type";
-import { getContrastColor } from "@/utils/colors";
+import { getContrastColor } from "@/util/colors";
 
 import { DeleteButton, EditButton } from "../Button";
 import { EditModal } from "./EditModal";
