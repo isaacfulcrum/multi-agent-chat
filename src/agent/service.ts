@@ -1,27 +1,23 @@
 import { ChatCompletionRequestMessage } from "openai";
 
-import { AssistantChatMessage, ChatMessage, createAgentMessage } from "@/chat/type";
-import { getRandomHex } from "@/utils/colors";
+import { AssistantChatMessage, ChatMessage, ChatMessageRole, createAgentMessage } from "@/chat/type";
 import { OpenAIService } from "@/openai/service";
-import { nanoid } from "nanoid";
 
 // ********************************************************************************
-
-/** Agent */
 interface IConversationalAgent {
+  /** creates a new message from the agent */
   createNewMessage(): AssistantChatMessage;
+  /** gets a response from the agent */
   getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null>;
 }
 
 class ConversationalAgentAbstract implements IConversationalAgent {
-  public readonly color: string;
-  constructor(public readonly name: string, public readonly description: string) {
-    this.color = getRandomHex();
-  }
+  constructor(protected readonly id: string, protected readonly name: string, protected readonly description: string, protected readonly color: string) {}
 
   public createNewMessage(): AssistantChatMessage {
     return createAgentMessage("" /*empty*/, {
-      id: nanoid(),
+      /* TODO: Maybe the message stuff is better managed by the chat */
+      id: this.id,
       name: this.name,
       color: this.color,
       description: this.description,
@@ -29,16 +25,22 @@ class ConversationalAgentAbstract implements IConversationalAgent {
   }
 
   public async getResponse(messages: ChatCompletionRequestMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
-    throw new Error("Method not implemented."); // Provide a default error for unimplemented methods
+    /*template method*/
   }
 }
 
+/** A conversational agent that uses OpenAI's API to generate responses */
 export class ConversationalAgentOpenAI extends ConversationalAgentAbstract {
-  constructor(public readonly id: string, name: string, description: string) {
-    super(name, description);
+  constructor(public readonly id: string, name: string, description: string, color: string) {
+    /* TODO: maybe only the id and search for this info in firebase */
+    super(id, name, description, color);
   }
 
   public async getResponse(messages: ChatCompletionRequestMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
-    return OpenAIService.getInstance().chatCompletionStream({ messages }, onUpdate);
+    const systemPrompt: ChatCompletionRequestMessage = {
+      role: ChatMessageRole.System,
+      content: this.description,
+    };
+    return OpenAIService.getInstance().chatCompletionStream({ messages: [systemPrompt, ...messages] }, onUpdate);
   }
 }
