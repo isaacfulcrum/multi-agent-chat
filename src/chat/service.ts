@@ -1,5 +1,7 @@
-import { AbstractChatService, chatMessagesToCompletionMessages } from "./type";
 import { ConversationalAgentOpenAI } from "@/agent/service";
+
+import { AbstractChatService } from "./type";
+import { chatMessagesToCompletionMessages } from "./util";
 
 /** A chat service that uses a single agent to respond to the user*/
 // ********************************************************************************

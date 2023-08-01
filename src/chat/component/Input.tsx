@@ -2,9 +2,12 @@ import { CardFooter, Flex, IconButton, Input as ChakraInput, Tooltip } from "@ch
 import { ChangeEventHandler, FormEventHandler, KeyboardEvent, useState } from "react";
 import { ChatIcon } from "@chakra-ui/icons";
 
-import { SingleAgentChat } from "../service";
-import { CompletionMode, createUserMessage } from "../type";
 import { useIsMounted } from "@/shared/hook/useIsMounted";
+
+import { createUserMessage } from "../util";
+import { SingleAgentChat } from "../service";
+
+
 
 // ********************************************************************************
 export const Input = () => {
@@ -40,7 +43,7 @@ export const Input = () => {
       setIsLoading(true);
       sendMessage(message);
       /* run the completion directly */
-      await SingleAgentChat.getInstance().requestCompletion(CompletionMode.Single);
+      await SingleAgentChat.getInstance().requestCompletion();
     } catch (error) {
       // TODO: Handle error
       console.log(error);
@@ -55,7 +58,7 @@ export const Input = () => {
     try {
       setIsLoading(true);
       sendMessage(message);
-      await SingleAgentChat.getInstance().requestCompletion(CompletionMode.Multiple);
+      await SingleAgentChat.getInstance().requestCompletion();
     } catch (error) {
       // TODO: Handle error
       console.log(error);
