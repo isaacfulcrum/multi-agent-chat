@@ -4,8 +4,9 @@ import { ChatFunctions, chatFunctions } from "@/chat/function";
 import { OpenAIService } from "@/openai/service";
 
 // ********************************************************************************
-export type Agent = {
-  id: string;
+export type AgentIdentifier = string /*alias*/;
+export type AgentProfile = {
+  id: AgentIdentifier;
   name: string;
   // Description that provides in-context learning to the request
   description: string;
@@ -13,18 +14,10 @@ export type Agent = {
   color: string;
 };
 
-export type createAgentRequest = {
-  name: string;
-  description: string;
-  color: string;
-};
-
 // == Util ======================================================================
 // TODO: this should be moved to the agent service
 /** Given a set of messages, returns the selected agentId */
-export const fetchAgent = async (
-  messages: ChatCompletionRequestMessage[]
-): Promise<string | undefined /*no agent*/> => {
+export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Promise<string | undefined /*no agent*/> => {
   try {
     const response = await OpenAIService.getInstance().chatCompletion({
       messages,

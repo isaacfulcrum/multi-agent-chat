@@ -1,5 +1,4 @@
-export type createAgentRequest = {
-  name: string;
-  description: string;
-  color: string;
-};
+import { AgentProfile } from "@/agent/type";
+
+// ********************************************************************************
+export type CreateAgentRequest = Omit<AgentProfile, "id">;
