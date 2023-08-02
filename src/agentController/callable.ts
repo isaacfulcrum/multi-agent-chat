@@ -1,6 +1,7 @@
 import { httpsCallable } from "firebase/functions";
 
-import { firebaseFunctions } from "@/chat/firebase";
+import { firebaseFunctions } from "@/firebase";
+
 import { createAgentRequest } from "./type";
 
 // ********************************************************************************
