@@ -21,5 +21,5 @@ connectFunctionsEmulator(firebaseFunctions, "127.0.0.1", 5001);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const firestore = getFirestore(app);
-// connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
+connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
 

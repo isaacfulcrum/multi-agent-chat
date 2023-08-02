@@ -2,7 +2,7 @@ import { AgentList } from "./AgentList";
 import { AgentCreation } from "./AgentCreation";
 
 // *******************************************************************************
-export const AgentMenu = () => {
+export const AgentPanel = () => {
   return (
     <>
       <AgentCreation />

@@ -1,12 +1,13 @@
 import { map } from "rxjs";
-import { collection, DocumentData, DocumentSnapshot, doc, getFirestore } from "firebase/firestore";
+import { collection, DocumentData, DocumentSnapshot, doc } from "firebase/firestore";
 
 import { Agent } from "@/agent/type";
+import { firestore } from "@/firebase";
 import { fromDocumentRefOnce, fromQuery, fromQueryOnce } from "@/firebase/observable";
 
 // ********************************************************************************
 /* Observables of agents */
-const agentsRef = collection(getFirestore(), "agents");
+const agentsRef = collection(firestore, "agents");
 const snapshotToAgent = (doc: DocumentSnapshot<DocumentData>): Agent => ({ id: doc.id, ...doc.data() } as Agent);
 
 // -- List -----------------------------------------------------------------------

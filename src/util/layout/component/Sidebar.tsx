@@ -3,8 +3,8 @@ import { ArrowLeftIcon, ArrowRightIcon, SettingsIcon } from "@chakra-ui/icons";
 import { Box, IconButton, Tab, TabList, TabPanel, TabPanels, Tabs, Tooltip, useColorModeValue, useDisclosure } from "@chakra-ui/react";
 
 import { Logs } from "@/log/component/Logs";
-import { AgentMenu } from "@/agent/component/AgentMenu";
 import { Settings } from "@/chat/component/Settings";
+import { AgentPanel } from "@/agentController/component/AgentPanel";
 
 // *******************************************************************************
 
@@ -17,7 +17,7 @@ const tabs = [
     {
         name: "Agents",
         icon: <ArrowLeftIcon />,
-        component: <AgentMenu />
+        component: <AgentPanel />
     },
     {
         name: "Settings",

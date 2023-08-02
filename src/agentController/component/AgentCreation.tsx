@@ -2,8 +2,9 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import { AbsoluteCenter, Box, Button, Divider, Input, Stack, Textarea, useToast } from "@chakra-ui/react";
 
 import { getRandomHex } from "@/util/colors";
-// import { agentServiceInstance } from "../service";
+
 import { useIsMounted } from "@/shared/hook/useIsMounted";
+import { AgentControllerService } from "../service";
 
 // *******************************************************************************
 export const AgentCreation = () => {
@@ -22,7 +23,7 @@ export const AgentCreation = () => {
     e.preventDefault();
     const color = getRandomHex();
     try {
-      // await agentServiceInstance.newAgent({ name: agentName, description: agentDescription, color });
+      await AgentControllerService.getInstance().newAgent({ name: agentName, description: agentDescription, color });
       if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
       toast({ title: "Agent created", status: "success", description: `Agent ${agentName} created` });
       setAgentName(""); setAgentDescription("");
