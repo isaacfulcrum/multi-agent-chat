@@ -1,24 +1,17 @@
 import { ChatCompletionRequestMessage } from "openai";
 
 import { logServiceInstance } from "@/log/service";
-import { agentServiceInstance } from "@/agent/service";
-
-import { MentalModelAgent, ScoringAgent } from "./agent";
-import { conceptDescriptionStore } from "./callable";
-import {
-  Concept,
-  ConceptFunctions,
-  ConceptWithEmbedding,
-  ConceptWithScore,
-  extractInformation,
-  scoringFunctions,
-} from "./type";
 import { OpenAIService } from "@/openai/service";
+import { IAgent } from "@/agent/type";
+
+import { MentalModelAgent, ScoringAgent } from "./prompt";
+import { conceptDescriptionStore } from "./callable";
+import { Concept, ConceptFunctions, ConceptWithEmbedding, ConceptWithScore, extractInformation, scoringFunctions } from "./type";
 
 // ****************************************************************************
 /** Monitors the current coversation to store key information in memory. */
 export class ConceptService {
-  constructor() {
+  constructor(private agent: IAgent) {
     /*nothing yet*/
   }
 
@@ -45,7 +38,6 @@ export class ConceptService {
   }
 
   // == Scoring ===================================================================
-
   private async scoreConcepts(agentDescription: string, concepts: Concept[]): Promise<ConceptWithScore[]> {
     const messages: ChatCompletionRequestMessage[] = [
       {
@@ -122,11 +114,8 @@ export class ConceptService {
   /** Creates a new set of memories based on the given message history */
   public async extractConcepts(messageHistory: ChatCompletionRequestMessage[]) {
     try {
-      const activeAgent = agentServiceInstance.getSelectedAgent();
-      if (!activeAgent) {
-        this.sendInfoLog("No active agent selected");
-        return;
-      }
+      const activeAgent = await this.agent.getProfile();
+      if (!activeAgent) throw new Error("No active agent");
       /* Format the conversation to be sent to the memory agent */
       const conversation = messageHistory.map((message) => `${message.name}: ${message.content}`).join("\n");
       const prompt =
@@ -139,9 +128,7 @@ export class ConceptService {
       this.sendInfoLog("Concepts found: \n" + concepts.map((concept) => concept.name).join("\n"));
 
       const scored = await this.scoreConcepts(activeAgent.description, concepts);
-      this.sendInfoLog(
-        "Scored concepts by relevancy: \n" + scored.map((concept) => `${concept.name}: ${concept.score}`).join("\n")
-      );
+      this.sendInfoLog("Scored concepts by relevancy: \n" + scored.map((concept) => `${concept.name}: ${concept.score}`).join("\n"));
 
       // Format the concepts with their respective embeddings
       const formattedConcepts = await Promise.all(scored.map(async (concept) => this.getEmbeddingFromConcept(concept)));
