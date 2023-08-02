@@ -1,6 +1,7 @@
-import { firebaseFunctions } from "@/chat/firebase";
-
 import { httpsCallable } from "firebase/functions";
+
+import { firebaseFunctions } from "@/firebase";
+
 import { Concept, ConceptDescriptionStorageRequest } from "./type";
 
 /** Retrieves concepts from Firestore */
