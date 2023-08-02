@@ -95,7 +95,7 @@ export const openAIChatCompletionStream = async ({ messages, ...options }: OpenA
 };
 
 /** Reads a stream and executes a callback once it gets a new chunk of data*/
-export const readChatCompletionStream = async (onUpdate: (val: string) => void, stream: Response) => {
+export const readChatCompletionStream = async (onUpdate: (val: string) => void, stream: Response): Promise<string> => {
   try {
     // Check if the stream has a body
     if (!stream.body) {
@@ -127,7 +127,7 @@ export const readChatCompletionStream = async (onUpdate: (val: string) => void, 
       for (const line of lines) {
         const message = line.replace(/^data: /, "");
         if (message === "[DONE]") {
-          return; // Stream finished
+          return incomingMessage;
         }
 
         try {
@@ -150,6 +150,8 @@ export const readChatCompletionStream = async (onUpdate: (val: string) => void, 
         }
       }
     }
+    // Return the message if the stream finished
+    return incomingMessage; 
   } catch (error) {
     throw new Error(`Error reading stream: ${error}`);
   }
