@@ -2,6 +2,7 @@ import { ChatCompletionRequestMessage } from "openai";
 
 import { ChatFunctions, chatFunctions } from "@/chat/function";
 import { OpenAIService } from "@/openai/service";
+import { ChatMessage } from "@/chat/type";
 
 // ********************************************************************************
 export type AgentIdentifier = string /*alias*/;
@@ -42,3 +43,12 @@ export const fetchAgent = async (messages: ChatCompletionRequestMessage[]): Prom
     throw error;
   }
 };
+
+// == Interface =================================================================
+export interface IAgent {
+  /** Returns the agent's profile */
+  getProfile(): Promise<AgentProfile | null /*not found*/>;
+  /** gets a response from the agent */
+  getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null>;
+}
+

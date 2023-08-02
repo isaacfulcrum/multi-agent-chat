@@ -1,7 +1,7 @@
 import { lastValueFrom } from "rxjs";
 
 import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
-import { createAgentRequest } from "./type";
+import { CreateAgentRequest } from "./type";
 import { createAgent } from "./callable";
 
 /** All operations related to the agent list. It's only purpose is to interact directly with the
@@ -35,7 +35,7 @@ export class AgentControllerService {
 
   // -- Write ---------------------------------------------------------------------
   /** Saves a new agent to the database */
-  public async newAgent(agent: createAgentRequest) {
+  public async newAgent(agent: CreateAgentRequest) {
     try {
       await createAgent(agent);
     } catch (error) {

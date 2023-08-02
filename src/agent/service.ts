@@ -2,7 +2,7 @@ import { ChatCompletionRequestMessage } from "openai";
 
 import { OpenAIService } from "@/openai/service";
 import { ChatMessage, ChatMessageRole } from "@/chat/type";
-import { AgentIdentifier, AgentProfile } from "./type";
+import { AgentIdentifier, AgentProfile, IAgent } from "./type";
 import { lastValueFrom } from "rxjs";
 
 import { agentOnceById$ } from "@/agentController/observable";
@@ -10,13 +10,6 @@ import { ConceptService } from "@/concept/service";
 import { createAgentMessage } from "@/chat/util";
 
 // ********************************************************************************
-interface IAgent {
-  /** Returns the agent's profile */
-  getProfile(): Promise<AgentProfile | null /*not found*/>;
-  /** gets a response from the agent */
-  getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null>;
-}
-
 class ConversationalAgentAbstract implements IAgent {
   /** Service to store and access */
   protected conceptService: ConceptService = new ConceptService(this);

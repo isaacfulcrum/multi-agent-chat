@@ -1,7 +1,7 @@
 import { ConversationalAgentOpenAI } from "@/agent/service";
 
 import { AbstractChatService } from "./type";
-import { chatMessagesToCompletionMessages } from "./util";
+import { chatMessagesToCompletionMessages, createAgentMessage } from "./util";
 
 /** A chat service that uses a single agent to respond to the user*/
 // ********************************************************************************
@@ -24,9 +24,12 @@ export class SingleAgentChat extends AbstractChatService {
   public requestCompletion = async () => {
     try {
       /*get the selected agent from XXX*/
-      const agent = new ConversationalAgentOpenAI("1", "Multi-Agent ChatBot", "You are a helpful assistant designed talking to a user on a conversation app called Multi-Agent Chat", "#BABABA");
-      const message = agent.createNewMessage();
+      const agent = new ConversationalAgentOpenAI("1")
+      const AgentProfile = await agent.getProfile();
+      if (!AgentProfile) throw new Error(`Agent ${agent} not found`); // TODO: maybe this should be handled by getProfile()
 
+      /*create the message*/
+      const message = createAgentMessage("", AgentProfile)
       this.isLoading = true;
       let messageAdded = false; /*add the message only when we have an actual response*/
       await agent.getResponse(chatMessagesToCompletionMessages(this.getMessages()), (content) => {
