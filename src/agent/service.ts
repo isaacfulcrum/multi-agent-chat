@@ -1,13 +1,12 @@
+import { lastValueFrom } from "rxjs";
 import { ChatCompletionRequestMessage } from "openai";
 
-import { OpenAIService } from "@/openai/service";
-import { ChatMessage, ChatMessageRole } from "@/chat/type";
-import { AgentIdentifier, AgentProfile, IAgent } from "./type";
-import { lastValueFrom } from "rxjs";
-
 import { agentOnceById$ } from "@/agentController/observable";
+import { OpenAIService } from "@/openai/service";
 import { ConceptService } from "@/concept/service";
-import { createAgentMessage } from "@/chat/util";
+import { ChatMessageRole } from "@/chat/type";
+
+import { AgentIdentifier, AgentProfile, IAgent } from "./type";
 
 // ********************************************************************************
 class ConversationalAgentAbstract implements IAgent {
@@ -15,8 +14,14 @@ class ConversationalAgentAbstract implements IAgent {
   protected conceptService: ConceptService = new ConceptService(this);
   constructor(protected readonly id: AgentIdentifier) {}
 
-  public async getProfile(): Promise<AgentProfile | null /*not found*/> {
-    return lastValueFrom(agentOnceById$(this.id));
+  public async getProfile(): Promise<AgentProfile> {
+    try {
+      const agent = await lastValueFrom(agentOnceById$(this.id));
+      if (!agent?.name) throw new Error(`Agent ${this.id} not found`); // TODO: type assertion
+      return agent;
+    } catch (error) {
+      throw new Error("Error getting agent profile: " + error);
+    }
   }
 
   public async getResponse(messages: ChatCompletionRequestMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
@@ -32,7 +37,6 @@ export class ConversationalAgentOpenAI extends ConversationalAgentAbstract {
   public async getResponse(messages: ChatCompletionRequestMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
     try {
       const profile = await this.getProfile();
-      if (!profile) throw new Error(`Agent ${this.id} not found`); // TODO: maybe this should be handled by getProfile()
 
       const systemPrompt: ChatCompletionRequestMessage = {
         role: ChatMessageRole.System,
