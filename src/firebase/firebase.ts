@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { Firestore, FirestoreSettings, connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { connectFunctionsEmulator, getFunctions } from "firebase/functions";
 
 // Your web app's Firebase configuration
@@ -23,6 +23,10 @@ export const firestore = getFirestore(app);
 
 /* NOTE: we only use the emulator in development mode and if the host */
 if (process.env.NODE_ENV === "development") {
-  connectFunctionsEmulator(firebaseFunctions, "127.0.0.1", 5001);
-  connectFirestoreEmulator(firestore, "localhost", 8080);
+  try {
+    connectFunctionsEmulator(firebaseFunctions, "127.0.0.1", 5001);
+    connectFirestoreEmulator(firestore, "localhost", 8080);
+  } catch (error) {
+    console.error("Error connecting to firebase emulator: ", error);
+  }
 }

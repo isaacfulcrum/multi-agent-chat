@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { ChatCompletionRequestMessage } from "openai";
 
-import { AgentProfile } from "@/agent/type";
+import { AgentSpecs } from "@/agent/type";
 
 import { AssistantChatMessage, ChatMessage, ChatMessageRole, UserChatMessage } from "./type";
 
@@ -31,6 +31,6 @@ export const createUserMessage = (content: string = ""): UserChatMessage => {
   return { id: nanoid(), role: ChatMessageRole.User, content };
 };
 
-export const createAgentMessage = (content: string = "", agent: AgentProfile): AssistantChatMessage => {
+export const createAgentMessage = (content: string = "", agent: AgentSpecs): AssistantChatMessage => {
   return { id: nanoid(), role: ChatMessageRole.Assistant, content, agent };
 };

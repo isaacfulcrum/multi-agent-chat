@@ -11,7 +11,7 @@ import { Concept, ConceptFunctions, ConceptWithEmbedding, ConceptWithScore, extr
 // ****************************************************************************
 /** Monitors the current coversation to store key information in memory. */
 export class ConceptService {
-  constructor(private agent: IAgent) {
+  constructor() {
     /*nothing yet*/
   }
 
@@ -112,9 +112,9 @@ export class ConceptService {
 
   // == Extraction ================================================================
   /** Creates a new set of memories based on the given message history */
-  public async extractConcepts(messageHistory: ChatCompletionRequestMessage[]) {
+  public async extractConcepts(messageHistory: ChatCompletionRequestMessage[], agent: IAgent) {
     try {
-      const activeAgent = await this.agent.getProfile();
+      const activeAgent = await agent.getProfile();
       if (!activeAgent) throw new Error("No active agent");
       /* Format the conversation to be sent to the memory agent */
       const conversation = messageHistory.map((message) => `${message.name}: ${message.content}`).join("\n");

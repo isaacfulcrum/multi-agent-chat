@@ -1,14 +1,14 @@
 import { AbsoluteCenter, Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Divider, Flex, Heading, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-import { AgentProfile } from "@/agent/type";
+import { AgentSpecs } from "@/agent/type";
 
 import { AgentControllerService } from "../service";
 
 // ********************************************************************************
 export const AgentList = () => {
   // === State ====================================================================
-  const [agents, setAgents] = useState<AgentProfile[]>([]);
+  const [agents, setAgents] = useState<AgentSpecs[]>([]);
 
   // === Effect ===================================================================
   /** subscribe to agents changes */

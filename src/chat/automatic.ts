@@ -86,12 +86,12 @@ export class AutomaticAgentChat extends AbstractChatService {
       if (alreadyResponded) return;
 
       const agent = new ConversationalAgentOpenAI(agentId);
-      const AgentProfile = await agent.getProfile();
-      if (!AgentProfile) throw new Error(`Agent ${agent} not found`); // TODO: maybe this should be handled by getProfile()
+      const AgentSpecs = await agent.getProfile();
+      if (!AgentSpecs) throw new Error(`Agent ${agent} not found`); // TODO: maybe this should be handled by getProfile()
 
       // -----------------------------------------------------------------------
       /*create the message*/
-      const message = createAgentMessage("", AgentProfile);
+      const message = createAgentMessage("", AgentSpecs);
       this.isLoading = true;
       let messageAdded = false; /*add the message only when we have an actual response*/
       await agent.getResponse(chatMessagesToCompletionMessages(messages), (content) => {

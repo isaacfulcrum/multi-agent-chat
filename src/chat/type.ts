@@ -1,6 +1,6 @@
 import { BehaviorSubject } from "rxjs";
 
-import { AgentProfile } from "@/agent/type";
+import { AgentSpecs } from "@/agent/type";
 
 // ********************************************************************************
 // NOTE: using custom Enum instead of the one from openai since it's not exported as
@@ -21,7 +21,7 @@ export type BaseChatMessage = {
 // -- Assistant -------------------------------------------------------------------
 export type AssistantChatMessage = BaseChatMessage & {
   role: ChatMessageRole.Assistant;
-  agent: AgentProfile;
+  agent: AgentSpecs;
 };
 
 // -- System ----------------------------------------------------------------------
