@@ -1,7 +1,7 @@
 import { ChatCompletionFunctions, ChatCompletionRequestMessage } from "openai";
 
 import { ChatMessage } from "./type";
-import { Agent } from "@/agent/type";
+import { AgentProfile } from "@/agent/type";
 
 //**************************************************************************************
 export enum ChatFunctions {
@@ -130,17 +130,17 @@ export const chatFunctions: ChatCompletionFunctions[] = [
   },
 ];
 
-export const getModeratorPrompt = (messages: ChatMessage[], agents: Agent[]) => {
+export const getModeratorPrompt = (messages: ChatMessage[], agents: AgentProfile[]) => {
   const agentList = agents.map((agent) => `${agent.name}(${agent.id}): ${agent.description}`).join("\n");
   const messageList = messages
     .map((message) => {
       // user message
       if (message.role === "user") return `user: ${message.content}`;
       // assistant with agent
-      if (message.role === "assistant" && message.isAgent) return `${message.agent.name}: ${message.content}`;
-      // assistant without agent
-      else if (message.role === "assistant") return `Assistant: ${message.content}`;
-      return "";
+      if (message.role === "assistant" && message.agent) {
+        return `${message.agent.name}: ${message.content}`;
+      }
+      return ""; /*ignore*/
     })
     .join("\n");
 
