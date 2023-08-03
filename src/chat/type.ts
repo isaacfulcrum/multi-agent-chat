@@ -45,7 +45,7 @@ export type FunctionChatMessage = BaseChatMessage & {
 export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage | FunctionChatMessage;
 
 // == Abstract ====================================================================
-interface IChatService extends IService{
+export interface IChatService extends IService{
   // == Messages ==================================================================
   /** stream of chat messages sent to the subscribers */
   onMessage$(): BehaviorSubject<ChatMessage[]>;

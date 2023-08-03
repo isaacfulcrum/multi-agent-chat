@@ -3,15 +3,15 @@ import { ChangeEventHandler, FormEventHandler, KeyboardEvent, useState } from "r
 import { ChatIcon } from "@chakra-ui/icons";
 
 import { useIsMounted } from "@/shared/hook/useIsMounted";
+import { useChat } from "../hook/useChat";
 
 import { createUserMessage } from "../util";
-import { SingleAgentChat } from "../service";
-
-
 
 // ********************************************************************************
 export const Input = () => {
   const isMounted = useIsMounted()
+  const { chat } = useChat()
+
   // === State ====================================================================
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,7 @@ export const Input = () => {
       if (message.trim() !== "") {
         const newMessage = createUserMessage(message);
         // TODO: Check if a completion is runnning
-        await SingleAgentChat.getInstance().addMessage(newMessage);
+        await chat.addMessage(newMessage);
         if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
         setMessage("");
       }
@@ -43,7 +43,7 @@ export const Input = () => {
       setIsLoading(true);
       sendMessage(message);
       /* run the completion directly */
-      await SingleAgentChat.getInstance().requestCompletion();
+      await chat.requestCompletion();
     } catch (error) {
       // TODO: Handle error
       console.log(error);
@@ -58,7 +58,7 @@ export const Input = () => {
     try {
       setIsLoading(true);
       sendMessage(message);
-      await SingleAgentChat.getInstance().requestCompletion();
+      await chat.requestCompletion();
     } catch (error) {
       // TODO: Handle error
       console.log(error);

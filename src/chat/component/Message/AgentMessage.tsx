@@ -1,9 +1,8 @@
 import { Avatar, Box, Flex, Stack, Text, useDisclosure } from "@chakra-ui/react";
 
-import { SingleAgentChat } from "@/chat/service";
-
 import { AssistantChatMessage } from "@/chat/type";
 import { getContrastColor } from "@/util/colors";
+import { useChat } from "@/chat/hook/useChat";
 
 import { DeleteButton, EditButton } from "../Button";
 import { EditModal } from "./EditModal";
@@ -14,10 +13,11 @@ export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
   const contrastColor = getContrastColor(message.agent.color);
 
   // == Hook ======================================================================
+  const { chat } = useChat();
   const { isOpen, onClose, onOpen } = useDisclosure();
 
   // == Handler ===================================================================
-  const handleDelete = () => SingleAgentChat.getInstance().removeMessage(message.id);
+  const handleDelete = () => chat.removeMessage(message.id);
   const handleEdit = () => onOpen();
 
   return (

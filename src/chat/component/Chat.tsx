@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, CardBody, Center, Flex, Stack, Text } from "@chakra-ui/react";
 
-import { SingleAgentChat } from "../service";
+import { useChat } from "../hook/useChat";
 
 import { ChatMessage } from "../type";
 import { AgentSelect } from "../../agent/component/AgentSelect";
@@ -11,6 +11,7 @@ import { Message } from "./Message";
 // ********************************************************************************
 export const Chat = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { chat } = useChat();
 
   // === State ====================================================================
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -18,12 +19,13 @@ export const Chat = () => {
   // === Effect ===================================================================
   /** subscribe to the messages updates */
   useEffect(() => {
-    const subscription = SingleAgentChat.getInstance().onMessage$().subscribe((newMessages) => {
+    if (!chat.isInitialized()) return; /*nothing to do*/
+    const subscription = chat.onMessage$().subscribe((newMessages) => {
       setMessages(newMessages);
     });
     // unsubscribe when the component is unmounted
     return () => subscription.unsubscribe();
-  }, []);
+  }, [chat]);
 
   /** scrolls to the bottom of the chat when a new message is added */
   useEffect(() => {

@@ -7,7 +7,7 @@ import { createAgentMessage } from "./util";
 // ********************************************************************************
 export class SingleAgentChat extends AbstractChatService {
   // == Lifecycle =================================================================
-  protected constructor(private readonly chatAgent: IAgent) {
+  public constructor(private readonly chatAgent: IAgent) {
     super();
   }
   /** Initialize the agent who's going to respond to the user */

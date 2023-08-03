@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Textarea } from "@chakra-ui/react";
 
 import { ChatMessage } from "@/chat/type";
-import { SingleAgentChat } from "@/chat/service";
+import { useChat } from "@/chat/hook/useChat";
 
 // ********************************************************************************
 type Props = {
@@ -20,13 +20,16 @@ export const EditModal: React.FC<Props> = ({ isOpen, onClose, message }) => {
     if (isOpen) setContent(message.content);
   }, [isOpen, message.content]);
 
+  // == Hook ====================================================================
+  const { chat } = useChat();
+
   // == Handler =================================================================
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(event.target.value);
   };
 
   const handleEditMessage = () => {
-    SingleAgentChat.getInstance().updateMessage({ ...message, content });
+    chat.updateMessage({ ...message, content });
     onClose();
   };
 

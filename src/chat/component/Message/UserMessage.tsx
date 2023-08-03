@@ -1,8 +1,7 @@
 import { Box, Flex, Stack, Text, useDisclosure } from "@chakra-ui/react";
 
-import { SingleAgentChat } from "@/chat/service";
-
 import { UserChatMessage } from "@/chat/type";
+import { useChat } from "@/chat/hook/useChat";
 
 import { DeleteButton, EditButton } from "../Button";
 import { EditModal } from "./EditModal";
@@ -10,10 +9,11 @@ import { EditModal } from "./EditModal";
 // ********************************************************************************
 export const UserMessage: React.FC<UserChatMessage> = (message) => {
   // == Hook ======================================================================
+  const { chat } = useChat();
   const { isOpen, onClose, onOpen } = useDisclosure();
 
   // == Handler ===================================================================
-  const handleDelete = () => SingleAgentChat.getInstance().removeMessage(message.id);
+  const handleDelete = () => chat.removeMessage(message.id);
   const handleEdit = () => onOpen();
 
   return (
