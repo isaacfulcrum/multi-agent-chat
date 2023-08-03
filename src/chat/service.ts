@@ -21,15 +21,15 @@ export class SingleAgentChat extends AbstractChatService {
   // == Completion ================================================================
   /** Single agent completion request, in this mode the selected agent in XXX will
    * be the one responding*/
-  public requestCompletion = async () => {
+  public async requestCompletion() {
     try {
       /*get the selected agent from XXX*/
-      const agent = new ConversationalAgentOpenAI("1")
+      const agent = new ConversationalAgentOpenAI("1");
       const AgentProfile = await agent.getProfile();
       if (!AgentProfile) throw new Error(`Agent ${agent} not found`); // TODO: maybe this should be handled by getProfile()
 
       /*create the message*/
-      const message = createAgentMessage("", AgentProfile)
+      const message = createAgentMessage("", AgentProfile);
       this.isLoading = true;
       let messageAdded = false; /*add the message only when we have an actual response*/
       await agent.getResponse(chatMessagesToCompletionMessages(this.getMessages()), (content) => {
@@ -46,5 +46,5 @@ export class SingleAgentChat extends AbstractChatService {
       // Handle error
     } finally {
     }
-  };
+  }
 }
