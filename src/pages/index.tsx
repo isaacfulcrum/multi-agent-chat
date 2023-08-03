@@ -1,11 +1,16 @@
 import Head from "next/head";
-import { Inter } from "@next/font/google";
 
 import { Chat } from "@/chat/component";
 import { MainWrapper } from "@/util/layout/component/MainWrapper";
+import { ChatProvider } from "@/chat/context/ChatProvider";
+import { SingleAgentChat } from "@/chat/service";
+import { ConversationalAgent } from "@/agent/service";
+import { OpenAIService } from "@/openai/service";
 
-const inter = Inter({ subsets: ["latin"] });
 
+const chat = new SingleAgentChat(new ConversationalAgent("1", OpenAIService.getInstance()));
+
+// ********************************************************************************
 export default function Home() {
   return (
     <>
@@ -16,7 +21,9 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <MainWrapper>
+        <ChatProvider chat={chat}>
           <Chat />
+        </ChatProvider>
       </MainWrapper>
     </>
   );
