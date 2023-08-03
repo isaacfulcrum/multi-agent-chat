@@ -1,4 +1,5 @@
 import { ChatMessage } from "@/chat/type";
+import { IService } from "@/util/service";
 
 // ********************************************************************************
 export type AgentIdentifier = string /*alias*/;
@@ -12,9 +13,9 @@ export type AgentSpecs = {
 };
 
 // == Interface =================================================================
-export interface IAgent {
-  /** Returns the agent's profile */
-  getProfile(): Promise<AgentSpecs | null /*not found*/>;
+export interface IAgent extends IService {
+  /** Returns the agent's specs */
+  getSpecs(): AgentSpecs;
   /** gets a response from the agent */
   getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null>;
 }

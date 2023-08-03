@@ -2,7 +2,7 @@ import { ChatCompletionRequestMessage } from "openai";
 
 import { logServiceInstance } from "@/log/service";
 import { OpenAIService } from "@/openai/service";
-import { IAgent } from "@/agent/type";
+import { AgentSpecs } from "@/agent/type";
 
 import { MentalModelAgent, ScoringAgent } from "./prompt";
 import { conceptDescriptionStore } from "./callable";
@@ -112,10 +112,8 @@ export class ConceptService {
 
   // == Extraction ================================================================
   /** Creates a new set of memories based on the given message history */
-  public async extractConcepts(messageHistory: ChatCompletionRequestMessage[], agent: IAgent) {
+  public async extractConcepts(messageHistory: ChatCompletionRequestMessage[], agentSpecs: AgentSpecs) {
     try {
-      const activeAgent = await agent.getProfile();
-      if (!activeAgent) throw new Error("No active agent");
       /* Format the conversation to be sent to the memory agent */
       const conversation = messageHistory.map((message) => `${message.name}: ${message.content}`).join("\n");
       const prompt =
@@ -127,7 +125,7 @@ export class ConceptService {
       if (!concepts) throw new Error("No concepts found");
       this.sendInfoLog("Concepts found: \n" + concepts.map((concept) => concept.name).join("\n"));
 
-      const scored = await this.scoreConcepts(activeAgent.description, concepts);
+      const scored = await this.scoreConcepts(agentSpecs.description, concepts);
       this.sendInfoLog("Scored concepts by relevancy: \n" + scored.map((concept) => `${concept.name}: ${concept.score}`).join("\n"));
 
       // Format the concepts with their respective embeddings
@@ -138,7 +136,7 @@ export class ConceptService {
 
       // Store the concepts in Firebase
       const response = await conceptDescriptionStore({
-        agentId: activeAgent.id,
+        agentId: agentSpecs.id,
         concepts: filteredConcepts,
       });
     } catch (error) {
