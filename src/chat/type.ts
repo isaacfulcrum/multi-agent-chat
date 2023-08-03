@@ -1,6 +1,7 @@
 import { BehaviorSubject } from "rxjs";
 
 import { AgentSpecs } from "@/agent/type";
+import { AbstractService, IService } from "@/util/service";
 
 // ********************************************************************************
 // NOTE: using custom Enum instead of the one from openai since it's not exported as
@@ -44,7 +45,7 @@ export type FunctionChatMessage = BaseChatMessage & {
 export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage | FunctionChatMessage;
 
 // == Abstract ====================================================================
-interface IChatService {
+interface IChatService extends IService{
   // == Messages ==================================================================
   /** stream of chat messages sent to the subscribers */
   onMessage$(): BehaviorSubject<ChatMessage[]>;
@@ -61,8 +62,9 @@ interface IChatService {
   requestCompletion(): Promise<void>;
 }
 
-export abstract class AbstractChatService implements IChatService {
+export abstract class AbstractChatService extends AbstractService implements IChatService {
   protected constructor() {
+    super("Chat Service");
     this.messages$ = new BehaviorSubject<ChatMessage[]>([]);
     this.isLoading = false /*by default*/;
   }
