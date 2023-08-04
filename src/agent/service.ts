@@ -50,7 +50,13 @@ export class ConversationalAgent extends AbstractAgent {
       const specs = this.getSpecs(); /*handles not found*/
       const description = isConversationalAgentSpecs(specs) ? specs.description : "";
 
-      const completion = await this.completionService.chatCompletionStream(messages, description, onUpdate);
+      const completion = await this.completionService.chatCompletionStream(
+        {
+          messages,
+          systemMessage: description,
+        },
+        onUpdate
+      );
       if (!completion) throw new Error("No response from OpenAI API");
 
       // Concept extraction

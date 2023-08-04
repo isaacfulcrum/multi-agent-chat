@@ -1,3 +1,4 @@
+import { ChatMessage } from "@/chat/type";
 import { CreateChatCompletionRequest, CreateEmbeddingRequest } from "openai";
 
 //*********************************************************************************
@@ -13,13 +14,15 @@ export type OpenAIApiKey = string; /*alias*/
 export type OpenAIEmbeddingRequest = Partial<CreateEmbeddingRequest> & Pick<CreateEmbeddingRequest, "input">; /* input is required */
 
 // === Chat completion ============================================================
-export type OpenAIChatCompletionRequest = Partial<CreateChatCompletionRequest> &
-  Pick<CreateChatCompletionRequest, "messages">; /* messages is required */
+export type OpenAIChatCompletionRequest = Partial<CreateChatCompletionRequest> & Pick<CreateChatCompletionRequest, "messages">; /* messages is required */
 
-export type OpenAIChatCompletionStreamRequest = Exclude<
-  OpenAIChatCompletionRequest,
-  "stream"
-> /*stream is not allowed to change*/;
+export type OpenAIChatCompletionStreamRequest = Exclude<OpenAIChatCompletionRequest, "stream"> /*stream is not allowed to change*/;
+
+// === Service ====================================================================
+export type ChatCompletionServiceRequest = Omit<Partial<CreateChatCompletionRequest>, "stream" | "messages"> & {
+  messages: ChatMessage[] /* the service transforms this messages into OpenAI messages */;
+  systemMessage?: string /* optional system message to add to the front of the messages array */;
+};
 
 // === Stream =====================================================================
 type OpenAIStreamChoice = {

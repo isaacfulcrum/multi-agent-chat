@@ -4,7 +4,7 @@ import { getApiKey, openAIChatCompletion, openAIChatCompletionStream, openAIEmbe
 import { truncateMessagesToMaxTokens } from "@/util/tokens";
 import { ChatMessage, ChatMessageRole } from "@/chat/type";
 
-import { MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIEmbeddingRequest } from "./type";
+import { ChatCompletionServiceRequest, MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIEmbeddingRequest } from "./type";
 import { chatMessagesToCompletionMessages } from "./util";
 
 /** Handles everything related to the OpenAI API */
@@ -40,7 +40,7 @@ export class OpenAIService {
   }
 
   // == Chat Completion ============================================================
-  public async chatCompletion(messages: ChatMessage[], systemMessage = "") {
+  public async chatCompletion({ messages, systemMessage, ...options }: ChatCompletionServiceRequest) {
     try {
       const completionMessages = chatMessagesToCompletionMessages(messages);
       if (systemMessage) {
@@ -48,7 +48,7 @@ export class OpenAIService {
         completionMessages.unshift({ role: ChatMessageRole.System, content: systemMessage });
       }
       const truncatedMessages = truncateMessagesToMaxTokens(completionMessages, MAX_REQUEST_TOKENS);
-      const { data } = await openAIChatCompletion({ messages: truncatedMessages });
+      const { data } = await openAIChatCompletion({ messages: truncatedMessages, ...options });
       return data;
     } catch (e) {
       console.error("Error getting chat completion: ", e);
@@ -57,7 +57,7 @@ export class OpenAIService {
     }
   }
 
-  public async chatCompletionStream(messages: ChatMessage[], systemMessage = "", onUpdate: (val: string) => void) {
+  public async chatCompletionStream({ messages, systemMessage, ...options }: ChatCompletionServiceRequest, onUpdate: (val: string) => void) {
     try {
       const completionMessages = chatMessagesToCompletionMessages(messages);
       if (systemMessage) {
@@ -65,7 +65,7 @@ export class OpenAIService {
         completionMessages.unshift({ role: ChatMessageRole.System, content: systemMessage });
       }
       const truncatedMessages = truncateMessagesToMaxTokens(completionMessages, MAX_REQUEST_TOKENS);
-      return openAIChatCompletionStream({ messages: truncatedMessages }, onUpdate);
+      return openAIChatCompletionStream({ messages: truncatedMessages, ...options }, onUpdate);
     } catch (e) {
       console.error("Error getting chat completion: ", e);
       if (e instanceof Error) this.errorLog(e.message);
