@@ -1,12 +1,11 @@
 import { lastValueFrom } from "rxjs";
-import { ChatCompletionRequestMessage } from "openai";
 
 import { agentOnceById$ } from "@/agentController/observable";
 import { OpenAIService } from "@/openai/service";
 import { ConceptService } from "@/concept/service";
 import { ChatMessage, ChatMessageRole } from "@/chat/type";
 
-import { AgentIdentifier, AgentSpecs, IAgent } from "./type";
+import { AgentIdentifier, AgentSpecs, IAgent, isConversationalAgentSpecs } from "./type";
 import { AbstractService } from "@/util/service";
 
 // ********************************************************************************
@@ -49,22 +48,23 @@ export class ConversationalAgent extends AbstractAgent {
   public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
     try {
       const specs = this.getSpecs(); /*handles not found*/
+      const description = isConversationalAgentSpecs(specs) ? specs.description : "";
 
-      const completion = await this.completionService.chatCompletionStream(messages, specs.description ?? "", onUpdate);
+      const completion = await this.completionService.chatCompletionStream(messages, description, onUpdate);
       if (!completion) throw new Error("No response from OpenAI API");
 
       // Concept extraction
-      this.conceptService.extractConcepts(
-        [
-          ...messages,
-          {
-            role: ChatMessageRole.Assistant,
-            name: specs.id,
-            content: completion,
-          },
-        ],
-        specs
-      );
+      // this.conceptService.extractConcepts(
+      //   [
+      //     ...messages,
+      //     {
+      //       role: ChatMessageRole.Assistant,
+      //       name: specs.id,
+      //       content: completion,
+      //     },
+      //   ],
+      //   specs
+      // );
     } catch (error) {
       console.error("Error getting response from OpenAI: ", error);
       return null;
