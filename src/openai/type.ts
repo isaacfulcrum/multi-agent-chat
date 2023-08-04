@@ -10,8 +10,7 @@ export const MAX_REQUEST_TOKENS = MAX_TOTAL_TOKENS - MAX_RESPONSE_TOKENS; /*max 
 export type OpenAIApiKey = string; /*alias*/
 
 // === Embedding ==================================================================
-export type OpenAIEmbeddingRequest = Partial<CreateEmbeddingRequest> &
-  Pick<CreateEmbeddingRequest, "input">; /* input is required */
+export type OpenAIEmbeddingRequest = Partial<CreateEmbeddingRequest> & Pick<CreateEmbeddingRequest, "input">; /* input is required */
 
 // === Chat completion ============================================================
 export type OpenAIChatCompletionRequest = Partial<CreateChatCompletionRequest> &

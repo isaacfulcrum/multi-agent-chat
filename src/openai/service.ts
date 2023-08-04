@@ -1,8 +1,11 @@
 import { logServiceInstance } from "@/log/service";
 import { getApiKey, openAIChatCompletion, openAIChatCompletionStream, openAIEmbedding, storeApiKey } from "./api";
 
-import { MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIChatCompletionRequest, OpenAIChatCompletionStreamRequest, OpenAIEmbeddingRequest } from "./type";
 import { truncateMessagesToMaxTokens } from "@/util/tokens";
+import { ChatMessage, ChatMessageRole } from "@/chat/type";
+
+import { MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIEmbeddingRequest } from "./type";
+import { chatMessagesToCompletionMessages } from "./util";
 
 /** Handles everything related to the OpenAI API */
 // **********************************************************************************
@@ -37,10 +40,15 @@ export class OpenAIService {
   }
 
   // == Chat Completion ============================================================
-  public async chatCompletion({ messages, ...options }: OpenAIChatCompletionRequest) {
+  public async chatCompletion(messages: ChatMessage[], systemMessage = "") {
     try {
-      const truncatedMessages = truncateMessagesToMaxTokens(messages, MAX_REQUEST_TOKENS);
-      const { data } = await openAIChatCompletion({ messages: truncatedMessages, ...options });
+      const completionMessages = chatMessagesToCompletionMessages(messages);
+      if (systemMessage) {
+        // Add system message to the front of the messages array
+        completionMessages.unshift({ role: ChatMessageRole.System, content: systemMessage });
+      }
+      const truncatedMessages = truncateMessagesToMaxTokens(completionMessages, MAX_REQUEST_TOKENS);
+      const { data } = await openAIChatCompletion({ messages: truncatedMessages });
       return data;
     } catch (e) {
       console.error("Error getting chat completion: ", e);
@@ -49,10 +57,15 @@ export class OpenAIService {
     }
   }
 
-  public async chatCompletionStream({ messages, ...options }: OpenAIChatCompletionStreamRequest, onUpdate: (val: string) => void) {
+  public async chatCompletionStream(messages: ChatMessage[], systemMessage = "", onUpdate: (val: string) => void) {
     try {
-      const truncatedMessages = truncateMessagesToMaxTokens(messages, MAX_REQUEST_TOKENS);
-      return openAIChatCompletionStream({ messages: truncatedMessages, ...options }, onUpdate);
+      const completionMessages = chatMessagesToCompletionMessages(messages);
+      if (systemMessage) {
+        // Add system message to the front of the messages array
+        completionMessages.unshift({ role: ChatMessageRole.System, content: systemMessage });
+      }
+      const truncatedMessages = truncateMessagesToMaxTokens(completionMessages, MAX_REQUEST_TOKENS);
+      return openAIChatCompletionStream({ messages: truncatedMessages }, onUpdate);
     } catch (e) {
       console.error("Error getting chat completion: ", e);
       if (e instanceof Error) this.errorLog(e.message);
