@@ -17,6 +17,8 @@ export const truncateMessagesToMaxTokens = (messages: ChatCompletionRequestMessa
   const systemMessage = messages.find((message) => message.role === ChatMessageRole.System);
   if (systemMessage) {
     currentTokens += calculateTokenFromMessage(systemMessage);
+    // remove the system message from the list
+    reverseMessages.pop();
   }
 
   // === Truncate messages ==========================================================

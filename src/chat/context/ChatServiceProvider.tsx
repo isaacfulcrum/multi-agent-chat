@@ -7,8 +7,11 @@ import { SingleAgentChat } from '../service';
 import { ConversationalAgent } from '@/agent/service';
 import { OpenAIService } from '@/openai/service';
 import { ChatProvider } from './ChatProvider';
+// **********************************************************************************
 
-const ChatServiceProvider: React.FC<PropsWithChildren> = ({ children }) => {
+type Props = PropsWithChildren<{ chat: IChatService }>;
+
+const ChatServiceProvider: React.FC<Props> = ({ chat, children }) => {
 
   const isMounted = useIsMounted();
 
@@ -25,8 +28,7 @@ const ChatServiceProvider: React.FC<PropsWithChildren> = ({ children }) => {
       setStatus('loading');
       let application;
       try {
-        const agent = new ConversationalAgent("1", OpenAIService.getInstance())
-        application = new SingleAgentChat(agent);
+        application = chat;
         await application.initialize();
       } catch (error) {
         console.error(error);
@@ -43,7 +45,7 @@ const ChatServiceProvider: React.FC<PropsWithChildren> = ({ children }) => {
     initializeService();
 
     // NOTE: see effect below to shutdown the Service
-  }, [application, isMounted, status, setStatus]);
+  }, [application, isMounted, status, chat]);
 
   // ...............................................................................
   // remove Application on unmount

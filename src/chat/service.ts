@@ -60,7 +60,7 @@ const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
 // ********************************************************************************
 export class AutomaticAgentChat extends AbstractChatService {
   // == Lifecycle =================================================================
-  protected constructor() {
+  public constructor() {
     super();
   }
 

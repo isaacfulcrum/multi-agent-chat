@@ -19,7 +19,7 @@ export const Chat = () => {
   // === Effect ===================================================================
   /** subscribe to the messages updates */
   useEffect(() => {
-    if (!chat.isInitialized()) return; /*nothing to do*/
+    if (!chat.isInitializing()) return; /*nothing to do*/
     const subscription = chat.onMessage$().subscribe((newMessages) => {
       setMessages(newMessages);
     });
