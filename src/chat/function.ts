@@ -1,7 +1,9 @@
 import { ChatCompletionFunctions, ChatCompletionRequestMessage } from "openai";
 
-import { ChatMessage } from "./type";
-import { AgentSpecs } from "@/agent/type";
+import { ChatMessage, ChatMessageRole } from "./type";
+import { AgentSpecs, ConversationalAgentSpecs, isConversationalAgentSpecs } from "@/agent/type";
+import { UserMessage } from "./component/Message/UserMessage";
+import { Chat } from "./component";
 
 //**************************************************************************************
 export enum ChatFunctions {
@@ -130,28 +132,30 @@ export const chatFunctions: ChatCompletionFunctions[] = [
   },
 ];
 
-export const getModeratorPrompt = (messages: ChatMessage[], agents: AgentSpecs[]) => {
+export const getModeratorPrompt = (messages: ChatMessage[], agents: ConversationalAgentSpecs[]): ChatMessage[] => {
   const agentList = agents.map((agent) => `${agent.name}(${agent.id}): ${agent.description}`).join("\n");
   const messageList = messages
     .map((message) => {
       // user message
       if (message.role === "user") return `user: ${message.content}`;
       // assistant with agent
-      if (message.role === "assistant" && message.agent) {
-        return `${message.agent.name}: ${message.content}`;
+      if (message.role === "assistant") {
+        if (isConversationalAgentSpecs(message.agent)) return `${message.agent.name}(${message.agent.id}): ${message.content}`;
+        return `assistant: ${message.content}`;
       }
       return ""; /*ignore*/
     })
     .join("\n");
 
-  const message: ChatCompletionRequestMessage = {
-    role: "user",
+  const userMessage: ChatMessage = {
+    id: "moderator",
+    role: ChatMessageRole.User,
     content: `CONVERSATION
-    ${messageList}
-
-    LIST OF AGENTS
-    ${agentList}`,
+      ${messageList}
+      
+      LIST OF AGENTS
+      ${agentList}`,
   };
 
-  return [...moderatorPrompt, message];
+  return [userMessage];
 };
