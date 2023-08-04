@@ -1,56 +1,10 @@
+import { AgentIdentifier } from "@/agent/type";
+import { AbstractChatService, ChatMessage, ChatMessageRole } from "../type";
+import { AgentControllerService } from "@/agentController/service";
+import { ChatFunctions, chatFunctions, getModeratorPrompt, moderatorDescription } from "../function";
 import { OpenAIService } from "@/openai/service";
 import { ConversationalAgent } from "@/agent/service";
-import { AgentIdentifier, IAgent } from "@/agent/type";
-import { AgentControllerService } from "@/agentController/service";
-
-import { createAgentMessage } from "./util";
-import { AbstractChatService, ChatMessage, ChatMessageRole } from "./type";
-import { ChatFunctions, chatFunctions, getModeratorPrompt, moderatorDescription } from "./function";
-
-/** A chat service that uses a single agent to respond to the user*/
-// ********************************************************************************
-export class SingleAgentChat extends AbstractChatService {
-  // == Lifecycle =================================================================
-  public constructor(private readonly chatAgent: IAgent) {
-    super();
-  }
-  /** Initialize the agent who's going to respond to the user */
-  protected async doInitialize(): Promise<void> {
-    try {
-      await this.chatAgent.initialize();
-    } catch (e) {
-      console.error(`Could not initialize single agent chat`, e);
-    }
-  }
-
-  // == Completion ================================================================
-  /** Single agent completion request */
-  public async requestCompletion() {
-    try {
-      if (!this.chatAgent.isInitialized()) throw new Error(`Agent ${this.chatAgent} not initialized`);
-      const agentSpecs = this.chatAgent.getSpecs();
-
-      /*create the message*/
-      const message = createAgentMessage("", agentSpecs);
-      this.isLoading = true;
-      let messageAdded = false; /*add the message only when we have an actual response*/
-
-      await this.chatAgent.getResponse(this.getMessages(), (content) => {
-        if (!messageAdded) {
-          this.addMessage({ ...message, content });
-          messageAdded = true; /*toggle flag so we don't add the message again*/
-          return;
-        }
-        this.updateMessage({ ...message, content });
-      });
-      this.isLoading = false;
-    } catch (error) {
-      console.error(error);
-      // Handle error with logs
-    }
-  }
-}
-
+import { createAgentMessage } from "../util";
 
 // == Automatic Agent Chat ========================================================
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
@@ -68,7 +22,6 @@ export class AutomaticAgentChat extends AbstractChatService {
   /** Semantically chooses an Agent based on a history of messages and the Agent's
    *  description */
   public async selectAgent(messages: ChatMessage[]): Promise<AgentIdentifier | null /*not found*/> {
-
     try {
       const agentList = await AgentControllerService.getInstance().getAgents();
       /**
@@ -82,7 +35,7 @@ export class AutomaticAgentChat extends AbstractChatService {
         functions: chatFunctions,
         function_call: {
           name: ChatFunctions.selectAgent,
-        } 
+        },
       });
       if (!response) throw new Error("No response from OpenAI API");
       // Return the arguments of the function call
@@ -157,4 +110,3 @@ export class AutomaticAgentChat extends AbstractChatService {
     }
   }
 }
-
