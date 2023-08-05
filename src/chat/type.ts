@@ -1,4 +1,6 @@
 import { BehaviorSubject } from "rxjs";
+import { IconType } from "react-icons";
+import { MdOutlineGroups, MdOutlinePersonOutline, MdOutlineRocketLaunch } from "react-icons/md";
 
 import { AgentSpecs } from "@/agent/type";
 import { AbstractService, IService } from "@/util/service";
@@ -46,23 +48,42 @@ export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMes
 
 // == Modes =======================================================================
 export enum ChatMode {
-  Single = "Single Agent Chat",
-  Interactive = "Interactive Agent Chat",
-  Iterative = "Iterative Agent Chat",
-}
-
-export enum ChatLink {
-  Single = "/",
-  Interactive = "/interactive",
-  Iterative = "/iterative",
+  Single,
+  Interactive,
+  Iterative,
 }
 
 export type ChatModeSpecs = {
-  name: ChatMode;
+  name: string;
   description: string;
-  icon: React.ReactNode /* NOTE: Using React notation to avoid importing React */;
+  icon: IconType;
   link: string;
 };
+
+export const chatModeSpecsDefinition: Record<ChatMode, ChatModeSpecs> = {
+  [ChatMode.Single]: {
+    name: "Single Agent Chat",
+    description: "Have a one-on-one conversation with an AI-powered agent specialized in a specific field. Get personalized responses and expert insights tailored to your questions.",
+    icon: MdOutlinePersonOutline,
+    link: "/",
+  },
+  [ChatMode.Interactive]: {
+    name: "Interactive Agent Chat",
+    description: "Experience dynamic and engaging conversations as the system intelligently selects the best-suited AI agent to chat with you based on your queries. Enjoy a variety of perspectives and expertise.",
+    icon: MdOutlineRocketLaunch,
+    link: "/interactive",
+  },
+  [ChatMode.Iterative]: {
+    name: "Iterative Agent Chat",
+    description:
+      "Immerse yourself in a multi-agent chat session where different AI agents take turns interacting with you. Each agent brings their unique knowledge and strengths, making for a well-rounded and informative exchange.",
+    icon: MdOutlineGroups,
+    link: "/iterative",
+  },
+};
+
+/** List of available chat modes */
+export const chatModeList = Object.values(chatModeSpecsDefinition);
 
 // == Abstract ====================================================================
 export interface IChatService extends IService {
