@@ -1,5 +1,5 @@
 import { CardFooter, Flex, IconButton, Input as ChakraInput, Tooltip } from "@chakra-ui/react";
-import { ChangeEventHandler, FormEventHandler, KeyboardEvent, useState } from "react";
+import { ChangeEventHandler, FormEventHandler, useState } from "react";
 import { ChatIcon } from "@chakra-ui/icons";
 
 import { useIsMounted } from "@/shared/hook/useIsMounted";
@@ -52,27 +52,6 @@ export const Input = () => {
     }
   };
 
-  const automaticMessageHandler = async () => {
-    if (isLoading) return;
-
-    try {
-      setIsLoading(true);
-      sendMessage(message);
-      await chat.requestCompletion();
-    } catch (error) {
-      // TODO: Handle error
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const onKeyDownHandler = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && event.metaKey) {
-      automaticMessageHandler();
-    }
-  };
-
   return (
     <CardFooter p="0">
       <form onSubmit={singleMessageHandler} style={{ flex: 1 }}>
@@ -80,15 +59,11 @@ export const Input = () => {
           <ChakraInput
             value={message}
             placeholder="Type here..."
-            onKeyDown={onKeyDownHandler}
             onChange={handleInputChange}
             backgroundColor="#40414f" color="white" autoFocus
           />
           <Tooltip label="Single message" fontSize="md">
             <IconButton aria-label="Single message" colorScheme="teal" icon={<ChatIcon />} type="submit" isLoading={isLoading} />
-          </Tooltip>
-          <Tooltip label="Automatic" fontSize="md">
-            <IconButton aria-label="Automatic" colorScheme="teal" icon={<>🚀</>} onClick={automaticMessageHandler} isLoading={isLoading} />
           </Tooltip>
         </Flex>
       </form>
