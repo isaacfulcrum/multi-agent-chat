@@ -1,13 +1,14 @@
 import { Box, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tooltip, useDisclosure } from "@chakra-ui/react";
 
 import { AgentModule } from "@/agentController/component";
+import { ChatModule } from "@/chat/component";
 import { SettingsModule } from "@/settings/component";
 
 import { ModuleSection } from "./ModuleSection";
 import { SidebarModule } from "../type";
 
 // *******************************************************************************
-const modules: SidebarModule[] = [AgentModule, SettingsModule]
+const modules: SidebarModule[] = [ChatModule, AgentModule, SettingsModule]
 const SIDEBAR_WIDTH = "400px";
 
 /** Renders the sidebar of the app */

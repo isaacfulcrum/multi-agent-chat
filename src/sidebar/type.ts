@@ -2,7 +2,7 @@ import { PropsWithChildren, ReactNode } from "react";
 
 // ********************************************************************************
 export enum SidebarModules {
-  Modes = "Modes",
+  Chat = "Chat",
   Agents = "Agents",
   Settings = "Settings",
 }
