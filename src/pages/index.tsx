@@ -4,14 +4,12 @@ import { GenericAgent } from "@/agent/service";
 import { OpenAIService } from "@/openai/service";
 
 import { Chat } from "@/chat/component";
-import { ChatMode, chatModeSpecsDefinition } from "@/chat/type";
 import { ChatProviderComponent } from "@/chat/context/ChatProviderComponent";
 import { SingleAgentChat } from "@/chat/service";
 
 
 const defaultAgent = new GenericAgent(new OpenAIService());
 const chat = new SingleAgentChat(defaultAgent);
-const modeSpecs = chatModeSpecsDefinition[ChatMode.Single];
 
 // ********************************************************************************
 export default function Home() {
@@ -24,9 +22,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <ChatProviderComponent chat={chat}>
-        <Chat modeSpecs={modeSpecs} />
+        <Chat />
       </ChatProviderComponent>
-
     </>
   );
 }
