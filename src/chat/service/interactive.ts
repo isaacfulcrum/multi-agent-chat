@@ -7,13 +7,12 @@ import { AbstractChatService, ChatMessage, ChatMessageRole, ChatMode } from "../
 import { ChatFunctions, chatFunctions, getModeratorPrompt, moderatorDescription } from "../function";
 import { createAgentMessage } from "../util";
 
-// == Automatic Agent Chat ========================================================
+// ********************************************************************************
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
 
 /** A chat service that evaluates the user's messages and selects the best agent
  * to respond to the user*/
-// ********************************************************************************
-export class AutomaticAgentChat extends AbstractChatService {
+export class InteractiveAgentChat extends AbstractChatService {
   protected chatMode = ChatMode.Interactive; /*chat mode*/
   // == Lifecycle =================================================================
   public constructor() {
