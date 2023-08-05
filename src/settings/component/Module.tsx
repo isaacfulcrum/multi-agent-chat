@@ -6,7 +6,7 @@ import { SidebarModule, SidebarModules } from "@/sidebar/type";
 
 /** general settings of the app */
 // ********************************************************************************
-export const Settings: SidebarModule = {
+export const SettingsModule: SidebarModule = {
   name: SidebarModules.Settings,
   icon: <Icon as={MdSettings} />,
   sections: [
