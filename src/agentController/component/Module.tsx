@@ -9,7 +9,7 @@ import { AgentList } from "./AgentList";
 /** all agent list related functionality */
 // ********************************************************************************
 export const AgentModule: SidebarModule = {
-  name: SidebarModules.Settings,
+  name: SidebarModules.Agents,
   icon: <Icon as={MdPeopleOutline} />,
   sections: [
     {
