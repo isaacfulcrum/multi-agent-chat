@@ -1,8 +1,8 @@
 import { Chat } from "@/chat/component";
-import { AutomaticAgentChat } from "@/chat/service";
+import { InteractiveAgentChat } from "@/chat/service";
 import { ChatProviderComponent } from "@/chat/context/ChatProviderComponent";
 
-const chat = new AutomaticAgentChat();
+const chat = new InteractiveAgentChat();
 
 //**********************************************************************************
 export default function InteractiveChatPage() {

@@ -1,2 +1,2 @@
 export * from './single';
-export * from './automatic';
+export * from './interactive';
