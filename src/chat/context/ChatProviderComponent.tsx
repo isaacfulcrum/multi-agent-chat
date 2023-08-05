@@ -1,6 +1,7 @@
 import { useState, useEffect, PropsWithChildren } from 'react'
 
 import { useIsMounted } from '@/shared/hook/useIsMounted';
+import { Loading } from '@/shared/component/Loading';
 
 import { IChatService } from '../type';
 import { ChatProvider } from './ChatProvider';
@@ -29,6 +30,7 @@ export const ChatProviderComponent: React.FC<Props> = ({ chat, children }) => {
         service = chat;
         await service.initialize();
       } catch (error) {
+        // TODO: show error message
         console.error(error);
         if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
         setStatus('error');
@@ -56,7 +58,7 @@ export const ChatProviderComponent: React.FC<Props> = ({ chat, children }) => {
     };
   }, [chatService, isMounted, setStatus]);
 
-
+  
   if (status === 'complete' && chatService) {
     return (
       <ChatProvider chat={chatService}>
@@ -64,6 +66,6 @@ export const ChatProviderComponent: React.FC<Props> = ({ chat, children }) => {
       </ChatProvider>
     );
   }
-  // TODO: add a loading screen
-  return null;
+  
+  return <Loading />
 }

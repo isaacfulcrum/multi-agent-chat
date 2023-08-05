@@ -16,7 +16,9 @@ export const MainWrapper: React.FC<PropsWithChildren> = ({ children }) => {
             overflow="auto"
             position="relative"
         >
-            {children}
+            <Flex as="main" flex="1" height="100vh" justify="center" align="flex-end" bg="#343541" overflow="auto" position="relative">
+                {children}
+            </Flex>
             <Sidebar />
         </Flex>
     )
