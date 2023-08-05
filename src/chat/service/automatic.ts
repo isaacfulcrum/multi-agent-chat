@@ -1,9 +1,10 @@
 import { AgentIdentifier } from "@/agent/type";
-import { AbstractChatService, ChatMessage, ChatMessageRole, ChatMode } from "../type";
-import { AgentControllerService } from "@/agentController/service";
-import { ChatFunctions, chatFunctions, getModeratorPrompt, moderatorDescription } from "../function";
-import { OpenAIService } from "@/openai/service";
 import { ConversationalAgent } from "@/agent/service";
+import { AgentControllerService } from "@/agentController/service";
+import { OpenAIService } from "@/openai/service";
+
+import { AbstractChatService, ChatMessage, ChatMessageRole, ChatMode } from "../type";
+import { ChatFunctions, chatFunctions, getModeratorPrompt, moderatorDescription } from "../function";
 import { createAgentMessage } from "../util";
 
 // == Automatic Agent Chat ========================================================

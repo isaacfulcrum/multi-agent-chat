@@ -1,9 +1,9 @@
 import { OpenAIService } from "@/openai/service";
 import { ConversationalAgent } from "@/agent/service";
 
+import { AgentControllerService } from "@/agentController/service";
 import { AbstractChatService, ChatMode } from "../type";
 import { createAgentMessage } from "../util";
-import { AgentControllerService } from "@/agentController/service";
 
 // == Iterative Agent Chat ========================================================
 
