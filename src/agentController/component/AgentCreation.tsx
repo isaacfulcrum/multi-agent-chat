@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useState } from "react";
-import { AbsoluteCenter, Box, Button, Divider, Input, Stack, Textarea, useToast } from "@chakra-ui/react";
+import { Button, Input, Stack, Textarea, useToast } from "@chakra-ui/react";
 
 import { getRandomHex } from "@/util/colors";
 
@@ -35,22 +35,14 @@ export const AgentCreation = () => {
   };
 
   return (
-    <Box px="1em">
-      <Box position="relative" py="10">
-        <Divider />
-        <AbsoluteCenter bg="#17171C" px="4">
-          Create Agent
-        </AbsoluteCenter>
-      </Box>
-      <form onSubmit={handleSubmit}>
-        <Stack spacing="4">
-          <Input placeholder="Name" value={agentName} onChange={handleNameChange} backgroundColor="#40414f" />
-          <Textarea placeholder="Description" value={agentDescription} onChange={handleDescriptionChange} backgroundColor="#40414f" />
-          <Button colorScheme="teal" variant="solid" type="submit" isDisabled={!isValid}>
-            Create
-          </Button>
-        </Stack>
-      </form>
-    </Box>
+    <form onSubmit={handleSubmit}>
+      <Stack spacing="4">
+        <Input placeholder="Name" value={agentName} onChange={handleNameChange} backgroundColor="#40414f" />
+        <Textarea placeholder="Description" value={agentDescription} onChange={handleDescriptionChange} backgroundColor="#40414f" />
+        <Button colorScheme="teal" variant="solid" type="submit" isDisabled={!isValid}>
+          Create
+        </Button>
+      </Stack>
+    </form>
   );
 };

@@ -1,14 +1,14 @@
-import { AbsoluteCenter, Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Divider, Flex, Heading, Text } from "@chakra-ui/react";
+import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Flex, Heading, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-import { AgentSpecs } from "@/agent/type";
+import { ConversationalAgentSpecs } from "@/agent/type";
 
 import { AgentControllerService } from "../service";
 
 // ********************************************************************************
 export const AgentList = () => {
   // === State ====================================================================
-  const [agents, setAgents] = useState<AgentSpecs[]>([]);
+  const [agents, setAgents] = useState<ConversationalAgentSpecs[]>([]);
 
   // === Effect ===================================================================
   /** subscribe to agents changes */
@@ -23,12 +23,6 @@ export const AgentList = () => {
 
   return (
     <Box>
-      <Box position="relative" py="10" px="1em">
-        <Divider />
-        <AbsoluteCenter bg="#17171C" px="4">
-          List
-        </AbsoluteCenter>
-      </Box>
       <Text pb="5" px="1em">Select the agents you want to use for automatic completion.</Text>
       <Accordion allowMultiple>
         {agents.map((agent) => (
