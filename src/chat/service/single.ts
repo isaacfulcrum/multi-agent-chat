@@ -7,15 +7,7 @@ export class SingleAgentChat extends AbstractChatService {
   public constructor(private readonly chatAgent: IAgent) {
     super();
   }
-  /** Initialize the agent who's going to respond to the user */
-  protected async doInitialize(): Promise<void> {
-    try {
-      await this.chatAgent.initialize();
-    } catch (e) {
-      console.error(`Could not initialize single agent chat`, e);
-    }
-  }
-
+  
   // == Completion ================================================================
   /** Single agent completion request */
   public async requestCompletion() {

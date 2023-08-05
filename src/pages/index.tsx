@@ -1,14 +1,17 @@
 import Head from "next/head";
 
-import { Chat } from "@/chat/component";
-import { MainWrapper } from "@/util/layout/component/MainWrapper";
-import ChatServiceProvider from "@/chat/context/ChatServiceProvider";
-import { SingleAgentChat } from "@/chat/service";
 import { GenericAgent } from "@/agent/service";
 import { OpenAIService } from "@/openai/service";
 
+import { Chat } from "@/chat/component";
+import { ChatMode, chatModeSpecsDefinition } from "@/chat/type";
+import { ChatProviderComponent } from "@/chat/context/ChatProviderComponent";
+import { SingleAgentChat } from "@/chat/service";
+
+
 const defaultAgent = new GenericAgent(new OpenAIService());
 const chat = new SingleAgentChat(defaultAgent);
+const modeSpecs = chatModeSpecsDefinition[ChatMode.Single];
 
 // ********************************************************************************
 export default function Home() {
@@ -20,11 +23,10 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <MainWrapper>
-        <ChatServiceProvider chat={chat} >
-          <Chat />
-        </ChatServiceProvider>
-      </MainWrapper>
+      <ChatProviderComponent chat={chat}>
+        <Chat modeSpecs={modeSpecs} />
+      </ChatProviderComponent>
+
     </>
   );
 }
