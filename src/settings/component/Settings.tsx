@@ -1,11 +1,10 @@
-import { Icon, Stack } from "@chakra-ui/react";
+import { Icon } from "@chakra-ui/react";
 import { MdSettings } from "react-icons/md";
 
 import { ApiKey } from "./ApiKey";
 import { SidebarModule, SidebarModules } from "@/sidebar/type";
 
-/** setting of the chat app
- * NOTE: for now, it only contains the api key, but it will be extended in the future*/
+/** general settings of the app */
 // ********************************************************************************
 export const Settings: SidebarModule = {
   name: SidebarModules.Settings,

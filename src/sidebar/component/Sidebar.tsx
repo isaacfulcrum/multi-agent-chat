@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { Box, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tooltip, useDisclosure } from "@chakra-ui/react";
 
-import { SidebarModule } from "../type";
-import { Settings } from "@/chat/component/Settings";
+import { Settings } from "@/settings/component";
+
 import { ModuleSection } from "./ModuleSection";
+import { SidebarModule } from "../type";
 
 // *******************************************************************************
 const modules: SidebarModule[] = [Settings]
