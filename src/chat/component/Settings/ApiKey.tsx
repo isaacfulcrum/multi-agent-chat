@@ -36,21 +36,13 @@ export const ApiKey = () => {
   };
 
   return (
-    <>
-      <Box position="relative" py="10">
-        <Divider />
-        <AbsoluteCenter bg="#17171C" px="4">
-          OpenAI API Key
-        </AbsoluteCenter>
-      </Box>
-      <form onSubmit={saveApiKeyHandler}>
-        <Flex gap="0.5em">
-          <Input value={apiKey} onChange={handleApiKeyChange} placeholder="API Key" />
-          <Tooltip label="Save">
-            <IconButton aria-label="Save" icon={<>💾</>} colorScheme="teal" type="submit" />
-          </Tooltip>
-        </Flex>
-      </form>
-    </>
+    <form onSubmit={saveApiKeyHandler}>
+      <Flex gap="0.5em">
+        <Input value={apiKey} onChange={handleApiKeyChange} placeholder="API Key" />
+        <Tooltip label="Save">
+          <IconButton aria-label="Save" icon={<>💾</>} colorScheme="teal" type="submit" />
+        </Tooltip>
+      </Flex>
+    </form>
   );
 };

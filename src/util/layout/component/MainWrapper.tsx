@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react'
 import { Flex } from '@chakra-ui/react'
 
-import { Sidebar } from './Sidebar'
+import { Sidebar } from '@/sidebar/component'
 
 /** main app wrapper */
 // ********************************************************************************
