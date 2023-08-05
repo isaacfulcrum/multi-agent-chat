@@ -1,5 +1,5 @@
 import { AgentIdentifier } from "@/agent/type";
-import { AbstractChatService, ChatMessage, ChatMessageRole } from "../type";
+import { AbstractChatService, ChatMessage, ChatMessageRole, ChatMode } from "../type";
 import { AgentControllerService } from "@/agentController/service";
 import { ChatFunctions, chatFunctions, getModeratorPrompt, moderatorDescription } from "../function";
 import { OpenAIService } from "@/openai/service";
@@ -13,6 +13,7 @@ const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
  * to respond to the user*/
 // ********************************************************************************
 export class AutomaticAgentChat extends AbstractChatService {
+  protected chatMode = ChatMode.Interactive; /*chat mode*/
   // == Lifecycle =================================================================
   public constructor() {
     super();

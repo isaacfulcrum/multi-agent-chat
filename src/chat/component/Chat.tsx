@@ -8,11 +8,10 @@ import { Input } from "./Input";
 import { Message } from "./Message";
 
 // ********************************************************************************
-type Props = { modeSpecs: ChatModeSpecs };
-
-export const Chat: React.FC<Props> = ({ modeSpecs }) => {
+export const Chat = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const { chat } = useChat();
+  const specs = chat.getSpecs();
 
   // === State ====================================================================
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -39,7 +38,7 @@ export const Chat: React.FC<Props> = ({ modeSpecs }) => {
       <Center width="100%" position="fixed" top="0" zIndex="1" bg="#343541" height="80px" p="1em" gap="1em">
         <Flex flex="1" justify="center" gap="1em">
           <Text textAlign="center" fontSize="2xl" fontWeight="bold" color="white">
-            {modeSpecs.name}
+            {specs.name}
           </Text>
         </Flex>
       </Center>

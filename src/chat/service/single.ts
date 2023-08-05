@@ -1,13 +1,14 @@
 import { IAgent } from "@/agent/type";
-import { AbstractChatService } from "../type";
+import { AbstractChatService, ChatMode } from "../type";
 import { createAgentMessage } from "../util";
 
 export class SingleAgentChat extends AbstractChatService {
+  protected chatMode: ChatMode = ChatMode.Single; /*chat mode*/
   // == Lifecycle =================================================================
   public constructor(private readonly chatAgent: IAgent) {
     super();
   }
-  
+
   // == Completion ================================================================
   /** Single agent completion request */
   public async requestCompletion() {

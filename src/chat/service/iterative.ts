@@ -1,7 +1,7 @@
 import { OpenAIService } from "@/openai/service";
 import { ConversationalAgent } from "@/agent/service";
 
-import { AbstractChatService } from "../type";
+import { AbstractChatService, ChatMode } from "../type";
 import { createAgentMessage } from "../util";
 import { AgentControllerService } from "@/agentController/service";
 
@@ -11,6 +11,7 @@ import { AgentControllerService } from "@/agentController/service";
  * to respond to the user*/
 // ********************************************************************************
 export class IterativeAgentChat extends AbstractChatService {
+  protected chatMode: ChatMode = ChatMode.Iterative; /*chat mode*/
   // == Lifecycle =================================================================
   public constructor() {
     super();

@@ -87,6 +87,7 @@ export const chatModeList = Object.values(chatModeSpecsDefinition);
 
 // == Abstract ====================================================================
 export interface IChatService extends IService {
+  getSpecs(): ChatModeSpecs;
   // == Messages ==================================================================
   /** stream of chat messages sent to the subscribers */
   onMessage$(): BehaviorSubject<ChatMessage[]>;
@@ -108,6 +109,12 @@ export abstract class AbstractChatService extends AbstractService implements ICh
     super("Chat Service");
     this.messages$ = new BehaviorSubject<ChatMessage[]>([]);
     this.isLoading = false /*by default*/;
+  }
+
+  // == Specs ======================================================================
+  protected abstract chatMode: ChatMode;
+  public getSpecs(): ChatModeSpecs {
+    return chatModeSpecsDefinition[this.chatMode];
   }
 
   // == Messages ==================================================================
