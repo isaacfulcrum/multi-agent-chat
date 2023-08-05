@@ -44,8 +44,28 @@ export type FunctionChatMessage = BaseChatMessage & {
 // --------------------------------------------------------------------------------
 export type ChatMessage = AssistantChatMessage | SystemChatMessage | UserChatMessage | FunctionChatMessage;
 
+// == Modes =======================================================================
+export enum ChatMode {
+  Single = "Single Agent Chat",
+  Interactive = "Interactive Agent Chat",
+  Iterative = "Iterative Agent Chat",
+}
+
+export enum ChatLink {
+  Single = "/",
+  Interactive = "/interactive",
+  Iterative = "/iterative",
+}
+
+export type ChatModeSpecs = {
+  name: ChatMode;
+  description: string;
+  icon: React.ReactNode /* NOTE: Using React notation to avoid importing React */;
+  link: string;
+};
+
 // == Abstract ====================================================================
-export interface IChatService extends IService{
+export interface IChatService extends IService {
   // == Messages ==================================================================
   /** stream of chat messages sent to the subscribers */
   onMessage$(): BehaviorSubject<ChatMessage[]>;

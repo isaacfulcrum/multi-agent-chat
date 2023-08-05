@@ -2,7 +2,8 @@ import { Icon } from "@chakra-ui/react";
 import { MdOutlineChat } from "react-icons/md";
 
 import { SidebarModule, SidebarModules } from "@/sidebar/type";
-import { ChatMode } from "./Mode";
+
+import { ChatModeComponent } from "./Mode";
 
 /** all chat related functionality */
 // ********************************************************************************
@@ -12,7 +13,7 @@ export const ChatModule: SidebarModule = {
   sections: [
     {
       title: "Chat Mode",
-      children: <ChatMode />
+      children: <ChatModeComponent />
     }
   ]
 
