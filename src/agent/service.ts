@@ -1,9 +1,10 @@
+import { nanoid } from "nanoid";
 import { lastValueFrom } from "rxjs";
 
 import { agentOnceById$ } from "@/agentController/observable";
 import { OpenAIService } from "@/openai/service";
 import { ConceptService } from "@/concept/service";
-import { ChatMessage, ChatMessageRole } from "@/chat/type";
+import { ChatMessage } from "@/chat/type";
 
 import { AgentIdentifier, AgentSpecs, IAgent, isConversationalAgentSpecs } from "./type";
 import { AbstractService } from "@/util/service";
@@ -17,11 +18,38 @@ abstract class AbstractAgent extends AbstractService implements IAgent {
   // == Spec ======================================================================
   protected agentSpecs: AgentSpecs | null = null;
   public getSpecs(): AgentSpecs {
-    if (!this.agentSpecs) throw new Error(`Agent ${this.id} not found`);
+    if (!this.agentSpecs) throw new Error(`Agent ${this.id} specs not found`);
     return this.agentSpecs;
   }
   // == Response ==================================================================
   abstract getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null>;
+}
+
+/** An agent without any personality, it just responds with a generic message */
+export class GenericAgent extends AbstractAgent {
+  // == Lifecycle =================================================================
+  constructor(completionService: OpenAIService) {
+    const id = nanoid();
+    super(id, completionService);
+  }
+  
+  protected async doInitialize(): Promise<void> {
+    // Generic agent specs
+    this.agentSpecs = {
+      id: this.id,
+      name: "Agent",
+    };
+  }
+
+  // == Response ==================================================================
+  public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
+    try {
+      await this.completionService.chatCompletionStream({ messages }, onUpdate);
+    } catch (error) {
+      console.error("Error getting response from OpenAI: ", error);
+      return null;
+    }
+  }
 }
 
 /** A conversational agent that uses OpenAI's API to generate responses */

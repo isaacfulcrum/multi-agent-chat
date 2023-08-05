@@ -11,7 +11,6 @@ import { EditModal } from "./EditModal";
 // ********************************************************************************
 export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
   // == Constants =================================================================
-  const name = isConversationalAgentSpecs(message.agent) ? message.agent.name : "";
   const color = isConversationalAgentSpecs(message.agent) ? message.agent.color : "#B4D5FF";
   const contrastColor = getContrastColor(color);
 
@@ -27,12 +26,12 @@ export const AgentMessage: React.FC<AssistantChatMessage> = (message) => {
     <Flex width="100%" role="group" px="6" py="2" gap="0.5em" minH="75px" align="center">
       <Flex gap="1em" maxWidth="90%">
         <Avatar
-          name={name}
+          name={message.agent.name}
           backgroundColor={color}
           color={contrastColor}
         />
         <Box flex={1} backgroundColor="#40414f" color="white" padding="4" boxShadow="lg" borderRadius="lg" pt="2">
-          <Text whiteSpace="pre-line" fontWeight="bold" >{name}</Text>
+          <Text whiteSpace="pre-line" fontWeight="bold" >{message.agent.name}</Text>
           <Text whiteSpace="pre-line">{message.content}</Text>
         </Box>
       </Flex>

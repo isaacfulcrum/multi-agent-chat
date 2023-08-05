@@ -7,23 +7,27 @@ export type AgentIdentifier = string /*alias*/;
 // == Specs =======================================================================
 /** Strictly required by ANY agent */
 export type BaseAgentSpecs = {
-  id: AgentIdentifier;
+  id: AgentIdentifier; /*unique identifier used throughout the system*/
+  name: string;
 };
 
-/** Required by conversational agents (agents who participate in the chat) */
+/** Required by conversational agents which specs are stored in the database */
 export type ConversationalAgentSpecs = BaseAgentSpecs & {
-  name: string;
   // Description that provides in-context learning to the request
   description: string;
   // Color to be displayed in the chat
   color: string;
-};
-
-export const isConversationalAgentSpecs = (specs: AgentSpecs): specs is ConversationalAgentSpecs => {
-  return (specs as ConversationalAgentSpecs).name !== undefined;
+  // Has memory
+  hasMemory: boolean; /*if true, the agent will remember the interactions*/
 };
 
 export type AgentSpecs = BaseAgentSpecs | ConversationalAgentSpecs;
+
+// .... Type guards ...............................................................
+export const isConversationalAgentSpecs = (specs: AgentSpecs): specs is ConversationalAgentSpecs => {
+  return (specs as ConversationalAgentSpecs).description !== undefined;
+};
+
 
 // == Interface =================================================================
 export interface IAgent extends IService {

@@ -4,10 +4,10 @@ import { Chat } from "@/chat/component";
 import { MainWrapper } from "@/util/layout/component/MainWrapper";
 import ChatServiceProvider from "@/chat/context/ChatServiceProvider";
 import { SingleAgentChat } from "@/chat/service";
-import { ConversationalAgent } from "@/agent/service";
+import { GenericAgent } from "@/agent/service";
 import { OpenAIService } from "@/openai/service";
 
-const defaultAgent = new ConversationalAgent("default", OpenAIService.getInstance());
+const defaultAgent = new GenericAgent(new OpenAIService());
 const chat = new SingleAgentChat(defaultAgent);
 
 // ********************************************************************************
