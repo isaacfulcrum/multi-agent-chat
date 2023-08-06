@@ -5,6 +5,7 @@ import { getRandomHex } from "@/util/colors";
 
 import { useIsMounted } from "@/shared/hook/useIsMounted";
 import { AgentControllerService } from "../service";
+import { AgentType } from "@/agent/type";
 
 // *******************************************************************************
 export const AgentCreation = () => {
@@ -23,7 +24,7 @@ export const AgentCreation = () => {
     e.preventDefault();
     const color = getRandomHex();
     try {
-      await AgentControllerService.getInstance().newAgent({ name: agentName, description: agentDescription, color });
+      await AgentControllerService.getInstance().newAgent({ name: agentName, description: agentDescription, color, type: AgentType.Conversational });
       if (!isMounted()) return/*component is unmounted, prevent unwanted state updates*/;
       toast({ title: "Agent created", status: "success", description: `Agent ${agentName} created` });
       setAgentName(""); setAgentDescription("");

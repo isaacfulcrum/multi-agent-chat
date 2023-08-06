@@ -11,6 +11,11 @@ export type BaseAgentSpecs = {
   name: string;
 };
 
+export enum AgentType {
+  Conversational = "conversational",
+  Conceptual = "conceptual", /*will extract concepts from the conversation*/
+}
+
 /** Required by conversational agents which specs are stored in the database */
 export type ConversationalAgentSpecs = BaseAgentSpecs & {
   // Description that provides in-context learning to the request
@@ -18,7 +23,7 @@ export type ConversationalAgentSpecs = BaseAgentSpecs & {
   // Color to be displayed in the chat
   color: string;
   // Has memory
-  hasMemory: boolean; /*if true, the agent will remember the interactions*/
+  type: AgentType;
 };
 
 export type AgentSpecs = BaseAgentSpecs | ConversationalAgentSpecs;

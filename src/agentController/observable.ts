@@ -1,7 +1,7 @@
 import { map } from "rxjs";
 import { collection, DocumentData, DocumentSnapshot, doc } from "firebase/firestore";
 
-import { AgentSpecs, ConversationalAgentSpecs } from "@/agent/type";
+import { ConversationalAgentSpecs } from "@/agent/type";
 import { firestore } from "@/firebase";
 import { fromDocumentRefOnce, fromQuery, fromQueryOnce } from "@/firebase/observable";
 
