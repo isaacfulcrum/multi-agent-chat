@@ -1,5 +1,5 @@
-import { AgentIdentifier } from "@/agent/type";
-import { ConversationalAgent } from "@/agent/service";
+import { AgentIdentifier, AgentType } from "@/agent/type";
+import { ConceptualAgent, ConversationalAgent } from "@/agent/service";
 import { AgentControllerService } from "@/agentController/service";
 import { OpenAIService } from "@/openai/service";
 
@@ -85,9 +85,17 @@ export class InteractiveAgentChat extends AbstractChatService {
       const alreadyResponded = lastMessage.role === ChatMessageRole.Assistant && lastMessage.agent.id === agentId;
       if (alreadyResponded) return;
 
-      const agent = new ConversationalAgent(agentId, OpenAIService.getInstance());
+      // create the agent
+      const selectedAgentSpecs = await AgentControllerService.getInstance().getAgent(agentId);
+      let agent: ConversationalAgent;
+
+      if (selectedAgentSpecs.type === AgentType.Conceptual) {
+        agent = new ConceptualAgent(selectedAgentSpecs.id, OpenAIService.getInstance());
+      } else {
+        agent = new ConversationalAgent(selectedAgentSpecs.id, OpenAIService.getInstance()); /*default*/
+      }
       await agent.initialize();
-      const agentSpecs = agent.getSpecs();
+      const agentSpecs = agent.getSpecs(); // TODO: This is redundant, we already have the agent specs in the variable 'selectedAgentSpecs'
       // -----------------------------------------------------------------------
       /*create the message*/
       const message = createAgentMessage("", agentSpecs);

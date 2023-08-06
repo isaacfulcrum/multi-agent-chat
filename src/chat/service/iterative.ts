@@ -1,7 +1,8 @@
 import { OpenAIService } from "@/openai/service";
-import { ConversationalAgent } from "@/agent/service";
-
 import { AgentControllerService } from "@/agentController/service";
+import { ConceptualAgent, ConversationalAgent } from "@/agent/service";
+import { AgentType } from "@/agent/type";
+
 import { AbstractChatService, ChatMode } from "../type";
 import { createAgentMessage } from "../util";
 
@@ -30,8 +31,14 @@ export class IterativeAgentChat extends AbstractChatService {
         const message = createAgentMessage("", agentSpecs);
         let messageAdded = false; /*add the message only when we have an actual response*/
 
-        // agent
-        const agent = new ConversationalAgent(agentSpecs.id, OpenAIService.getInstance());
+        // create the agent
+        let agent: ConversationalAgent;
+        if (agentSpecs.type === AgentType.Conceptual) {
+          agent = new ConceptualAgent(agentSpecs.id, OpenAIService.getInstance());
+        } else {
+          agent = new ConversationalAgent(agentSpecs.id, OpenAIService.getInstance()); /*default*/
+        }
+
         await agent.initialize();
         await agent.getResponse(this.getMessages(), (content) => {
           if (!messageAdded) {
