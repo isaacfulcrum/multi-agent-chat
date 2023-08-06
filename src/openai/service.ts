@@ -1,25 +1,19 @@
-import { logServiceInstance } from "@/log/service";
-import { getApiKey, openAIChatCompletion, openAIChatCompletionStream, openAIEmbedding, storeApiKey } from "./api";
-
 import { truncateMessagesToMaxTokens } from "@/util/tokens";
-import { ChatMessage, ChatMessageRole } from "@/chat/type";
+import { ChatMessageRole } from "@/chat/type";
+import { AbstractService } from "@/util/service";
 
-import { ChatCompletionServiceRequest, MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIEmbeddingRequest } from "./type";
+import { getApiKey, openAIChatCompletion, openAIChatCompletionStream, openAIEmbedding, storeApiKey } from "./api";
+import { ChatCompletionServiceRequest, MAX_REQUEST_TOKENS, OpenAIApiKey, OpenAIEmbeddingRequest, isChatMessageArray } from "./type";
 import { chatMessagesToCompletionMessages } from "./util";
 
 /** Handles everything related to the OpenAI API */
 // **********************************************************************************
-export class OpenAIService {
+export class OpenAIService extends AbstractService {
   // == Singleton =================================================================
   private static singleton: OpenAIService;
   public static getInstance() {
-    if (!OpenAIService.singleton) OpenAIService.singleton = new OpenAIService();
+    if (!OpenAIService.singleton) OpenAIService.singleton = new OpenAIService("OpenAI Service");
     return OpenAIService.singleton;
-  }
-
-  // == Logs ======================================================================
-  private errorLog(message: string) {
-    logServiceInstance.errorLog(message, "OpenAIService");
   }
 
   // == API Key ===================================================================
@@ -29,7 +23,7 @@ export class OpenAIService {
       return getApiKey();
     } catch (e) {
       console.error("Error getting API key: ", e);
-      if (e instanceof Error) this.errorLog(e.message);
+      if (e instanceof Error) this.logger.error(e.message);
       return null;
     }
   }
@@ -42,7 +36,7 @@ export class OpenAIService {
   // == Chat Completion ============================================================
   public async chatCompletion({ messages, systemMessage, ...options }: ChatCompletionServiceRequest) {
     try {
-      const completionMessages = chatMessagesToCompletionMessages(messages);
+      const completionMessages = isChatMessageArray(messages) ? chatMessagesToCompletionMessages(messages) : messages;
       if (systemMessage) {
         // Add system message to the front of the messages array
         completionMessages.unshift({ role: ChatMessageRole.System, content: systemMessage });
@@ -52,14 +46,14 @@ export class OpenAIService {
       return data;
     } catch (e) {
       console.error("Error getting chat completion: ", e);
-      if (e instanceof Error) this.errorLog(e.message);
+      if (e instanceof Error) this.logger.error(e.message);
       return null;
     }
   }
 
   public async chatCompletionStream({ messages, systemMessage, ...options }: ChatCompletionServiceRequest, onUpdate: (val: string) => void) {
     try {
-      const completionMessages = chatMessagesToCompletionMessages(messages);
+      const completionMessages = isChatMessageArray(messages) ? chatMessagesToCompletionMessages(messages) : messages;
       if (systemMessage) {
         // Add system message to the front of the messages array
         completionMessages.unshift({ role: ChatMessageRole.System, content: systemMessage });
@@ -68,7 +62,7 @@ export class OpenAIService {
       return openAIChatCompletionStream({ messages: truncatedMessages, ...options }, onUpdate);
     } catch (e) {
       console.error("Error getting chat completion: ", e);
-      if (e instanceof Error) this.errorLog(e.message);
+      if (e instanceof Error) this.logger.error(e.message);
       return null;
     }
   }
@@ -80,7 +74,7 @@ export class OpenAIService {
       return data;
     } catch (e) {
       console.error("Error getting embedding: ", e);
-      if (e instanceof Error) this.errorLog(e.message);
+      if (e instanceof Error) this.logger.error(e.message);
       return null;
     }
   }

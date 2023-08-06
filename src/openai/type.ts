@@ -1,5 +1,5 @@
 import { ChatMessage } from "@/chat/type";
-import { CreateChatCompletionRequest, CreateEmbeddingRequest } from "openai";
+import { CreateChatCompletionRequest, CreateEmbeddingRequest, ChatCompletionRequestMessage } from "openai";
 
 //*********************************************************************************
 // === Constants ==================================================================
@@ -20,8 +20,13 @@ export type OpenAIChatCompletionStreamRequest = Exclude<OpenAIChatCompletionRequ
 
 // === Service ====================================================================
 export type ChatCompletionServiceRequest = Omit<Partial<CreateChatCompletionRequest>, "stream" | "messages"> & {
-  messages: ChatMessage[] /* the service transforms this messages into OpenAI messages */;
+  messages: ChatMessage[] | ChatCompletionRequestMessage[] /* the service transforms this messages into OpenAI messages */;
   systemMessage?: string /* optional system message to add to the front of the messages array */;
+};
+
+/** type guard for to distinguish between {@link ChatMessage} and {@link ChatCompletionRequestMessage}*/
+export const isChatMessageArray = (messages: ChatMessage[] | ChatCompletionRequestMessage[]): messages is ChatMessage[] => {
+  return messages.length > 0 && messages[0].role !== undefined;
 };
 
 // === Stream =====================================================================

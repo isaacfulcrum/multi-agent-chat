@@ -5,7 +5,6 @@ import { ChatMessage, ChatMessageRole } from "@/chat/type";
 
 /** Converts a chat message to a completion message (for OpenAI) */
 const chatMessageToCompletionMessage = (message: ChatMessage): ChatCompletionRequestMessage => {
-  console.log("chatMessageToCompletionMessage", message);
   let name = "chat_user";
   if (message.role === ChatMessageRole.Function) {
     name = message.name;
