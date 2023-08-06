@@ -8,7 +8,7 @@ import { ChatProviderComponent } from "@/chat/context/ChatProviderComponent";
 import { SingleAgentChat } from "@/chat/service";
 
 
-const defaultAgent = new GenericAgent(new OpenAIService());
+const defaultAgent = new GenericAgent(OpenAIService.getInstance())
 const chat = new SingleAgentChat(defaultAgent);
 
 // ********************************************************************************
