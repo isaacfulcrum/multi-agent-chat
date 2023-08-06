@@ -6,7 +6,6 @@ import { CollectionId } from "./type";
 import { conceptDescriptionStore, onConceptCreated } from "./concept";
 
 import { createAgent, getAgents } from "./agents/functions";
-import { queryConceptVector, storeConceptVectors } from "./pinecone/functions";
 
 // ****************************************************************************
 initializeApp();
@@ -41,7 +40,3 @@ exports.getMemories = onCall(async () => {
 // === Agent Functions ========================================================
 exports.createAgent = createAgent;
 exports.getAgents = getAgents;
-
-// === Pinecone Functions =====================================================
-exports.storeConceptVectors = storeConceptVectors;
-exports.queryConceptVector = queryConceptVector;
