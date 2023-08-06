@@ -1,16 +1,18 @@
 import { ChatCompletionRequestMessage } from "openai";
 
 import { OpenAIService } from "@/openai/service";
+import { chatMessagesToCompletionMessages } from "@/openai/util";
+import { ChatMessage, ChatMessageRole } from "@/chat/type";
 
 import { MentalModelAgent, ScoringAgent } from "./prompt";
 import { Concept, ConceptFunctions, ConceptWithScore, conceptExtractionFunctions, conceptScoringFunctions } from "./type";
-import { ChatMessageRole } from "@/chat/type";
 
 // ****************************************************************************
 /** Returns a list of arguments of key concepts given a list of messages*/
-export const conceptExtractionRequest = async (messageHistory: ChatCompletionRequestMessage[]): Promise<Concept[]> => {
+export const conceptExtractionRequest = async (messageHistory: ChatMessage[]): Promise<Concept[]> => {
+  const completionMessages = chatMessagesToCompletionMessages(messageHistory);
   /* Format the conversation to be sent to the memory agent */
-  const conversation = messageHistory.map((message) => `${message.name}: ${message.content}`).join("\n");
+  const conversation = completionMessages.map((message) => `${message.name}: ${message.content}`).join("\n");
 
   const messages: ChatCompletionRequestMessage[] = [
     {

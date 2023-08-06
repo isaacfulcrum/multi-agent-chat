@@ -4,7 +4,9 @@ import { lastValueFrom } from "rxjs";
 import { agentOnceById$ } from "@/agentController/observable";
 import { OpenAIService } from "@/openai/service";
 import { ConceptService } from "@/concept/service";
-import { ChatMessage, ChatMessageRole } from "@/chat/type";
+
+import { ChatMessage } from "@/chat/type";
+import { createAgentMessage } from "@/chat/util";
 
 import { AgentIdentifier, AgentSpecs, IAgent, isConversationalAgentSpecs } from "./type";
 import { AbstractService } from "@/util/service";
@@ -112,8 +114,10 @@ export class ConceptualAgent extends ConversationalAgent {
       const specs = this.getSpecs(); /*handles not found*/
       // Assert that the specs are of type ConversationalAgentSpecs
       if (!isConversationalAgentSpecs(specs)) throw new Error(`Agent ${this.id} is not a Conversational Agent`);
+  
+      const newMessage = createAgentMessage(completion, specs);
+      const newMessages = [...messages, newMessage]; /*add the new message to the list*/
 
-      const newMessages = [...messages, { role: ChatMessageRole.Assistant, name: specs.id, content: completion }]; /*add the new message to the list*/
       this.conceptService.extractConcepts(newMessages, specs);
     } catch (error) {
       console.error("Error getting response from OpenAI: ", error);

@@ -3,6 +3,7 @@ import { ChatCompletionRequestMessage } from "openai";
 import { AbstractService } from "@/util/service";
 import { OpenAIService } from "@/openai/service";
 import { ConversationalAgentSpecs } from "@/agent/type";
+import { ChatMessage } from "@/chat/type";
 
 import { conceptDescriptionStore } from "./callable";
 import { Concept, ConceptWithEmbedding, ConceptWithScore } from "./type";
@@ -54,7 +55,7 @@ export class ConceptService extends AbstractService {
 
   // == Extraction ================================================================
   /** Creates a new set of memories based on the given message history */
-  public async extractConcepts(messageHistory: ChatCompletionRequestMessage[], agentSpecs: ConversationalAgentSpecs) {
+  public async extractConcepts(messageHistory: ChatMessage[], agentSpecs: ConversationalAgentSpecs) {
     try {
       const concepts = await conceptExtractionRequest(messageHistory);
       if (!concepts) throw new Error("No concepts found");
