@@ -1,8 +1,8 @@
-import { AbsoluteCenter, Box, Code, Divider, Fade, Stack, Text } from "@chakra-ui/react";
+import { Box, Code, Fade, Stack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 import { Log, LogType } from "../type";
-import { logServiceInstance } from "../service";
+import { LogControllerService } from "../service";
 
 //******************************************************************************
 export const Logs = () => {
@@ -12,7 +12,7 @@ export const Logs = () => {
   // === Effect ===================================================================
   /** subscribe to the logs updates */
   useEffect(() => {
-    const subscription = logServiceInstance.onLog$().subscribe((newLogs) => {
+    const subscription = LogControllerService.getInstance().onLog$().subscribe((newLogs) => {
       setLogs(newLogs);
     });
     // unsubscribe when the component is unmounted
@@ -20,24 +20,19 @@ export const Logs = () => {
   }, []);
 
   return (
-    <Stack bg="#FCFCFC" width="100%" height="100%">
+    <Stack width="100%" height="100%" borderRadius="sm" spacing={4}>
       {logs.map((log, index) => (
         <Fade in={true} key={index}>
-          <Box key={index} pl="1em" pr="2em" py="5px">
+          <Box key={index} py="8px" borderBottom="1px solid #333333" bg="gray.100" borderRadius="sm">
             <Code
-              p="0.5em"
+              px="1em"
               width="100%"
               fontSize="sm"
               colorScheme="none"
               whiteSpace="pre-line"
               color={log.type === LogType.error ? "red" : "#333333"}
             >
-              <Box position="relative" padding="4">
-                <Divider w="100%" />
-                <AbsoluteCenter bg="white" px="4">
-                  <Text fontSize="xs">{log.sender}</Text>
-                </AbsoluteCenter>
-              </Box>
+              <Text fontSize="xs" fontWeight="bold">{log.sender}</Text>
               <Text fontSize="11px">{log.message}</Text>
             </Code>
           </Box>

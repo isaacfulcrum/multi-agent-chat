@@ -5,6 +5,7 @@ export enum SidebarModules {
   Chat = "Chat",
   Agents = "Agents",
   Settings = "Settings",
+  Logs = "Logs",
 }
 
 export type SidebarModuleSection = PropsWithChildren & {

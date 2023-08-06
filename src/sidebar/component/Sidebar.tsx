@@ -2,13 +2,14 @@ import { Box, Stack, Tab, TabList, TabPanel, TabPanels, Tabs, Tooltip, useDisclo
 
 import { AgentModule } from "@/agentController/component";
 import { ChatModule } from "@/chat/component";
+import { LogsModule } from "@/log/component";
 import { SettingsModule } from "@/settings/component";
 
 import { ModuleSection } from "./ModuleSection";
 import { SidebarModule } from "../type";
 
 // *******************************************************************************
-const modules: SidebarModule[] = [ChatModule, AgentModule, SettingsModule]
+const modules: SidebarModule[] = [ChatModule, AgentModule, SettingsModule, LogsModule]
 const SIDEBAR_WIDTH = "400px";
 
 /** Renders the sidebar of the app */
