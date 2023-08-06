@@ -3,36 +3,41 @@ import { BehaviorSubject } from "rxjs";
 import { Log, LogType } from "./type";
 
 // ********************************************************************************
-class LogService {
+export class LogControllerService {
   private logs$ = new BehaviorSubject<Log[]>([]);
   public onLog$ = () => this.logs$;
 
   // === Singleton ================================================================
-  private static instance: LogService;
-  public static getInstance(): LogService {
-    if (!LogService.instance) LogService.instance = new LogService();
-    return LogService.instance;
+  private static instance: LogControllerService;
+  public static getInstance(): LogControllerService {
+    if (!LogControllerService.instance) LogControllerService.instance = new LogControllerService();
+    return LogControllerService.instance;
   }
-  constructor() {
+  protected constructor() { /*nothing yet*/ }
+
+  // === Logs =====================================================================
+  public addLog(log: Log) {
+    this.logs$.next([...this.logs$.getValue(), log]);
+  }
+}
+
+// ********************************************************************************
+export class LoggerService {
+  // === Lifecycle =================================================================
+  constructor(private readonly name: string) {
     /*nothing yet*/
   }
 
   // === Logs =====================================================================
   /** adds an info log to the list
    * @param message The message to log. Accepts markdown. */
-  public infoLog(message: string, sender?: string) {
-    this.addLog({ type: LogType.info, message, sender });
+  public log(message: string) {
+    LogControllerService.getInstance().addLog({ type: LogType.info, message, sender: this.name });
   }
 
   /** adds an error log to the list
    * @param message The message to log. Accepts markdown. */
-  public errorLog(message: string, sender?: string) {
-    this.addLog({ type: LogType.error, message, sender });
-  }
-
-  private addLog(log: Log) {
-    this.logs$.next([...this.logs$.getValue(), log]);
+  public error(message: string) {
+    LogControllerService.getInstance().addLog({ type: LogType.error, message, sender: this.name });
   }
 }
-
-export const logServiceInstance = LogService.getInstance();

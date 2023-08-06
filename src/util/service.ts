@@ -1,3 +1,5 @@
+import { LoggerService } from "@/log/service";
+
 /** definition for a generic service. A service is a class that has a well-defined
  * lifecycle. The lifecycle is:
  * - {@link #initialize()}
@@ -22,13 +24,16 @@ export interface IService {
     protected initialized: boolean = false/*by default*/;
     public isInitializing() { return this.initializing; }
     public isInitialized() { return this.initialized; }
+    protected logger: LoggerService | Console = console/*by default*/;
     
     // == Lifecycle =================================================================
-    public constructor(protected readonly name: string) {/*nothing additional*/}
+    public constructor(protected readonly name: string) {
+      this.logger = new LoggerService(name);
+    }
   
     /** initializes the Service */
     public async initialize() {
-      if(this.initializing) { console.log(`${this.name} Service never initialized (or already shut down).`); return/*nothing to do*/; }
+      if(this.initializing) { this.logger.error(`${this.name} Service never initialized (or already shut down).`); return/*nothing to do*/; }
       this.initializing = true/*flag early to avoid recursion*/;
   
       await this.doInitialize();
@@ -38,7 +43,7 @@ export interface IService {
   
     /** shuts down the Service */
     public async shutdown() {
-      if(!this.initialized) { console.log(`${this.name} Service already shut down (or never initialized).`); return/*nothing to do*/; }
+      if(!this.initialized) { this.logger.log(`${this.name} Service already shut down (or never initialized).`); return/*nothing to do*/; }
       this.initialized = false/*flag early to avoid recursion*/;
       await this.doShutdown();
       // NOTE: specifically not resetting #initializing since these Services are not designed to be re-initialized
