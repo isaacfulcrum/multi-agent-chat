@@ -16,6 +16,10 @@ export enum AgentType {
   Conceptual = "conceptual", /*will extract concepts from the conversation*/
 }
 
+export const isAgentType = (type: string): type is AgentType => {
+  return Object.values(AgentType).includes(type as AgentType);
+};
+
 /** Required by conversational agents which specs are stored in the database */
 export type ConversationalAgentSpecs = BaseAgentSpecs & {
   // Description that provides in-context learning to the request
