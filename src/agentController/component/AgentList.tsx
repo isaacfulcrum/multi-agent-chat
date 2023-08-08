@@ -1,9 +1,10 @@
-import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Flex, Heading, Text } from "@chakra-ui/react";
+import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Box, Flex, Heading, Stack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-import { ConversationalAgentSpecs } from "@/agent/type";
+import { AgentIdentifier, ConversationalAgentSpecs } from "@/agent/type";
 
 import { AgentControllerService } from "../service";
+import { DeleteButton } from "@/chat/component/Button";
 
 // ********************************************************************************
 export const AgentList = () => {
@@ -21,6 +22,16 @@ export const AgentList = () => {
     };
   }, []);
 
+  // === Handlers =================================================================
+  const deleteAgentHandler = async (agentId: AgentIdentifier) => {
+    try {
+      await AgentControllerService.getInstance().deleteAgent(agentId);
+    } catch (error) {
+      console.log(error);
+      // TODO: /*show error toast*/
+    }
+  };
+
   return (
     <Box>
       <Text pb="5" px="1em">Select the agents you want to use for automatic completion.</Text>
@@ -37,7 +48,12 @@ export const AgentList = () => {
                 </AccordionButton>
               </Heading>
             </Flex>
-            <AccordionPanel pb={4}>{agent.description}</AccordionPanel>
+            <AccordionPanel pb={4}>
+              {agent.description}
+              <Stack direction="row" mt="1em">
+                <DeleteButton onClick={() => deleteAgentHandler(agent.id)} />
+              </Stack>
+            </AccordionPanel>
           </AccordionItem>
         ))}
       </Accordion>

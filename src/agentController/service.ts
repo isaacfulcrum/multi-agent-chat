@@ -2,7 +2,8 @@ import { lastValueFrom } from "rxjs";
 
 import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
 import { CreateAgentRequest } from "./type";
-import { createAgent } from "./callable";
+import { createAgent, deleteAgent } from "./callable";
+import { AgentIdentifier } from "@/agent/type";
 
 /** All operations related to the agent list. It's only purpose is to interact directly with the
  * database, and to provide an observable of the agents list.*/
@@ -38,6 +39,14 @@ export class AgentControllerService {
   public async newAgent(agent: CreateAgentRequest) {
     try {
       await createAgent(agent);
+    } catch (error) {
+      throw new Error(`Error creating agent: ${error}`);
+    }
+  }
+  
+  public async deleteAgent(agentId: AgentIdentifier) {
+    try {
+      await deleteAgent(agentId);
     } catch (error) {
       throw new Error(`Error creating agent: ${error}`);
     }
