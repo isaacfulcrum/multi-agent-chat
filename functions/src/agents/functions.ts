@@ -19,13 +19,15 @@ export const createAgent = onCall<Agent>(async (request) => {
   }
 });
 
-/** Get all agents from the database */
-export const getAgents = onCall(async () => {
+/** Deletes a given agent from the database and its respective collections */
+export const deleteAgent = onCall(async (request) => {
   try {
-    const conceptDoc = getFirestore().collection(CollectionId.Agents);
-    const snapshot = await conceptDoc.get();
-    const agents = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    return { result: agents };
+    const agentId = request.data;
+    const agentDoc = getFirestore().collection(CollectionId.Agents).doc(agentId);
+
+    // TODO: delete subcollections
+    await agentDoc.delete();
+    return { result: "Success" };
   } catch (error) {
     console.error(error);
     return { result: "Error" };

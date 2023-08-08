@@ -5,7 +5,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { CollectionId } from "./type";
 import { conceptDescriptionStore, onConceptCreated } from "./concept";
 
-import { createAgent, getAgents } from "./agents/functions";
+import { createAgent, deleteAgent } from "./agents/functions";
 
 // ****************************************************************************
 initializeApp();
@@ -39,4 +39,4 @@ exports.getMemories = onCall(async () => {
 
 // === Agent Functions ========================================================
 exports.createAgent = createAgent;
-exports.getAgents = getAgents;
+exports.deleteAgent = deleteAgent;
