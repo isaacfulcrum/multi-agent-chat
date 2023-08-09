@@ -59,11 +59,11 @@ export class ConceptService extends AbstractService {
     try {
       const concepts = await conceptExtractionRequest(messageHistory);
       if (!concepts) throw new Error("No concepts found");
-      this.logger.log("Concepts found: \n" + concepts.map((concept) => concept.name).join("\n"));
+      this.logger.log("Concepts found: \n" + concepts.map((concept) => concept.name).join("\n"), agentSpecs.color);
 
       const scored = await this.scoreConcepts(concepts, agentSpecs.description);
       if (!scored) throw new Error("No scored concepts found");
-      this.logger.log("Scored concepts by relevancy: \n" + scored.map((concept) => `${concept.name}: ${concept.score}`).join("\n"));
+      this.logger.log("Scored concepts by relevancy: \n" + scored.map((concept) => `${concept.name}: ${concept.score}`).join("\n"), agentSpecs.color);
 
       // Format the concepts with their respective embeddings
       const formattedConcepts = await Promise.all(scored.map(async (concept) => this.getEmbeddingFromConcept(concept)));
