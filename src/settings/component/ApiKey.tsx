@@ -1,10 +1,12 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { AbsoluteCenter, Box, Divider, Flex, IconButton, Input, Tooltip, useToast } from "@chakra-ui/react";
+import { Flex, IconButton, Input, Tooltip, useToast } from "@chakra-ui/react";
 
 import { OpenAIService } from "@/openai/service";
 
 
 // ********************************************************************************
+const openai = new OpenAIService()
+
 export const ApiKey = () => {
   const toast = useToast();
   // === State ====================================================================
@@ -13,7 +15,7 @@ export const ApiKey = () => {
   // === Effect ===================================================================
   /** load api key from local storage */
   useEffect(() => {
-    const apiKey = OpenAIService.getInstance().getApiKey();
+    const apiKey = openai.getApiKey();
     if (apiKey) {
       setApiKey(apiKey);
     }
@@ -27,7 +29,7 @@ export const ApiKey = () => {
   const saveApiKeyHandler = async (e: ChangeEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      OpenAIService.getInstance().storeApiKey(apiKey);
+      openai.storeApiKey(apiKey);
       toast({ title: "API Key saved", status: "success", description: `Your OpenAI API Key has been saved correctly` });
     } catch (error) {
       console.log(error);

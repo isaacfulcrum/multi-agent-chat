@@ -14,6 +14,7 @@ export type OpenAIApiKey = string; /*alias*/
 export type OpenAIEmbeddingRequest = Partial<CreateEmbeddingRequest> & Pick<CreateEmbeddingRequest, "input">; /* input is required */
 
 // === Chat completion ============================================================
+// NOTE: Not using the OpenAI type because the model is set in the API (although it's possible to set it in the request)
 export type OpenAIChatCompletionRequest = Partial<CreateChatCompletionRequest> & Pick<CreateChatCompletionRequest, "messages">; /* messages is required */
 
 export type OpenAIChatCompletionStreamRequest = Exclude<OpenAIChatCompletionRequest, "stream"> /*stream is not allowed to change*/;

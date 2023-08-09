@@ -8,6 +8,8 @@ import { MentalModelAgent, ScoringAgent } from "./prompt";
 import { Concept, ConceptFunctions, ConceptWithScore, conceptExtractionFunctions, conceptScoringFunctions } from "./type";
 
 // ****************************************************************************
+const openai = new OpenAIService();
+
 /** Returns a list of arguments of key concepts given a list of messages*/
 export const conceptExtractionRequest = async (messageHistory: ChatMessage[]): Promise<Concept[]> => {
   const completionMessages = chatMessagesToCompletionMessages(messageHistory);
@@ -30,7 +32,7 @@ export const conceptExtractionRequest = async (messageHistory: ChatMessage[]): P
     },
   ];
 
-  const completion = await OpenAIService.getInstance().chatCompletion({
+  const completion = await openai.chatCompletion({
     messages,
     functions: conceptExtractionFunctions,
     function_call: {
@@ -93,7 +95,7 @@ export const conceptScoringRequest = async (concepts: Concept[], agentDescriptio
     },
   ];
 
-  const completion = await OpenAIService.getInstance().chatCompletion({
+  const completion = await openai.chatCompletion({
     messages,
     functions: conceptScoringFunctions,
     function_call: {

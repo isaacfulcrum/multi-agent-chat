@@ -10,6 +10,9 @@ import { Concept, ConceptWithEmbedding, ConceptWithScore } from "./type";
 import { conceptExtractionRequest, conceptScoringRequest } from "./util";
 
 // ****************************************************************************
+
+const openai = new OpenAIService();
+
 /** Monitors the current coversation to store key information in memory. */
 export class ConceptService extends AbstractService {
   public constructor() {
@@ -21,7 +24,7 @@ export class ConceptService extends AbstractService {
   private async getEmbeddingFromConcept(concept: Concept): Promise<ConceptWithEmbedding | null /*error*/> {
     try {
       const input = `${concept.name}: ${concept.description}`;
-      const response = await OpenAIService.getInstance().getEmbedding({ input });
+      const response = await openai.getEmbedding({ input });
       if (!response) throw new Error("No embedding found");
       return {
         ...concept,

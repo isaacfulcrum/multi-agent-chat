@@ -1,3 +1,5 @@
+import { CreateChatCompletionResponse } from "openai";
+
 import { truncateMessagesToMaxTokens } from "@/util/tokens";
 import { ChatMessageRole } from "@/chat/type";
 import { AbstractService } from "@/util/service";
@@ -9,11 +11,9 @@ import { chatMessagesToCompletionMessages } from "./util";
 /** Handles everything related to the OpenAI API */
 // **********************************************************************************
 export class OpenAIService extends AbstractService {
-  // == Singleton =================================================================
-  private static singleton: OpenAIService;
-  public static getInstance() {
-    if (!OpenAIService.singleton) OpenAIService.singleton = new OpenAIService("OpenAI Service");
-    return OpenAIService.singleton;
+
+  constructor() {
+    super("OpenAI Service");
   }
 
   // == API Key ===================================================================
@@ -34,7 +34,7 @@ export class OpenAIService extends AbstractService {
   }
 
   // == Chat Completion ============================================================
-  public async chatCompletion({ messages, systemMessage, ...options }: ChatCompletionServiceRequest) {
+  public async chatCompletion({ messages, systemMessage, ...options }: ChatCompletionServiceRequest): Promise<CreateChatCompletionResponse | null> {
     try {
       const completionMessages = isChatMessageArray(messages) ? chatMessagesToCompletionMessages(messages) : messages;
       if (systemMessage) {
@@ -45,8 +45,9 @@ export class OpenAIService extends AbstractService {
       const { data } = await openAIChatCompletion({ messages: truncatedMessages, ...options });
       return data;
     } catch (e) {
-      console.error("Error getting chat completion: ", e);
       if (e instanceof Error) this.logger.error(e.message);
+
+      // Return null or throw the error again?
       return null;
     }
   }
