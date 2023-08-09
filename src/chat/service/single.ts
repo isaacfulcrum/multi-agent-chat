@@ -2,12 +2,18 @@ import { IAgent } from "@/agent/type";
 
 import { AbstractChatService, ChatMode } from "../type";
 import { createAgentMessage } from "../util";
+import { OpenAIService } from "@/openai/service";
+import { GenericAgent } from "@/agent/service";
 
 export class SingleAgentChat extends AbstractChatService {
   protected chatMode: ChatMode = ChatMode.Single; /*chat mode*/
+  protected chatAgent: IAgent; /*the agent that will be used to respond to the user*/
+
   // == Lifecycle =================================================================
-  public constructor(private readonly chatAgent: IAgent) {
-    super();
+
+  public constructor(protected readonly completionService: OpenAIService) {
+    super(completionService);
+    this.chatAgent = new GenericAgent(completionService);
   }
 
   protected async doInitialize(): Promise<void> {

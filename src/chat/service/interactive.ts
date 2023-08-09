@@ -9,15 +9,12 @@ import { createAgentMessage } from "../util";
 
 // ********************************************************************************
 const MAX_CONSECUTIVE_ASSISTANT_MESSAGES = 5;
+const openai = new OpenAIService();
 
 /** A chat service that evaluates the user's messages and selects the best agent
  * to respond to the user*/
 export class InteractiveAgentChat extends AbstractChatService {
   protected chatMode = ChatMode.Interactive; /*chat mode*/
-  // == Lifecycle =================================================================
-  public constructor() {
-    super();
-  }
 
   // == Completion ================================================================
   /** Semantically chooses an Agent based on a history of messages and the Agent's
@@ -29,8 +26,8 @@ export class InteractiveAgentChat extends AbstractChatService {
        * TODO: This prompt will be handled by a tool similar to an Agent,
        * that way this function won't interact directly with the OpenAI API */
       const prompt = getModeratorPrompt(messages, agentList);
-
-      const response = await OpenAIService.getInstance().chatCompletion({
+      // NOTE: Purposefully using openAI because this is a function-based completion
+      const response = await openai.chatCompletion({
         messages: prompt,
         systemMessage: moderatorDescription,
         functions: chatFunctions,
@@ -90,9 +87,9 @@ export class InteractiveAgentChat extends AbstractChatService {
       let agent: ConversationalAgent;
 
       if (selectedAgentSpecs.type === AgentType.Conceptual) {
-        agent = new ConceptualAgent(selectedAgentSpecs.id, OpenAIService.getInstance());
+        agent = new ConceptualAgent(selectedAgentSpecs.id, this.completionService);
       } else {
-        agent = new ConversationalAgent(selectedAgentSpecs.id, OpenAIService.getInstance()); /*default*/
+        agent = new ConversationalAgent(selectedAgentSpecs.id, this.completionService); /*default*/
       }
       await agent.initialize();
       const agentSpecs = agent.getSpecs(); // TODO: This is redundant, we already have the agent specs in the variable 'selectedAgentSpecs'

@@ -4,6 +4,7 @@ import { MdOutlineGroups, MdOutlinePersonOutline, MdOutlineRocketLaunch } from "
 
 import { AgentSpecs } from "@/agent/type";
 import { AbstractService, IService } from "@/util/service";
+import { OpenAIService } from "@/openai/service";
 
 // ********************************************************************************
 // NOTE: using custom Enum instead of the one from openai since it's not exported as
@@ -105,7 +106,7 @@ export interface IChatService extends IService {
 }
 
 export abstract class AbstractChatService extends AbstractService implements IChatService {
-  protected constructor() {
+  protected constructor(protected readonly completionService: OpenAIService) {
     super("Chat Service");
     this.messages$ = new BehaviorSubject<ChatMessage[]>([]);
     this.isLoading = false /*by default*/;
