@@ -106,8 +106,8 @@ export interface IChatService extends IService {
 }
 
 export abstract class AbstractChatService extends AbstractService implements IChatService {
-  protected constructor(protected readonly completionService: OpenAIService) {
-    super("Chat Service");
+  public constructor(protected readonly completionService: OpenAIService) {
+    super("Chat Service"); /*NOTE: generic name, for now only one chat at the time can exist*/
     this.messages$ = new BehaviorSubject<ChatMessage[]>([]);
     this.isLoading = false /*by default*/;
   }

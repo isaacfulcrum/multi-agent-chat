@@ -1,17 +1,15 @@
 import Head from "next/head";
 
-import { GenericAgent } from "@/agent/service";
 import { OpenAIService } from "@/openai/service";
+import { SingleAgentChat } from "@/chat/service";
 
 import { Chat } from "@/chat/component";
 import { ChatProviderComponent } from "@/chat/context/ChatProviderComponent";
-import { SingleAgentChat } from "@/chat/service";
-
-
-const defaultAgent = new GenericAgent(OpenAIService.getInstance())
-const chat = new SingleAgentChat(defaultAgent);
 
 // ********************************************************************************
+const openai = new OpenAIService()
+const chat = new SingleAgentChat(openai);
+
 export default function Home() {
   return (
     <>
