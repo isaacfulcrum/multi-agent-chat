@@ -24,7 +24,7 @@ abstract class AbstractAgent extends AbstractService implements IAgent {
     return this.agentSpecs;
   }
   // == Response ==================================================================
-  abstract getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null>;
+  abstract getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void>;
 }
 
 // ................................................................................
@@ -46,12 +46,7 @@ export class GenericAgent extends AbstractAgent {
 
   // == Response ==================================================================
   public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void) {
-    try {
-      await this.completionService.chatCompletionStream({ messages }, onUpdate);
-    } catch (e) {
-      this.logger.error(e);
-      throw new Error("Error getting response from Completion Service");
-    }
+    await this.completionService.chatCompletionStream({ messages }, onUpdate);
   }
 }
 
@@ -86,12 +81,7 @@ export class ConversationalAgent extends AbstractAgent {
   }
 
   public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void) {
-    try {
-      await this.getCompletion(messages, onUpdate);
-    } catch (e) {
-      this.logger.error(e);
-      throw new Error("Error getting response from Completion Service");
-    }
+    await this.getCompletion(messages, onUpdate);
   }
 }
 
@@ -104,22 +94,17 @@ export class ConceptualAgent extends ConversationalAgent {
 
   // == Response ==================================================================
   public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void) {
-    try {
-      const completion = await this.getCompletion(messages, onUpdate);
+    const completion = await this.getCompletion(messages, onUpdate);
 
-      // Concept extraction
-      const specs = this.getSpecs(); /*handles not found*/
-      // Assert that the specs are of type ConversationalAgentSpecs
-      if (!isConversationalAgentSpecs(specs)) throw new Error(`Agent ${this.id} is not a Conversational Agent`);
+    // Concept extraction
+    const specs = this.getSpecs(); /*handles not found*/
+    // Assert that the specs are of type ConversationalAgentSpecs
+    if (!isConversationalAgentSpecs(specs)) throw new Error(`Agent ${this.id} is not a Conversational Agent`);
 
-      const newMessage = createAgentMessage(completion, specs);
-      const newMessages = [...messages, newMessage]; /*add the new message to the list*/
+    const newMessage = createAgentMessage(completion, specs);
+    const newMessages = [...messages, newMessage]; /*add the new message to the list*/
 
-      this.conceptService.extractConcepts(newMessages, specs);
-    } catch (e) {
-      this.logger.error(e);
-      throw new Error("Error getting response from Completion Service");
-    }
+    await this.conceptService.extractConcepts(newMessages, specs);
   }
 }
 

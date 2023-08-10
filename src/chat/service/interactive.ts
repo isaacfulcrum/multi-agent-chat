@@ -82,9 +82,9 @@ export class InteractiveAgentChat extends AbstractChatService {
 
       // Request another completion
       this.requestCompletion();
-    } catch (error) {
-      this.logger.error(error);
-      throw new Error(`Error getting response from agent`); /*for the ui*/
+    } catch (e) {
+      this.logger.error(e); /*log the error*/
+      throw e;
     }
   }
 }

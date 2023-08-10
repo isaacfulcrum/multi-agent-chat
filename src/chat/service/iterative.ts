@@ -37,9 +37,9 @@ export class IterativeAgentChat extends AbstractChatService {
           this.updateMessage({ ...message, content });
         });
       }
-    } catch (error) {
-      this.logger.error(error);
-      throw new Error(`Error getting response from agent`); /*for the ui*/
+    } catch (e) {
+      this.logger.error(e); /*log the error*/
+      throw e;
     }
   }
 }
