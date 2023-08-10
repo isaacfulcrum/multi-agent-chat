@@ -12,6 +12,6 @@ const snapshotToAgent = (doc: DocumentSnapshot<DocumentData>): ConversationalAge
 
 // -- List -----------------------------------------------------------------------
 export const agents$ = fromQuery(agentsRef).pipe(map((snapshot) => snapshot.docs.map(snapshotToAgent)));
-export const agentsOnce$ = fromQueryOnce(agentsRef).pipe(map((snapshot) => snapshot.docs.map(snapshotToAgent)));
+export const agentsOnce$ = () => fromQueryOnce(agentsRef).pipe(map((snapshot) => snapshot.docs.map(snapshotToAgent)));
 // -- By id ----------------------------------------------------------------------
 export const agentOnceById$ = (id: string) => fromDocumentRefOnce(doc(agentsRef, id)).pipe(map(snapshotToAgent));

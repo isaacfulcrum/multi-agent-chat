@@ -26,7 +26,7 @@ export class AgentControllerService {
   // -- Read -----------------------------------------------------------------------
   /** returns the list of all agents */
   public async getAgents() {
-    return lastValueFrom(agentsOnce$);
+    return lastValueFrom(agentsOnce$());
   }
 
   /** return an agent by his id */
