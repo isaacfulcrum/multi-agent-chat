@@ -11,7 +11,6 @@ import { chatMessagesToCompletionMessages } from "./util";
 /** Handles everything related to the OpenAI API */
 // **********************************************************************************
 export class OpenAIService extends AbstractService {
-
   constructor() {
     super("OpenAI Service");
   }
@@ -34,7 +33,7 @@ export class OpenAIService extends AbstractService {
   }
 
   // == Chat Completion ============================================================
-  public async chatCompletion({ messages, systemMessage, ...options }: ChatCompletionServiceRequest): Promise<CreateChatCompletionResponse | null> {
+  public async chatCompletion({ messages, systemMessage, ...options }: ChatCompletionServiceRequest): Promise<CreateChatCompletionResponse> {
     try {
       const completionMessages = isChatMessageArray(messages) ? chatMessagesToCompletionMessages(messages) : messages;
       if (systemMessage) {
@@ -46,9 +45,7 @@ export class OpenAIService extends AbstractService {
       return data;
     } catch (e) {
       if (e instanceof Error) this.logger.error(e.message);
-
-      // Return null or throw the error again?
-      return null;
+      throw new Error("Error getting chat completion");
     }
   }
 
@@ -62,9 +59,8 @@ export class OpenAIService extends AbstractService {
       const truncatedMessages = truncateMessagesToMaxTokens(completionMessages, MAX_REQUEST_TOKENS);
       return openAIChatCompletionStream({ messages: truncatedMessages, ...options }, onUpdate);
     } catch (e) {
-      console.error("Error getting chat completion: ", e);
       if (e instanceof Error) this.logger.error(e.message);
-      return null;
+      throw new Error("Error getting chat completion");
     }
   }
 
@@ -76,7 +72,7 @@ export class OpenAIService extends AbstractService {
     } catch (e) {
       console.error("Error getting embedding: ", e);
       if (e instanceof Error) this.logger.error(e.message);
-      return null;
+      throw new Error("Error getting chat embedding");
     }
   }
 }
