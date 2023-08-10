@@ -1,4 +1,4 @@
-import { CardFooter, Flex, IconButton, Input as ChakraInput, Tooltip } from "@chakra-ui/react";
+import { CardFooter, Flex, IconButton, Input as ChakraInput, Tooltip, useToast } from "@chakra-ui/react";
 import { ChangeEventHandler, FormEventHandler, useState } from "react";
 import { ChatIcon } from "@chakra-ui/icons";
 
@@ -10,6 +10,7 @@ import { createUserMessage } from "../util";
 // ********************************************************************************
 export const Input = () => {
   const isMounted = useIsMounted()
+  const toast = useToast();
   const { chat } = useChat()
 
   // === State ====================================================================
@@ -45,8 +46,7 @@ export const Input = () => {
       /* run the completion directly */
       await chat.requestCompletion();
     } catch (error) {
-      // TODO: Handle error
-      console.log(error);
+      if (error instanceof Error) toast({ status: "error", title: "Error", description: error.message });
     } finally {
       setIsLoading(false);
     }
