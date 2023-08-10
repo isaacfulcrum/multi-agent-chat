@@ -32,7 +32,6 @@ export class LoggerService {
   /** adds an info log to the list
    * @param message The message to log. Accepts markdown. */
   public log(message: string, color = "#333333" /*default*/) {
-    console.log(color);
     LogControllerService.getInstance().addLog({ type: LogType.info, message, sender: this.name, color });
   }
 

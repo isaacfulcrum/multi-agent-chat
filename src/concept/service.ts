@@ -1,7 +1,6 @@
-import { ChatCompletionRequestMessage } from "openai";
-
 import { AbstractService } from "@/util/service";
 import { OpenAIService } from "@/openai/service";
+
 import { ConversationalAgentSpecs } from "@/agent/type";
 import { ChatMessage } from "@/chat/type";
 
@@ -10,7 +9,6 @@ import { Concept, ConceptWithEmbedding, ConceptWithScore } from "./type";
 import { conceptExtractionRequest, conceptScoringRequest } from "./util";
 
 // ****************************************************************************
-
 const openai = new OpenAIService();
 
 /** Monitors the current coversation to store key information in memory. */
@@ -30,8 +28,8 @@ export class ConceptService extends AbstractService {
         ...concept,
         embedding: response.data[0].embedding,
       };
-    } catch (error) {
-      console.error("Error getting embedding: ", error);
+    } catch (e) {
+      this.logger.error(e);
       return null;
     }
   }
@@ -50,8 +48,8 @@ export class ConceptService extends AbstractService {
           score: conceptWithScore ? conceptWithScore.score : 0,
         };
       });
-    } catch (error) {
-      console.error("Error scoring concepts: ", error);
+    } catch (e) {
+      this.logger.error(e);
       return null;
     }
   }
@@ -78,8 +76,9 @@ export class ConceptService extends AbstractService {
         agentId: agentSpecs.id,
         concepts: filteredConcepts,
       });
-    } catch (error) {
-      console.error("Error creating memories: ", error);
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error("Error extracting concepts"); /*for the ui*/
     }
   }
 }
