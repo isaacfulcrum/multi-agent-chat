@@ -46,8 +46,8 @@ export class SingleAgentChat extends AbstractChatService {
       });
       this.isLoading = false;
     } catch (error) {
-      console.error(error);
-      // Handle error with logs
+      if (error instanceof Error) this.logger.error(error.message);
+      else console.error(error);
     }
   }
 }

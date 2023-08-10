@@ -1,6 +1,5 @@
 import { AgentControllerService } from "@/agentController/service";
-import { ConceptualAgent, ConversationalAgent } from "@/agent/service";
-import { AgentType } from "@/agent/type";
+import { createAgent } from "@/agent/service";
 
 import { AbstractChatService, ChatMode } from "../type";
 import { createAgentMessage } from "../util";
@@ -12,7 +11,7 @@ import { createAgentMessage } from "../util";
  * to respond to the user*/
 export class IterativeAgentChat extends AbstractChatService {
   protected chatMode: ChatMode = ChatMode.Iterative; /*chat mode*/
- 
+
   /** Iterative agent completion request,every agent will have a chance to respond
    * as they come in the order of the agent list */
   public async requestCompletion() {
@@ -24,17 +23,11 @@ export class IterativeAgentChat extends AbstractChatService {
       for await (const agentSpecs of agentSpecList) {
         // create the message
         const message = createAgentMessage("", agentSpecs);
-        let messageAdded = false; /*add the message only when we have an actual response*/
 
-        // create the agent
-        let agent: ConversationalAgent;
-        if (agentSpecs.type === AgentType.Conceptual) {
-          agent = new ConceptualAgent(agentSpecs.id, this.completionService);
-        } else {
-          agent = new ConversationalAgent(agentSpecs.id, this.completionService); /*default*/
-        }
-
+        const agent = createAgent(agentSpecs, this.completionService);
         await agent.initialize();
+
+        let messageAdded = false; /*add the message only when we have an actual response*/
         await agent.getResponse(this.getMessages(), (content) => {
           if (!messageAdded) {
             this.addMessage({ ...message, content });
@@ -45,8 +38,8 @@ export class IterativeAgentChat extends AbstractChatService {
         });
       }
     } catch (error) {
-      console.error(error);
-      // Handle error with logs
+      if (error instanceof Error) this.logger.error(error.message);
+      else console.error(error);
     }
   }
 }
