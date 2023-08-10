@@ -1,5 +1,5 @@
-import { AgentIdentifier, AgentType } from "@/agent/type";
-import { ConceptualAgent, ConversationalAgent } from "@/agent/service";
+import { IAgent } from "@/agent/type";
+import { createAgent } from "@/agent/service";
 import { AgentControllerService } from "@/agentController/service";
 import { OpenAIService } from "@/openai/service";
 
@@ -17,47 +17,29 @@ export class InteractiveAgentChat extends AbstractChatService {
   protected chatMode = ChatMode.Interactive; /*chat mode*/
 
   // == Completion ================================================================
-  /** Semantically chooses an Agent based on a history of messages and the Agent's
-   *  description */
-  public async selectAgent(messages: ChatMessage[]): Promise<AgentIdentifier | null /*not found*/> {
-    try {
-      const agentList = await AgentControllerService.getInstance().getAgents();
-      /**
-       * TODO: This prompt will be handled by a tool similar to an Agent,
-       * that way this function won't interact directly with the OpenAI API */
-      const prompt = getModeratorPrompt(messages, agentList);
-      // NOTE: Purposefully using openAI because this is a function-based completion
-      const response = await openai.chatCompletion({
-        messages: prompt,
-        systemMessage: moderatorDescription,
-        functions: chatFunctions,
-        function_call: {
-          name: ChatFunctions.selectAgent,
-        },
-      });
-      if (!response) throw new Error("No response from OpenAI API");
-      // Return the arguments of the function call
+  /** Semantically chooses an Agent based on a history of messages and the Agent's description */
+  public async selectAgent(messages: ChatMessage[]): Promise<IAgent> {
+    const agentList = await AgentControllerService.getInstance().getAgents();
+    /* TODO: This prompt will be handled by a tool similar to an Agent,
+     * that way this function won't interact directly with the OpenAI API */
+    const prompt = getModeratorPrompt(messages, agentList);
 
-      const agentSelection = response.choices[0].message?.function_call?.arguments;
+    // NOTE: Purposefully using openAI because this is a function-based completion
+    const response = await openai.chatCompletion({
+      messages: prompt,
+      systemMessage: moderatorDescription,
+      functions: chatFunctions,
+      function_call: {
+        name: ChatFunctions.selectAgent,
+      },
+    });
 
-      if (!agentSelection) return null;
+    const agentSelection = response.choices[0].message?.function_call?.arguments;
+    const args = JSON.parse(agentSelection ?? "{}");
+    if (!args.agentId) throw new Error("No agent selected");
 
-      const args = JSON.parse(agentSelection ?? "{}");
-      if (!args.agentId) return null;
-
-      return args.agentId;
-    } catch (error) {
-      // Type assertion: Treat the error as 'any'
-      const errorWithResponse = error as any;
-
-      // Check if the error object has a property called 'response'
-      if (errorWithResponse.response) {
-        const errorMessage = errorWithResponse.response?.data?.error?.message;
-        throw new Error(`OpenAI API returned an error: ${errorMessage}`);
-      }
-      // If it doesn't have a 'response' property, re-throw the original error
-      throw error;
-    }
+    const agentSpecs = await AgentControllerService.getInstance().getAgent(args.agentId);
+    return createAgent(agentSpecs, this.completionService);
   }
 
   /** Single agent completion request, in this mode the selected agent in XXX will
@@ -75,24 +57,14 @@ export class InteractiveAgentChat extends AbstractChatService {
       const isConsecutive = messages.slice(-MAX_CONSECUTIVE_ASSISTANT_MESSAGES).every((message) => message.role === ChatMessageRole.Assistant);
       if (isConsecutive) return;
 
-      const agentId = await this.selectAgent(messages);
-      if (!agentId) throw new Error("No agent selected");
+      const agent = await this.selectAgent(messages);
+      await agent.initialize();
+      const agentSpecs = agent.getSpecs();
 
       const lastMessage = messages[messages.length - 1];
-      const alreadyResponded = lastMessage.role === ChatMessageRole.Assistant && lastMessage.agent.id === agentId;
+      const alreadyResponded = lastMessage.role === ChatMessageRole.Assistant && lastMessage.agent.id === agentSpecs.id;
       if (alreadyResponded) return;
 
-      // create the agent
-      const selectedAgentSpecs = await AgentControllerService.getInstance().getAgent(agentId);
-      let agent: ConversationalAgent;
-
-      if (selectedAgentSpecs.type === AgentType.Conceptual) {
-        agent = new ConceptualAgent(selectedAgentSpecs.id, this.completionService);
-      } else {
-        agent = new ConversationalAgent(selectedAgentSpecs.id, this.completionService); /*default*/
-      }
-      await agent.initialize();
-      const agentSpecs = agent.getSpecs(); // TODO: This is redundant, we already have the agent specs in the variable 'selectedAgentSpecs'
       // -----------------------------------------------------------------------
       /*create the message*/
       const message = createAgentMessage("", agentSpecs);
@@ -111,8 +83,8 @@ export class InteractiveAgentChat extends AbstractChatService {
       // Request another completion
       this.requestCompletion();
     } catch (error) {
-      console.error(error);
-      // Handle error
+      if (error instanceof Error) this.logger.error(error.message);
+      else console.error(error);
     }
   }
 }

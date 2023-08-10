@@ -8,7 +8,7 @@ import { ConceptService } from "@/concept/service";
 import { ChatMessage } from "@/chat/type";
 import { createAgentMessage } from "@/chat/util";
 
-import { AgentIdentifier, AgentSpecs, IAgent, isConversationalAgentSpecs } from "./type";
+import { AgentIdentifier, AgentSpecs, AgentType, ConversationalAgentSpecs, IAgent, isConversationalAgentSpecs } from "./type";
 import { AbstractService } from "@/util/service";
 
 // ********************************************************************************
@@ -114,7 +114,7 @@ export class ConceptualAgent extends ConversationalAgent {
       const specs = this.getSpecs(); /*handles not found*/
       // Assert that the specs are of type ConversationalAgentSpecs
       if (!isConversationalAgentSpecs(specs)) throw new Error(`Agent ${this.id} is not a Conversational Agent`);
-  
+
       const newMessage = createAgentMessage(completion, specs);
       const newMessages = [...messages, newMessage]; /*add the new message to the list*/
 
@@ -123,5 +123,21 @@ export class ConceptualAgent extends ConversationalAgent {
       console.error("Error getting response from OpenAI: ", error);
       return null;
     }
+  }
+}
+
+// == Factory ====================================================================
+// ................................................................................
+/** instantiates an agent based on its type */
+export function createAgent(agentSpecs: ConversationalAgentSpecs | null, completionService: OpenAIService): IAgent {
+  if (!agentSpecs) return new GenericAgent(completionService);
+  const { id, type } = agentSpecs;
+  switch (type) {
+    case AgentType.Conceptual:
+      return new ConceptualAgent(id, completionService);
+    case AgentType.Conversational:
+      return new ConversationalAgent(id, completionService);
+    default:
+      throw new Error(`Agent type ${type} not found`);
   }
 }
