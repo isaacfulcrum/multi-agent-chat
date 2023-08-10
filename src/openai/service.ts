@@ -21,8 +21,7 @@ export class OpenAIService extends AbstractService {
     try {
       return getApiKey();
     } catch (e) {
-      console.error("Error getting API key: ", e);
-      if (e instanceof Error) this.logger.error(e.message);
+      this.logger.error(e);
       return null;
     }
   }

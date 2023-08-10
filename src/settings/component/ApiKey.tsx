@@ -32,7 +32,6 @@ export const ApiKey = () => {
       openai.storeApiKey(apiKey);
       toast({ title: "API Key saved", status: "success", description: `Your OpenAI API Key has been saved correctly` });
     } catch (error) {
-      console.log(error);
       toast({ status: "error", title: "Error", description: "An error occured while saving your API Key" });
     }
   };
