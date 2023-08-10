@@ -45,12 +45,12 @@ export class GenericAgent extends AbstractAgent {
   }
 
   // == Response ==================================================================
-  public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
+  public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void) {
     try {
       await this.completionService.chatCompletionStream({ messages }, onUpdate);
-    } catch (error) {
-      console.error("Error getting response from Completion Service: ", error);
-      return null;
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error("Error getting response from Completion Service");
     }
   }
 }
@@ -70,7 +70,8 @@ export class ConversationalAgent extends AbstractAgent {
       if (!specs) throw new Error(`Agent ${this.id} not found`);
       this.agentSpecs = specs;
     } catch (e) {
-      console.error(`Could not initialize agent ${this.id}`, e);
+      this.logger.error(e);
+      throw new Error(`Could not initialize agent ${this.id}`);
     }
   }
 
@@ -81,18 +82,15 @@ export class ConversationalAgent extends AbstractAgent {
     const specs = this.getSpecs(); /*handles not found*/
     const systemMessage = isConversationalAgentSpecs(specs) ? specs.description : "";
 
-    const completion = await this.completionService.chatCompletionStream({ messages, systemMessage }, onUpdate);
-    if (!completion) throw new Error("No response from OpenAI API");
-    return completion;
+    return this.completionService.chatCompletionStream({ messages, systemMessage }, onUpdate);
   }
 
-  public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
+  public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void) {
     try {
-      const completion = await this.getCompletion(messages, onUpdate);
-      if (!completion) throw new Error("No response from Completion Service");
-    } catch (error) {
-      console.error("Error getting response from OpenAI: ", error);
-      return null;
+      await this.getCompletion(messages, onUpdate);
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error("Error getting response from Completion Service");
     }
   }
 }
@@ -105,10 +103,9 @@ export class ConceptualAgent extends ConversationalAgent {
   private conceptService = new ConceptService();
 
   // == Response ==================================================================
-  public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void): Promise<void | null> {
+  public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void) {
     try {
       const completion = await this.getCompletion(messages, onUpdate);
-      if (!completion) throw new Error("No response from Completion Service");
 
       // Concept extraction
       const specs = this.getSpecs(); /*handles not found*/
@@ -119,9 +116,9 @@ export class ConceptualAgent extends ConversationalAgent {
       const newMessages = [...messages, newMessage]; /*add the new message to the list*/
 
       this.conceptService.extractConcepts(newMessages, specs);
-    } catch (error) {
-      console.error("Error getting response from OpenAI: ", error);
-      return null;
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error("Error getting response from Completion Service");
     }
   }
 }

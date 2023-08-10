@@ -1,14 +1,16 @@
 import { lastValueFrom } from "rxjs";
 
-import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
+import { AgentIdentifier, ConversationalAgentSpecs } from "@/agent/type";
+import { AbstractService } from "@/util/service";
+
 import { CreateAgentRequest } from "./type";
 import { createAgent, deleteAgent } from "./callable";
-import { AgentIdentifier } from "@/agent/type";
+import { agentOnceById$, agents$, agentsOnce$ } from "./observable";
 
-/** All operations related to the agent list. It's only purpose is to interact directly with the
+/** All operations related to the agent list. It's main purpose is to interact directly with the
  * database, and to provide an observable of the agents list.*/
 // ********************************************************************************
-export class AgentControllerService {
+export class AgentControllerService extends AbstractService {
   // == Singleton =================================================================
   private static singleton: AgentControllerService;
   public static getInstance() {
@@ -16,22 +18,29 @@ export class AgentControllerService {
     return AgentControllerService.singleton;
   }
   // == Lifecycle =================================================================
-  protected constructor() {}
+  protected constructor() {
+    super("Agent Controller Service");
+  }
 
-  // == Agents List ===============================================================
+  // -- Read -----------------------------------------------------------------------
   /* Returns an observable of the list of all current agents in the database */
   public onAgents$() {
     return agents$;
   }
-  // -- Read -----------------------------------------------------------------------
+
   /** returns the list of all agents */
   public async getAgents() {
     return lastValueFrom(agentsOnce$());
   }
 
   /** return an agent by his id */
-  public async getAgent(id: string) {
-    return lastValueFrom(agentOnceById$(id)); // CHECK: should this be within the agent itself?
+  public async getAgent(id: AgentIdentifier): Promise<ConversationalAgentSpecs> {
+    try {
+      return lastValueFrom(agentOnceById$(id)); // CHECK: should this be within the agent itself?
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error(`Error getting agent`); /*for the ui*/
+    }
   }
 
   // -- Write ---------------------------------------------------------------------
@@ -39,16 +48,19 @@ export class AgentControllerService {
   public async newAgent(agent: CreateAgentRequest) {
     try {
       await createAgent(agent);
-    } catch (error) {
-      throw new Error(`Error creating agent: ${error}`);
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error(`Error creating agent`); /*for the ui*/
     }
   }
-  
+
+  /** Deletes an agent from the database */
   public async deleteAgent(agentId: AgentIdentifier) {
     try {
       await deleteAgent(agentId);
-    } catch (error) {
-      throw new Error(`Error creating agent: ${error}`);
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error(`Error deleting agent`); /*for the ui*/
     }
   }
 }
