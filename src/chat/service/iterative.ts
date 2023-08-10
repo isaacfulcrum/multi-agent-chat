@@ -38,8 +38,8 @@ export class IterativeAgentChat extends AbstractChatService {
         });
       }
     } catch (error) {
-      if (error instanceof Error) this.logger.error(error.message);
-      else console.error(error);
+      this.logger.error(error);
+      throw new Error(`Error getting response from agent`); /*for the ui*/
     }
   }
 }

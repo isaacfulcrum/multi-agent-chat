@@ -13,7 +13,9 @@ export class LogControllerService {
     if (!LogControllerService.instance) LogControllerService.instance = new LogControllerService();
     return LogControllerService.instance;
   }
-  protected constructor() { /*nothing yet*/ }
+  protected constructor() {
+    /*nothing yet*/
+  }
 
   // === Logs =====================================================================
   public addLog(log: Log) {
@@ -35,8 +37,10 @@ export class LoggerService {
   }
 
   /** adds an error log to the list
-   * @param message The message to log. Accepts markdown. */
-  public error(message: string, color = "#333333" /*default*/) {
-    LogControllerService.getInstance().addLog({ type: LogType.error, message, sender: this.name, color });
+   * @param error The error to log. Can be any type (usually an Error) */
+  public error(error: any, color = "#333333" /*default*/) {
+    if (error instanceof Error) {
+      LogControllerService.getInstance().addLog({ type: LogType.error, message: error.message, sender: this.name, color });
+    } else console.error(error); /*log the error to the console*/
   }
 }
