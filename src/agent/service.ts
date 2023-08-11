@@ -90,7 +90,7 @@ export class ConversationalAgent extends AbstractAgent {
  * a Concept Service to extract concepts from the conversation
  * NOTE: It extends from {@link ConversationalAgent}*/
 export class ConceptualAgent extends ConversationalAgent {
-  private conceptService = new ConceptService();
+  private conceptService = new ConceptService(this.id);
 
   // == Response ==================================================================
   public async getResponse(messages: ChatMessage[], onUpdate: (incoming: string) => void) {

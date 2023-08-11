@@ -13,8 +13,8 @@ const openai = new OpenAIService();
 
 /** Monitors the current coversation to store key information in memory. */
 export class ConceptService extends AbstractService {
-  public constructor() {
-    super("Concept Service");
+  public constructor(name: string) {
+    super(`Concept Service - ${name}`);
   }
 
   // == Classification ============================================================
