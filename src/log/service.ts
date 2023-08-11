@@ -1,11 +1,22 @@
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, map } from "rxjs";
 
-import { Log, LogType } from "./type";
+import { Log, LogIdentifier, LogSender, LogType } from "./type";
+import { nanoid } from "nanoid";
+import { normalizeString } from "@/util/string";
 
 // ********************************************************************************
 export class LogControllerService {
   private logs$ = new BehaviorSubject<Log[]>([]);
-  public onLog$ = () => this.logs$;
+  public onLog$ = (senderFilter: string) => {
+    if (!senderFilter) return this.logs$.asObservable();
+    return this.logs$.asObservable().pipe(map((logs) => logs.filter((log) => normalizeString(log.sender) === senderFilter)));
+  };
+
+  /** sender of all available logs
+   * K: sender name id (internal)
+   * V: sender name (display)*/
+  private logSender$ = new BehaviorSubject<LogSender[]>([]);
+  public onLogSender$ = () => this.logSender$;
 
   // === Singleton ================================================================
   private static instance: LogControllerService;
@@ -18,8 +29,19 @@ export class LogControllerService {
   }
 
   // === Logs =====================================================================
-  public addLog(log: Log) {
-    this.logs$.next([...this.logs$.getValue(), log]);
+  public addLog(log: Omit<Log, "id">) {
+    const id: LogIdentifier = nanoid();
+    const newLog: Log = { ...log, id };
+    this.logs$.next([...this.logs$.getValue(), newLog]);
+
+    // add the sender to the list of senders
+    const senderMap = this.logSender$.getValue();
+    const senderKey = normalizeString(log.sender);
+    // if the sender is not in the list, add it
+    if (!senderMap.find((sender) => normalizeString(sender.name) === senderKey)) {
+      senderMap.push({ id: senderKey, name: log.sender });
+    }
+    this.logSender$.next(senderMap);
   }
 }
 
