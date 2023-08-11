@@ -103,8 +103,9 @@ export class ConceptualAgent extends ConversationalAgent {
 
     const newMessage = createAgentMessage(completion, specs);
     const newMessages = [...messages, newMessage]; /*add the new message to the list*/
-
-    await this.conceptService.extractConcepts(newMessages, specs);
+    
+    // NOTE: This will not be awaited, it will be done in the background
+    this.conceptService.extractConcepts(newMessages, specs);
   }
 }
 
